@@ -42,7 +42,7 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
         <CardHead title="Matters for the Directors" aside={`${directors.length} matter${directors.length === 1 ? '' : 's'} for the Board`} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
           {directors.map(d => (
-            <div key={d.label} style={{ background: 'var(--snow-primary-light)', borderRadius: 16, padding: 16 }}>
+            <div key={d.label} className={'matter is-' + (d.pri || 'Low').toLowerCase()}>
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'start' }}>
                 <div style={{ ...body, fontWeight: 600 }}>{d.label}</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}><span style={{ ...body, whiteSpace: 'nowrap' }}>{signedGbp(d.delta)} · {pctLabel(d.pct)}</span><PriPill pri={d.pri} /></div>
@@ -66,7 +66,7 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
               const num = { ...body, fontWeight: r.sub ? 600 : 400 };
               const dl = { ...body, fontWeight: r.band === 'Investigate' ? 600 : 400 };
               return (
-                <div key={r.label} style={{ padding: '4px 0', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)' }}>
+                <div key={r.label} className={'var-row is-' + r.band.toLowerCase()}>
                   <div className="dt-row" style={{ alignItems: 'baseline', boxShadow: 'none' }}>
                     <div className="dt-main">
                       <div style={{ ...body, fontWeight: r.sub ? 600 : 400 }}>{r.label}</div>
@@ -75,12 +75,12 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
                     <div data-label="Current year draft" className="num" style={num}>{gbp(r.cy)}</div>
                     <div data-label="Prior year signed" className="num" style={num}>{gbp(r.py)}</div>
                     <div data-label="Movement" className="num" style={dl}>{signedGbp(r.delta)}</div>
-                    <div data-label="Movement %" className="num" style={dl}>{pctLabel(r.pct)}</div>
+                    <div data-label="Movement %" className="num" style={dl}>{pctLabel(r.pct)}<MoveBar pct={r.pct} /></div>
                     <div data-label="Assessment"><Pill bg={BAND_BG[r.band]}>{r.band}</Pill></div>
                   </div>
                   {r.note && r.band !== 'Expected' && (
                     <div style={{ padding: '0 12px 10px', maxWidth: 860, ...cap }}>
-                      <div>{aiNotes && <span style={{ fontSize: 11, background: '#EEF1FB', borderRadius: 999, padding: '1px 8px', marginRight: 6 }}>Drafted by AI</span>}{r.note}</div>
+                      <div>{aiNotes && <span style={{ fontSize: 11, background: 'var(--snow-status-pending-bg)', borderRadius: 999, padding: '1px 8px', marginRight: 6 }}>Drafted by AI</span>}{r.note}</div>
                       <div style={{ marginTop: 6 }}><span style={muted}>Suggested work — </span>{r.action}</div>
                       {r.band === 'Investigate' && canEditPoints && <Button size="sm" disabled={isRaised} style={{ marginTop: 10 }} onClick={() => onRaise(r)}>{isRaised ? 'Raised' : 'Raise Review Point'}</Button>}
                     </div>
@@ -97,4 +97,11 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
       </div>
     </div>
   );
+}
+
+// The size and direction of a movement, as a bar either side of zero (capped at 100%).
+function MoveBar({ pct }) {
+  if (pct == null || !Number.isFinite(pct)) return null;
+  const w = Math.min(100, Math.abs(pct)) / 2;
+  return <span className="move-bar" aria-hidden="true"><i className={pct < 0 ? 'is-down' : 'is-up'} style={{ width: `${w}%`, [pct < 0 ? 'right' : 'left']: '50%' }} /></span>;
 }

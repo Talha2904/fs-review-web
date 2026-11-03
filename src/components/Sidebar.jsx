@@ -1,35 +1,40 @@
 import React from 'react';
-import { cap, body, muted } from './ui';
+
+// The review steps take the colours of the login page's review cycle, so the workspace continues it.
+export const STEP_COLOR = { docs: '#E9B949', analysis: '#8DBB3A', var: '#3FB8C9', sched: '#4F86D3', vers: '#3FB8C9', disc: '#8DBB3A', signoff: '#A9B6C8' };
 
 // Fixed to the window height. The header and the signed-in user are pinned; the navigation and
 // fund details sit between them and scroll only if a window is too short to show everything.
+// Tabs marked `step` are drawn as the review rail: a connected sequence, hollow while locked.
 export default function Sidebar({ tabs, tab, onTab, meta, user, onSignOut, navTitle = 'Review', subtitle = 'Fund reporting', open = false }) {
   const wide = new Set(['Entity', 'Fund', 'Engagement', 'Year End', 'Preparer', 'Reviewer', 'Manager']); // values that need the full width
+  const item = (t, i, list) => {
+    if (t.section) return <div key={t.id} className="side-section">{t.section}</div>;
+    const on = tab === t.id, next = list[i + 1];
+    return (
+      <button type="button" key={t.id} disabled={t.locked} aria-current={on ? 'page' : undefined} onClick={() => onTab(t.id)}
+        className={'side-item' + (t.step ? ' is-step' : '') + (on ? ' is-on' : '')} style={t.step ? { '--c': STEP_COLOR[t.id] || '#A9B6C8' } : undefined}>
+        {t.step ? <span className="step-node" aria-hidden="true" /> : <span className="side-bar" aria-hidden="true" />}
+        {t.step && next?.step && <span className={'step-line' + (next.locked ? '' : ' is-open')} aria-hidden="true" />}
+        <span className="side-label">{t.label}</span>
+        {!t.locked && t.count !== '' && t.count != null && <span className="side-count">{t.count}</span>}
+      </button>
+    );
+  };
   return (
     <aside id="app-sidebar" className={'sidebar' + (open ? ' is-open' : '')}>
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '0 8px', flex: '0 0 auto' }}>
-        <img src="/pa-mark.png" alt="Project Accountants" style={{ width: 28, height: 28 }} />
+      <div className="side-brand">
+        <img src="/pa-mark.png" alt="Project Accountants" width="30" height="30" />
         <div>
-          <div style={{ ...body, fontWeight: 600 }}>FS Review</div>
-          <div style={{ ...cap, ...muted }}>{subtitle}</div>
+          <div className="side-brand-name">FS Review</div>
+          <div className="side-brand-sub">{subtitle}</div>
         </div>
       </div>
 
       <div className="sidebar-middle">
-        <nav aria-label={navTitle} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <div style={{ ...cap, ...muted, padding: '6px 8px' }}>{navTitle}</div>
-          {tabs.map(t => {
-            if (t.section) return <div key={t.id} style={{ ...cap, ...muted, padding: '14px 8px 6px' }}>{t.section}</div>;
-            const on = tab === t.id;
-            return (
-              <button type="button" key={t.id} className={'side-item' + (t.locked ? '' : ' hov')} disabled={t.locked} aria-current={on ? 'page' : undefined}
-                onClick={() => onTab(t.id)} style={{ background: on ? 'var(--snow-ink-5)' : 'transparent', color: t.locked ? 'var(--snow-black-20)' : 'var(--snow-black-100)' }}>
-                <span style={{ width: 4, height: 16, borderRadius: 8, background: on ? 'var(--snow-black-100)' : 'transparent' }} />
-                <span style={{ flex: 1 }}>{t.label}</span>
-                <span style={{ ...cap, ...muted }}>{t.locked ? '' : t.count}</span>
-              </button>
-            );
-          })}
+        <nav aria-label={navTitle} className="side-nav">
+          <div className="side-section">{navTitle}</div>
+          {tabs.map(item)}
         </nav>
 
         {meta.length > 0 && (

@@ -113,7 +113,7 @@ export default function RuleEditor({ rule, isNew, busy, error, onSave, onCancel,
         </div>
       )}
 
-      {(problem || error) && <div role={error ? 'alert' : undefined} style={{ ...cap, marginTop: 16, ...(error ? { background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '8px 12px' } : muted) }}>{error || problem}</div>}
+      {(problem || error) && <div role={error ? 'alert' : undefined} style={{ ...cap, marginTop: 16, ...(error ? { background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 12px' } : muted) }}>{error || problem}</div>}
 
       <div style={{ display: 'flex', gap: 8, marginTop: 20, justifyContent: 'space-between', flexWrap: 'wrap' }}>
         <div>

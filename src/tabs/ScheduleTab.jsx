@@ -7,7 +7,7 @@ import { SLOT_RULES, ACCEPT } from '../lib/fileRules';
 import { reviewStore } from '../lib/reviewStore';
 import { saveFile } from '../lib/download';
 
-const ST = { open: ['Open', 'var(--snow-status-approved-bg)'], responded: ['Responded', 'var(--snow-primary-blue)'], reopened: ['Reopened', 'rgba(255,71,71,0.14)'], cleared: ['Cleared', 'var(--snow-status-complete-bg)'] };
+const ST = { open: ['Open', 'var(--snow-status-approved-bg)'], responded: ['Responded', 'var(--snow-primary-blue)'], reopened: ['Reopened', 'var(--snow-status-rejected-bg)'], cleared: ['Cleared', 'var(--snow-status-complete-bg)'] };
 export const PointStatus = ({ status }) => <Pill bg={(ST[status] || ST.open)[1]}>{(ST[status] || ST.open)[0]}</Pill>;
 export const TYPES = { change: 'Needs a change', explain: 'Needs an explanation', info: 'For information' };
 const today = () => new Date().toISOString().slice(0, 10);
@@ -52,13 +52,12 @@ export default function ScheduleTab({ points, messages, user, people, sel, setSe
           {rows.map(p => {
             const on = current?.ref === p.ref, last = messages.filter(m => m.pointId === p.id).slice(-1)[0];
             return (
-              <button type="button" role="listitem" key={p.id} onClick={() => { setSel(p.ref); if (!window.matchMedia('(min-width: 1024px)').matches) requestAnimationFrame(() => document.getElementById('point-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }} aria-current={on ? 'true' : undefined} className="point-row"
-                style={{ textAlign: 'left', border: 0, font: 'inherit', cursor: 'pointer', background: on ? 'var(--snow-primary-light)' : '#fff', borderRadius: 12, padding: '12px 14px', boxShadow: on ? 'inset 0 0 0 2px var(--snow-black-100)' : RING }}>
+              <button type="button" role="listitem" key={p.id} onClick={() => { setSel(p.ref); if (!window.matchMedia('(min-width: 1024px)').matches) requestAnimationFrame(() => document.getElementById('point-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }} aria-current={on ? 'true' : undefined} className={`point-row pri-${(p.pri || 'Low').toLowerCase()} st-${p.status}`}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   <span style={{ ...body, fontWeight: 600 }}>{p.ref}</span><PriPill pri={p.pri} /><PointStatus status={p.status} />
                   {waitingForMe(p) && <Pill bg="var(--snow-black-100)"><span style={{ color: '#fff' }}>For you</span></Pill>}
                   {p.type !== 'change' && <Pill bg="var(--snow-ink-5)">{TYPES[p.type]}</Pill>}
-                  {p.dueDate && p.status !== 'cleared' && <span style={{ ...cap, color: isOverdue(p) ? '#B42318' : 'var(--snow-black-40)', fontWeight: isOverdue(p) ? 600 : 400 }}>{isOverdue(p) ? 'Overdue · ' : 'Due '}{dayLabel(p.dueDate)}</span>}
+                  {p.dueDate && p.status !== 'cleared' && <span style={{ ...cap, color: isOverdue(p) ? 'var(--pa-red)' : 'var(--snow-black-40)', fontWeight: isOverdue(p) ? 600 : 400 }}>{isOverdue(p) ? 'Overdue · ' : 'Due '}{dayLabel(p.dueDate)}</span>}
                 </div>
                 <div style={{ ...body, marginTop: 6 }}>{p.title}</div>
                 <div style={{ ...cap, ...muted, marginTop: 4 }}>{p.assignedTo ? `Assigned to ${p.assignedTo.name}` : 'Not assigned'} · {last ? `${KIND[last.kind].toLowerCase()} ${when(last.at)}` : when(p.raisedAt)}</div>
@@ -105,7 +104,7 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
 
   return (
     <section id="point-detail" className="point-detail" aria-label={`${p.ref} detail`} style={{ flex: '1.4 1 520px', minWidth: 'min(320px, 100%)', background: '#fff', borderRadius: 16, boxShadow: RING, padding: 'var(--card-pad)' }}>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><span style={h3}>{p.ref}</span><PriPill pri={p.pri} /><PointStatus status={p.status} />{p.aiDrafted && <Pill bg="#EEF1FB">Drafted by AI</Pill>}</div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><span style={h3}>{p.ref}</span><PriPill pri={p.pri} /><PointStatus status={p.status} />{p.aiDrafted && <Pill bg="var(--snow-status-pending-bg)">Drafted by AI</Pill>}</div>
       <div style={{ ...h3, fontWeight: 600, marginTop: 8 }}>{p.title}</div>
       <div style={{ ...cap, ...muted, marginTop: 4 }}>{[p.area, p.refs, p.amount != null && `${gbp(p.amount)} (${p.amount >= threshold ? 'above' : 'below'} threshold)`].filter(Boolean).join(' · ')}</div>
       {p.basis && <div style={{ ...body, marginTop: 12 }}>{p.basis}</div>}
@@ -123,7 +122,7 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
           <span style={muted}>Due</span>
           {canRaise && p.status !== 'cleared' && !locked
             ? <input type="date" className="input" style={{ height: 30, width: 'auto', fontSize: 12 }} value={p.dueDate || ''} onChange={e => actions.meta(p, { dueDate: e.target.value || null })} aria-label="Due date" />
-            : <b style={{ color: isOverdue(p) ? '#B42318' : undefined }}>{p.dueDate ? dayLabel(p.dueDate) + (isOverdue(p) ? ' (overdue)' : '') : 'No due date'}</b>}
+            : <b style={{ color: isOverdue(p) ? 'var(--pa-red)' : undefined }}>{p.dueDate ? dayLabel(p.dueDate) + (isOverdue(p) ? ' (overdue)' : '') : 'No due date'}</b>}
         </label>
         <label style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
           <span style={muted}>Assigned to</span>
@@ -137,20 +136,20 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
         </label>
       </div>
 
-      <ol aria-label="Thread" style={{ listStyle: 'none', margin: '16px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <ol aria-label="Thread" className="thread">
         {thread.map(m => (
-          <li key={m.id} style={{ display: 'flex', gap: 10 }}>
-            <div aria-hidden="true" style={{ width: 28, height: 28, flex: '0 0 auto', borderRadius: '50%', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 600,
-              background: m.kind === 'note' ? 'var(--snow-ink-5)' : m.author?.role === 'Preparer' ? 'var(--snow-status-approved-bg)' : 'var(--snow-primary-purple)' }}>{m.kind === 'note' ? '⚙' : initials(m.author?.name)}</div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ ...cap }}><b>{m.author?.name || 'FS Review'}</b>{m.author && <span style={muted}> · {m.author.role}</span>} <span style={muted}>· {when(m.at)}</span> <Pill bg={m.kind === 'reopen' ? 'rgba(255,71,71,0.12)' : m.kind === 'clear' ? 'var(--snow-status-complete-bg)' : m.kind === 'response' ? 'var(--snow-primary-blue)' : 'var(--snow-ink-5)'}>{KIND[m.kind]}</Pill></div>
+          <li key={m.id} className={'msg is-' + m.kind}>
+            <div aria-hidden="true" className="msg-avatar" style={{
+              background: m.kind === 'note' ? 'var(--snow-ink-5)' : m.author?.role === 'Preparer' ? 'var(--snow-status-approved-bg)' : 'var(--snow-primary-purple)' }}>{m.kind === 'note' ? <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M3 8.5 L6.5 12 L13 4.5" /></svg> : initials(m.author?.name)}</div>
+            <div className="msg-body">
+              <div style={{ ...cap }}><b>{m.author?.name || 'FS Review'}</b>{m.author && <span style={muted}> · {m.author.role}</span>} <span style={muted}>· {when(m.at)}</span> <Pill bg={m.kind === 'reopen' ? 'var(--snow-status-rejected-bg)' : m.kind === 'clear' ? 'var(--snow-status-complete-bg)' : m.kind === 'response' ? 'var(--snow-primary-blue)' : 'var(--snow-ink-5)'}>{KIND[m.kind]}</Pill></div>
               {m.text && <div style={{ ...body, marginTop: 4, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{m.text}</div>}
               {(m.attachments || []).length > 0 && (
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
                   {m.attachments.map((a, i) => a.type === 'version'
                     ? <span key={i} style={{ ...cap, background: 'var(--snow-primary-blue)', borderRadius: 6, padding: '3px 8px' }}>Revised {slotDefs.find(d => d.id === a.slot)?.name || a.slot} · v{a.version} · {a.fileName}</span>
                     : <button key={i} type="button" className="link" style={{ ...cap, background: '#fff', borderRadius: 6, padding: '3px 8px', boxShadow: RING }}
-                        onClick={async () => { const f = await reviewStore.fetchEvidence(a.id, a.fileName); if (f) saveFile(a.fileName, f); }} title="Download this evidence">📎 {a.fileName}</button>)}
+                        onClick={async () => { const f = await reviewStore.fetchEvidence(a.id, a.fileName); if (f) saveFile(a.fileName, f); }} title="Download this evidence"><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" style={{ marginRight: 4, verticalAlign: '-1px' }}><path d="M10.5 4.5 L5.2 9.8 a1.5 1.5 0 0 0 2.1 2.1 L13 6.2 a3 3 0 0 0 -4.2 -4.2 L3.2 7.6 a4.5 4.5 0 0 0 6.4 6.4 L13.5 10" /></svg>{a.fileName}</button>)}
                 </div>
               )}
             </div>
@@ -183,7 +182,7 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
               <span style={{ ...cap, ...muted }}>A revised document becomes the next version of that document and is checked like any upload. Evidence, such as a reconciliation or a custodian letter, is kept with this point.</span>
             </div>
           )}
-          {error && <div role="alert" style={{ ...cap, marginTop: 8, background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '8px 10px' }}>{error}</div>}
+          {error && <div role="alert" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 10px' }}>{error}</div>}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>{buttons}</div>
         </div>
       )}

@@ -70,7 +70,7 @@ const Section = ({ title, empty, children }) => (
 const Item = ({ item, onGo, strong, unread }) => (
   <li>
     <button type="button" className="bell-item" onClick={() => onGo(item)}>
-      <span className="bell-dot" style={{ background: strong ? 'var(--snow-black-100)' : unread ? '#2F6FEB' : 'transparent' }} aria-hidden="true" />
+      <span className="bell-dot" style={{ background: strong ? 'var(--snow-black-100)' : unread ? 'var(--pa-blue)' : 'transparent' }} aria-hidden="true" />
       <span style={{ minWidth: 0, flex: 1 }}>
         <span style={{ ...body, display: 'block', fontWeight: strong || unread ? 600 : 400 }}>{item.title}{unread && <span className="sr-only"> (new)</span>}</span>
         {item.detail && <span style={{ ...cap, ...muted, display: 'block', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.detail}</span>}

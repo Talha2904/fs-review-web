@@ -31,7 +31,7 @@ export default function AiSettingsTab({ auth, me }) {
     try { const r = await auth.testAi(); setTest({ state: 'ok', text: `Connected. ${r.model} answered in ${r.ms} ms.` }); }
     catch (e) { setTest({ state: 'err', text: e.message }); }
   }
-  const status = !key?.configured ? ['No API key on the server', 'rgba(255,71,71,0.12)']
+  const status = !key?.configured ? ['No API key on the server', 'var(--snow-status-rejected-bg)']
     : saved.enabled ? ['AI is on', 'var(--snow-status-complete-bg)'] : ['AI is off', 'var(--snow-status-approved-bg)'];
 
   return (
@@ -40,7 +40,7 @@ export default function AiSettingsTab({ auth, me }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}><div style={h2}>AI Settings</div><Pill bg={status[1]}>{status[0]}</Pill></div>
         <div style={{ ...body, ...muted, marginTop: 6 }}>Control where the app uses AI (Claude). Every number is still recalculated by the app’s own code, and every point is cleared by a person; AI reads documents and drafts text. Every AI call is recorded in the Activity Log.</div>
       </div>
-      {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'rgba(255,71,71,0.1)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}
+      {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'var(--snow-status-rejected-bg)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}
 
       <Card>
         <CardHead title="Connection" />
@@ -50,7 +50,7 @@ export default function AiSettingsTab({ auth, me }) {
         <div style={{ ...cap, ...muted, marginTop: 6, maxWidth: 720 }}>The key is never entered or shown in the app. It is set on the server as <code>ANTHROPIC_API_KEY</code> (in <code>.env</code> or your hosting provider’s secret settings), and only its last four characters are displayed here.</div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginTop: 14 }}>
           <Button kind="secondary" disabled={test?.state === 'running'} onClick={runTest}>{test?.state === 'running' ? 'Testing…' : 'Test Connection'}</Button>
-          {test && test.state !== 'running' && <span role={test.state === 'err' ? 'alert' : 'status'} style={{ ...cap, color: test.state === 'err' ? '#B42318' : '#2E6B12' }}>{test.text}</span>}
+          {test && test.state !== 'running' && <span role={test.state === 'err' ? 'alert' : 'status'} style={{ ...cap, color: test.state === 'err' ? 'var(--pa-red)' : '#2E6B12' }}>{test.text}</span>}
         </div>
       </Card>
 

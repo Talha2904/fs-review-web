@@ -107,7 +107,7 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
           {entity?.aiDecidedAt && <span style={{ ...cap, ...muted }}>Last recorded by {entity.aiDecidedBy?.name || '—'} on {new Date(entity.aiDecidedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}.</span>}
           {entity && !entity.aiDecidedAt && <span style={{ ...cap }}>No decision has been recorded for this client yet, so its funds are currently reviewed without AI.</span>}
         </fieldset>
-        {(error || (e.name && duplicate)) && <div role="alert" style={{ ...cap, background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '8px 12px' }}>{error || problem}</div>}
+        {(error || (e.name && duplicate)) && <div role="alert" style={{ ...cap, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 12px' }}>{error || problem}</div>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
           <Button kind="secondary" onClick={onClose}>Cancel</Button>
           <button type="submit" className="btn btn-primary" style={{ height: 36, padding: '0 16px' }} disabled={busy || !!problem}>{busy ? 'Saving…' : isNew ? 'Add Entity' : 'Save Entity'}</button>

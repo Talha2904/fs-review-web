@@ -47,7 +47,7 @@ export default function VersionsTab({ result, points, onNextDraft, onAttachNextD
               : <FileButton label={running ? 'Analysing…' : 'Attach Next Draft'} accept={ACCEPT.pdf} onFile={nextDraft} />}
             {demoV3Available && <Button kind="secondary" disabled={running} onClick={() => onNextDraft({ name: 'MGEF_2025_draft_FS_v3.pdf', sample: true })}>Use Sample v3</Button>}
           </> : <span style={{ ...cap, ...muted, maxWidth: 260 }}>Your role cannot run the version pass.</span>}
-          {problem && <div role="alert" style={{ ...cap, flexBasis: '100%', background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '8px 10px' }}>{problem}</div>}
+          {problem && <div role="alert" style={{ ...cap, flexBasis: '100%', background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 10px' }}>{problem}</div>}
         </div>
       </Card>
 

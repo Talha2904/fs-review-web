@@ -53,7 +53,7 @@ export default function ChecklistsTab({ store }) {
         <Segmented value={fw} onChange={v => { if (!dirty || window.confirm('Discard unsaved changes?')) setFw(v); }} options={FRAMEWORKS.map(f => [f, f])} />
       </div>
       {saved.starter && <div role="status" style={{ ...cap, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '10px 14px' }}>This is the <b>starter checklist</b>: a short, generic list of common investment fund disclosures with indicative references. Replace it with your firm’s checklist (Import from Excel) before relying on it.</div>}
-      {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'rgba(255,71,71,0.1)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}
+      {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'var(--snow-status-rejected-bg)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}
       <Card>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ ...body }}><b>{fw}</b> · version {saved.version}{saved.savedAt ? ` · saved ${new Date(saved.savedAt).toLocaleDateString('en-GB')}` : ''} · {items.length} items</div>

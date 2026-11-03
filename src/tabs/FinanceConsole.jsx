@@ -11,7 +11,7 @@ import { invoicePdf, toBase64 } from '../lib/invoicePdf';
 
 const CRUMB = { ready: 'Ready to Invoice', invoices: 'Invoices', recovery: 'Recovery', settings: 'Billing Settings' };
 const STATUS_BG = { Draft: 'var(--snow-ink-5)', Issued: 'var(--snow-primary-blue)', 'Part paid': 'var(--snow-primary-blue)', Paid: 'var(--snow-status-complete-bg)',
-  'Paid (part written off)': 'var(--snow-status-complete-bg)', 'Written off': 'var(--snow-ink-5)', Overdue: 'rgba(255,71,71,0.14)', 'Overdue (part settled)': 'rgba(255,71,71,0.14)', Cancelled: 'var(--snow-ink-5)', Credited: 'var(--snow-ink-5)', 'Part credited': 'var(--snow-primary-blue)' };
+  'Paid (part written off)': 'var(--snow-status-complete-bg)', 'Written off': 'var(--snow-ink-5)', Overdue: 'var(--snow-status-rejected-bg)', 'Overdue (part settled)': 'var(--snow-status-rejected-bg)', Cancelled: 'var(--snow-ink-5)', Credited: 'var(--snow-ink-5)', 'Part credited': 'var(--snow-primary-blue)' };
 const d = iso => iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 const toP = v => Math.round(parseFloat(String(v).replace(/[£,\s]/g, '')) * 100) || 0;   // pounds typed -> pence
 const fromP = p => ((p || 0) / 100).toFixed(2);
@@ -53,7 +53,7 @@ export default function FinanceConsole({ user, auth, onSignOut }) {
       sidebar={{ tabs, tab: open ? 'invoices' : tab, onTab: t => { setOpen(null); setTab(t); setMsg({ kind: '', text: '' }); }, user, onSignOut, meta: [], navTitle: 'Billing', subtitle: 'Finance' }}
       actions={<NotificationBell actions={notes.actions} updates={notes.updates} seenAt="" onSeen={() => {}} onGo={n => { setTab(n.go); setOpen(n.inv || null); }} />}>
         <div style={page}>
-          {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'rgba(255,71,71,0.1)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}
+          {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'var(--snow-status-rejected-bg)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}
           {!st ? <div style={{ ...body, ...muted }}>Loading…</div>
             : open ? <InvoiceDetail inv={st.invoices.find(i => i.id === open)} st={st} usage={usage} act={act} extra={extra} auth={auth} integ={integ} onBack={() => setOpen(null)} />
             : tab === 'ready' ? <Ready queue={queue} unlocked={unlockedAfter} st={st} onCreate={async x => { if (x.draft) return setOpen(x.draft.id); const r = await act({ type: 'createDraft', engagementId: x.e.engagementId }, 'Draft invoice created.'); if (r) setOpen(r.state.invoices[r.state.invoices.length - 1].id); }} />
@@ -128,7 +128,7 @@ function Invoices({ st, onOpen }) {
               <span className="dt-main"><span style={body}>{i.clientName}</span><span style={{ ...cap, ...muted, display: 'block' }}>{i.fundName}</span></span>
               <span data-label="Issued" style={cap}>{d(i.issuedAt)}</span><span data-label="Due" style={cap}>{d(i.dueDate)}</span>
               <span data-label="Total" style={body}>{money(t.gross)}</span><span data-label="Outstanding" style={{ ...body, fontWeight: t.outstanding ? 600 : 400 }}>{i.status === 'issued' ? money(t.outstanding) : '—'}</span>
-              <span data-label="Status"><Pill bg={STATUS_BG[s]}>{s}</Pill>{daysOverdue(i) > 0 && <span style={{ ...cap, color: '#B42318', marginLeft: 6 }}>{daysOverdue(i)} days</span>}{i.xero && <span style={{ ...cap, ...muted, marginLeft: 6 }}>In Xero</span>}</span>
+              <span data-label="Status"><Pill bg={STATUS_BG[s]}>{s}</Pill>{daysOverdue(i) > 0 && <span style={{ ...cap, color: 'var(--pa-red)', marginLeft: 6 }}>{daysOverdue(i)} days</span>}{i.xero && <span style={{ ...cap, ...muted, marginLeft: 6 }}>In Xero</span>}</span>
             </button>); })}
         </div>)}
     </Card>
@@ -177,7 +177,7 @@ function InvoiceDetail({ inv, st, usage, act, extra, auth, integ, onBack }) {
       <CardHead title="Lines" aside={draft ? 'Amounts in £, before VAT' : `Issued ${d(inv.issuedAt)} · due ${d(inv.dueDate)}`} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
         {view.lines.map(l => (
-          <div key={l.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(96px,160px) 36px', gap: 10, alignItems: 'start', padding: 12, borderRadius: 10, background: l.kind === 'ai' ? '#F4F6FD' : 'var(--snow-primary-light)' }}>
+          <div key={l.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(96px,160px) 36px', gap: 10, alignItems: 'start', padding: 12, borderRadius: 10, background: l.kind === 'ai' ? 'var(--snow-status-pending-bg)' : 'var(--snow-primary-light)' }}>
             <div>
               {draft ? <input className="input" aria-label="Line description" value={l.description} onChange={e => setLine(l.id, { description: e.target.value })} /> : <div style={body}>{l.description}</div>}
               {l.kind === 'ai' && <div style={{ ...cap, ...muted, marginTop: 6 }}>{l.unpriced && l.usageCount ? 'AI prices or the USD to GBP rate are not set, so this line can’t be charged yet.' : `${money(l.costAtCost)} at cost${l.markupPct ? ` plus ${l.markupPct}% = ${money(Math.round((l.costAtCost || 0) * (1 + l.markupPct / 100)))}` : ''}`}{l.usageCount === 0 && ' No AI was used on this fund.'}</div>}
@@ -308,7 +308,7 @@ function Recovery({ st, usage }) {
       <CardHead title="Ageing of Outstanding" />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
         {ages.map(([k, v]) => <div key={k} style={{ display: 'grid', gridTemplateColumns: 'minmax(72px,120px) 1fr minmax(64px,120px)', gap: 10, alignItems: 'center', ...cap }}>
-          <span>{k}</span><span style={{ height: 12, borderRadius: 6, background: 'var(--snow-ink-5)' }}><span style={{ display: 'block', height: 12, borderRadius: 6, width: `${(v / maxAge) * 100}%`, background: k === 'Not yet due' ? '#4F86D3' : '#D92D20' }} /></span><span style={{ textAlign: 'right' }}>{money(v)}</span></div>)}
+          <span>{k}</span><span style={{ height: 12, borderRadius: 6, background: 'var(--snow-ink-5)' }}><span style={{ display: 'block', height: 12, borderRadius: 6, width: `${(v / maxAge) * 100}%`, background: k === 'Not yet due' ? '#4F86D3' : 'var(--pa-red)' }} /></span><span style={{ textAlign: 'right' }}>{money(v)}</span></div>)}
       </div>
     </Card>
     <Card>

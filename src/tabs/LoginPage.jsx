@@ -10,7 +10,7 @@ const STAGES = [
   ['Checks recalculated', 'code', 'Totals are recast and tied out by the app’s own arithmetic, so every result can be reproduced.', '#8DBB3A'],
   ['Movements explained', 'ai', 'AI drafts the reason behind each material change for the reviewer to confirm.', '#3FB8C9'],
   ['Disclosures read', 'ai', 'AI looks for stale wording, changed directors and events left out of the notes.', '#4F86D3'],
-  ['Review points cleared', 'reviewer', 'The reviewer decides. AI re-tests each open point on the next draft.', '#5B6B7F']
+  ['Review points cleared', 'reviewer', 'The reviewer decides. AI re-tests each open point on the next draft.', '#A9B6C8']
 ];
 
 // A generic AI mark (not tied to any one model or vendor): a circle in the four
@@ -131,9 +131,10 @@ export default function LoginPage({ auth, setupRequired, onSignedIn, matrix }) {
       </section>
 
       <main className="login-form">
+        <span className="login-ring" aria-hidden="true" />
         {mode === 'forgot' && <ForgotCard auth={auth} onBack={() => { setMode('signin'); setError(''); }} />}
         {mode === 'reset' && <ResetCard auth={auth} onDone={msg => { try { window.history.replaceState(null, '', window.location.pathname); } catch { /* ignore */ } setNotice(msg); setMode('signin'); }} />}
-        {mode === 'signin' && <form onSubmit={submit} className="login-card" noValidate>
+        {mode === 'signin' && <form key="signin" onSubmit={submit} className="login-card" noValidate>
           {notice && <div role="status" style={{ ...cap, marginBottom: 12, background: 'var(--snow-status-complete-bg)', borderRadius: 8, padding: '10px 12px' }}>{notice}</div>}
           <h1 className="login-h1">{setupRequired ? 'Create the administrator account' : 'Sign in'}</h1>
           <p style={{ ...body, ...muted, margin: '6px 0 0' }}>
@@ -154,10 +155,10 @@ export default function LoginPage({ auth, setupRequired, onSignedIn, matrix }) {
           </div>
 
           {caps && <div role="status" style={{ ...cap, marginTop: 12 }}>Caps Lock is on.</div>}
-          {error && <div role="alert" style={{ ...cap, marginTop: 12, background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '10px 12px' }}>{error}</div>}
+          {error && <div role="alert" style={{ ...cap, marginTop: 12, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '10px 12px' }}>{error}</div>}
 
           <button type="submit" className="btn btn-primary login-submit" disabled={busy || !f.username || !f.password || (setupRequired && !f.name)}>
-            {busy ? (setupRequired ? 'Creating…' : 'Signing in…') : setupRequired ? 'Create Account and Sign In' : 'Sign In'}
+            {busy && <span className="spin" aria-hidden="true" />}{busy ? (setupRequired ? 'Creating…' : 'Signing in…') : setupRequired ? 'Create Account and Sign In' : 'Sign In'}
           </button>
 
           {!setupRequired && (auth.resetAvailable
@@ -188,13 +189,13 @@ function ForgotCard({ auth, onBack }) {
     catch (err) { setError(err.message); } finally { setBusy(false); }
   }
   return (
-    <form onSubmit={submit} className="login-card" noValidate>
+    <form key="forgot" onSubmit={submit} className="login-card" noValidate>
       <h1 className="login-h1">Reset your password</h1>
       <p style={{ ...body, ...muted, margin: '6px 0 0' }}>Enter your username or the email address on your account. We’ll email you a link to choose a new password.</p>
       {msg ? <div role="status" style={{ ...cap, marginTop: 16, background: 'var(--snow-status-complete-bg)', borderRadius: 8, padding: '10px 12px' }}>{msg}</div> : (
         <div className="login-fields"><Field label="Username or email"><input className="input input-lg" autoComplete="username" autoCapitalize="none" spellCheck={false} value={login} onChange={e => { setLogin(e.target.value); setError(''); }} autoFocus /></Field></div>)}
-      {error && <div role="alert" style={{ ...cap, marginTop: 12, background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '10px 12px' }}>{error}</div>}
-      {!msg && <button type="submit" className="btn btn-primary login-submit" disabled={busy || !login.trim()}>{busy ? 'Sending…' : 'Email Me a Reset Link'}</button>}
+      {error && <div role="alert" style={{ ...cap, marginTop: 12, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '10px 12px' }}>{error}</div>}
+      {!msg && <button type="submit" className="btn btn-primary login-submit" disabled={busy || !login.trim()}>{busy && <span className="spin" aria-hidden="true" />}{busy ? 'Sending…' : 'Email Me a Reset Link'}</button>}
       <p style={{ ...cap, margin: '16px 0 0' }}><button type="button" className="link" onClick={onBack}>Back to sign in</button></p>
     </form>);
 }
@@ -211,7 +212,7 @@ function ResetCard({ auth, onDone }) {
     catch (err) { setError(err.message); setBusy(false); }
   }
   return (
-    <form onSubmit={submit} className="login-card" noValidate>
+    <form key="reset" onSubmit={submit} className="login-card" noValidate>
       <h1 className="login-h1">Choose a new password</h1>
       <p style={{ ...body, ...muted, margin: '6px 0 0' }}>The link works once. When you save, you’ll be signed out everywhere else.</p>
       <div className="login-fields">
@@ -221,8 +222,8 @@ function ResetCard({ auth, onDone }) {
         </Field>
         <Field label="Confirm new password"><input className="input input-lg" type={show ? 'text' : 'password'} autoComplete="new-password" value={confirm} onChange={e => { setConfirm(e.target.value); setError(''); }} /></Field>
       </div>
-      {error && <div role="alert" style={{ ...cap, marginTop: 12, background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '10px 12px' }}>{error}</div>}
-      <button type="submit" className="btn btn-primary login-submit" disabled={busy || !pw || !confirm}>{busy ? 'Saving…' : 'Save New Password'}</button>
+      {error && <div role="alert" style={{ ...cap, marginTop: 12, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '10px 12px' }}>{error}</div>}
+      <button type="submit" className="btn btn-primary login-submit" disabled={busy || !pw || !confirm}>{busy && <span className="spin" aria-hidden="true" />}{busy ? 'Saving…' : 'Save New Password'}</button>
       <p style={{ ...cap, margin: '16px 0 0' }}><button type="button" className="link" onClick={() => onDone('')}>Back to sign in</button></p>
     </form>);
 }

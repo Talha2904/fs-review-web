@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { slotDefs, steps } from '../data/sampleFund';
-import { Button, FileButton, Pill, Dot, cap, body, h2, h3, muted, page, RING } from '../components/ui';
+import { Button, FileButton, Pill, cap, body, h2, h3, muted, page, RING } from '../components/ui';
 import Modal from '../components/Modal';
 import { SLOT_RULES, ACCEPT } from '../lib/fileRules';
 import { validateFile } from '../lib/validateFile';
@@ -10,11 +10,14 @@ const STATUS = {
   checking: ['Checking…', 'var(--snow-ink-5)'],
   recognised: ['Recognised', 'var(--snow-status-complete-bg)'],
   check: ['Needs a check', 'var(--snow-status-approved-bg)'],
-  mismatch: ['Mismatch', 'rgba(255,71,71,0.14)'],
+  mismatch: ['Mismatch', 'var(--snow-status-rejected-bg)'],
   sample: ['Sample', 'var(--snow-ink-5)']
 };
-const ICON = { ok: ['✓', '#2E6B12'], warn: ['!', '#8A5A00'], fail: ['✕', '#B42318'] };
+const ICON = { ok: ['✓', '#2E6B12'], warn: ['!', '#8A5A00'], fail: ['✕', 'var(--pa-red)'] };
 const WF = { preparing: ['Preparing', 'var(--snow-ink-5)'], ready: ['Ready for review', 'var(--snow-status-complete-bg)'], returned: ['Sent back to preparer', 'var(--snow-status-approved-bg)'] };
+// The card's state, for its colour: waiting, fine, needs a look, or wrong.
+const TONE = { checking: 'busy', recognised: 'ok', sample: 'ok', check: 'warn', mismatch: 'bad' };
+const toneOf = v => !v ? 'empty' : v.confirmation || v.readWith === 'ai' ? 'ok' : TONE[v.validation?.status] || 'busy';
 const when = iso => iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
 
 export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onReadWithAi, umbrella = null, onCopyUmbrella, files, review, editable, canConfirm = false, signed = false, canSendBack, onConfirm, onMarkReady, onSendBack, attach, detach, attachAll, ready, phase, step, error, analysisSub, onAnalyse, rerun = { blocked: false, changes: [] }, blockedReason = '', canRun = true, canAttach = true, role, onRejected }) {
@@ -22,6 +25,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
   const [infos, setInfos] = useState({});       // slot id -> note from the last upload (e.g. same content)
   const [confirming, setConfirming] = useState(null); // version being confirmed
   const [sendingBack, setSendingBack] = useState(false);
+  const [dropOn, setDropOn] = useState(''); // slot a file is being dragged over
   const tryAttach = async (d, file) => {
     const why = await validateFile(d.id, file, d.name);
     setProblems(p => ({ ...p, [d.id]: why }));
@@ -74,22 +78,27 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
           const st = v ? (v.confirmation ? ['Confirmed', 'var(--snow-status-complete-bg)'] : v.readWith === 'ai' ? ['Read by AI', 'var(--snow-primary-blue)'] : STATUS[v.validation?.status] || STATUS.checking) : null;
           return (
             <section key={d.id} aria-label={d.name}
-              onDragOver={e => e.preventDefault()}
-              onDrop={e => { e.preventDefault(); const file = e.dataTransfer.files?.[0]; if (file && editable) tryAttach(d, file); }}
-              style={{ flex: '1 1 300px', minWidth: 'min(260px, 100%)', display: 'flex', flexDirection: 'column', background: v ? 'var(--snow-primary-light)' : '#fff', borderRadius: 16, boxShadow: v ? 'none' : RING, padding: 24 }}>
+              onDragOver={e => { e.preventDefault(); if (editable && dropOn !== d.id) setDropOn(d.id); }}
+              onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDropOn(''); }}
+              onDrop={e => { e.preventDefault(); setDropOn(''); const file = e.dataTransfer.files?.[0]; if (file && editable) tryAttach(d, file); }}
+              className={`doc-card is-${toneOf(v)}${dropOn === d.id ? ' is-drop' : ''}`}>
+              {dropOn === d.id && <div className="doc-drop" aria-hidden="true">Drop to attach as {d.name}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ ...cap, ...muted }}>{d.kind}</span>
                 {st ? <Pill bg={st[1]}>{st[0]}</Pill> : <Pill bg={d.kind === 'Optional' ? 'var(--snow-ink-5)' : 'var(--snow-status-approved-bg)'}>{d.kind === 'Optional' ? 'Optional' : 'Needed'}</Pill>}
               </div>
-              <div style={{ ...h3, marginTop: 12 }}>{d.name}</div>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 12 }}>
+                <span className={'doc-glyph is-' + (SLOT_RULES[d.id]?.type || 'any')} aria-hidden="true">{SLOT_RULES[d.id]?.type === 'xlsx' ? 'XLS' : SLOT_RULES[d.id]?.type === 'pdf' ? 'PDF' : 'DOC'}</span>
+                <div style={h3}>{d.name}</div>
+              </div>
               <div style={{ ...body, ...muted, marginTop: 4 }}>{d.desc}</div>
               <div style={{ ...cap, ...muted, marginTop: 6 }}>Accepts: <b style={{ color: 'var(--snow-black-80)' }}>{SLOT_RULES[d.id]?.label || 'any file'}</b></div>
               {infos[d.id] && <div role="status" style={{ ...cap, marginTop: 10, background: 'var(--snow-primary-blue)', borderRadius: 8, padding: '8px 10px' }}>{infos[d.id]}</div>}
-              {problems[d.id] && <div role="alert" style={{ ...cap, marginTop: 10, background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '8px 10px' }}>{problems[d.id]}</div>}
+              {problems[d.id] && <div role="alert" style={{ ...cap, marginTop: 10, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 10px' }}>{problems[d.id]}</div>}
 
               {v ? (
                 <>
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between', alignItems: 'center', marginTop: 14, padding: '8px 12px', background: '#fff', borderRadius: 8, boxShadow: RING }}>
+                  <div className="doc-file">
                     <span style={{ ...cap, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><b>v{v.version}</b> · {v.fileName}{v.sameAs ? ` · same content as v${v.sameAs}` : ''}</span>
                     {editable && <button type="button" className="link" aria-label={`Remove ${d.name}`} onClick={() => detach(d.id)} style={{ ...body, ...muted, padding: '0 4px' }}>×</button>}
                   </div>
@@ -98,8 +107,8 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
                   {v.validation?.checks?.length > 0 && (
                     <ul aria-label={`Checks for ${d.name}`} style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {v.validation.checks.map((c, i) => (
-                        <li key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', ...cap }}>
-                          <span aria-hidden="true" style={{ width: 16, flex: '0 0 auto', textAlign: 'center', fontWeight: 700, color: ICON[c.result][0] && ICON[c.result][1] }}>{ICON[c.result][0]}</span>
+                        <li key={i} className="doc-check" style={{ '--i': i }}>
+                          <span aria-hidden="true" className={'doc-check-ico is-' + c.result}>{ICON[c.result][0]}</span>
                           <span><span className="sr-only">{c.result === 'ok' ? 'Passed: ' : c.result === 'warn' ? 'Check: ' : 'Problem: '}</span>{c.detail}</span>
                         </li>
                       ))}
@@ -145,7 +154,8 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
                   )}
                 </>
               ) : !editable ? <div style={{ ...cap, ...muted, marginTop: 16 }}>Not attached yet.</div> : (
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
+                <div className="doc-empty">
+                  <span className="doc-empty-hint">Drag a file here, or</span>
                   <FileButton label="Attach File" accept={ACCEPT[SLOT_RULES[d.id]?.type]} onFile={file => tryAttach(d, file)} />
                   <Button kind="secondary" onClick={() => useSample(d)}>Sample</Button>
                 </div>
@@ -155,9 +165,12 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
         })}
       </div>
 
-      <section aria-label="Document readiness" style={{ background: '#fff', borderRadius: 16, boxShadow: RING, padding: 'var(--card-pad)', display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <section aria-label="Document readiness" className="card" style={{ padding: 'var(--card-pad)', display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 640 }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}><div style={h3}>Ready for Review</div><Pill bg={WF[wf.state][1]}>{WF[wf.state][0]}</Pill></div>
+          <div className="ready-meter" role="img" aria-label={`${required.filter(d => isCleared(current[d.id])).length} of ${required.length} required documents cleared`}>
+            {required.map(d => <i key={d.id} className={isCleared(current[d.id]) ? 'is-on' : current[d.id] ? 'is-half' : ''} title={d.name} />)}
+          </div>
           {wf.state === 'ready' && <div style={{ ...body, marginTop: 6 }}>Marked ready by <b>{wf.by?.name}</b> · {when(wf.at)}. The documents are locked; send them back to change them.</div>}
           {wf.state === 'returned' && <div style={{ ...body, marginTop: 6, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '8px 12px' }}>Sent back by <b>{wf.by?.name}</b> · {when(wf.at)}: “{wf.reason}”</div>}
           {wf.state !== 'ready' && (blockers.length
@@ -170,7 +183,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
         </div>
       </section>
 
-      <div style={{ background: 'var(--snow-primary-blue)', borderRadius: 16, padding: 'var(--card-pad)', display: 'flex', flexWrap: 'wrap', gap: 28, alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className={'launch' + (running ? ' is-running' : done ? ' is-done' : ready ? ' is-ready' : '')}>
         <div style={{ maxWidth: 560 }}>
           <div style={h3}>{heading}</div>
           <div style={{ ...body, marginTop: 6 }}>{sub}</div>
@@ -180,15 +193,16 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
           {blockedReason && !signed && <div role="status" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-approved-bg)', padding: '8px 12px', borderRadius: 8 }}>{blockedReason}</div>}
           {signed ? <div style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>The review is signed off and locked. A Manager can unlock it on the Sign-off tab.</div>
             : !canRun && <div style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Your role ({role}) cannot run the analysis. Ask someone whose role can.</div>}
-          {error && <div style={{ ...cap, marginTop: 8, background: 'rgba(255,71,71,0.1)', padding: '8px 12px', borderRadius: 8 }}>The analysis stopped: {error}</div>}
+          {error && <div style={{ ...cap, marginTop: 8, background: 'var(--snow-status-rejected-bg)', padding: '8px 12px', borderRadius: 8 }}>The analysis stopped: {error}</div>}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 'min(260px, 100%)' }}>
           {running && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className="launch-steps" role="status">
+              <div className="launch-bar"><span style={{ width: `${Math.min(100, ((step + 0.5) / steps.length) * 100)}%` }} /></div>
               {steps.map((s, i) => (
-                <div key={s} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                  <Dot c={i < step ? 'var(--snow-status-complete)' : 'var(--snow-black-20)'} />
-                  <span style={{ ...cap, color: i < step ? 'var(--snow-black-100)' : 'var(--snow-black-40)' }}>{s}</span>
+                <div key={s} className={'launch-step' + (i < step ? ' is-done' : i === step ? ' is-now' : '')}>
+                  <span className="launch-dot" aria-hidden="true" />
+                  <span>{s}</span>
                 </div>
               ))}
             </div>

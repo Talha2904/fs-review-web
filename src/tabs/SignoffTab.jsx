@@ -64,13 +64,16 @@ export default function SignoffTab({ reports = [], reportActions, review, summar
         <div style={{ ...body, ...muted, marginTop: 6, maxWidth: 760 }}>{partnerRequired ? 'The Manager signs off first, which locks the engagement; the Partner then gives the final sign-off or returns it.' : 'The Manager’s final review: the cleared points, document overrides, the draft that was analysed and anything still showing in the analysis. Signing off locks the engagement.'}</div>
       </div>
 
-      <div role="status" style={{ ...body, borderRadius: 12, padding: '14px 18px', background: signed ? 'var(--snow-status-complete-bg)' : ready ? 'var(--snow-primary-blue)' : 'var(--snow-status-approved-bg)' }}>
+      <div role="status" className={'seal ' + (signed ? 'is-signed' : ready ? 'is-ready' : 'is-blocked')} style={body}>
+        <Stamp signed={signed} awaiting={awaitingPartner} cleared={summary.rows.filter(r => r.status === 'cleared').length} total={summary.rows.length} />
+        <div className="seal-text">
         {awaitingPartner ? <>Signed off by the Manager, <b>{s.by?.name}</b>, on {when(s.at)}. The engagement is locked and waiting for the Partner’s sign-off.<div style={{ marginTop: 6 }}>“{s.text}”</div></>
           : signed ? <>Signed off by <b>{s.by?.name}</b> on {when(s.at)}{partnerRequired ? ' (Partner sign-off)' : ''}. The engagement is locked.<div style={{ marginTop: 6 }}>“{s.text}”</div></>
           : ready ? <>Ready for Manager sign-off. All {summary.rows.length} review points are cleared.</>
           : <>Not ready for sign-off yet:<ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{summary.blockers.map(b => <li key={b}>{b}</li>)}</ul></>}
         {s.state === 'returned' && <div style={{ marginTop: 8 }}>Returned to the reviewer by <b>{s.by?.name}</b> on {when(s.at)}: “{s.text}”</div>}
         {s.state === 'resubmitted' && <div style={{ marginTop: 8 }}>Resubmitted by <b>{s.by?.name}</b> on {when(s.at)}{s.text ? `: “${s.text}”` : ''}.</div>}
+        </div>
       </div>
 
       {summary.attention.length > 0 && (
@@ -183,3 +186,19 @@ const Decision = ({ label, text, setText, children }) => (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10, alignItems: 'center' }}>{children}</div>
   </div>
 );
+
+// The sign-off seal: a ring of cleared points while the review is open, a stamp once it is signed.
+function Stamp({ signed, awaiting, cleared, total }) {
+  const R = 30, C = 2 * Math.PI * R, share = total ? cleared / total : 1;
+  return (
+    <div className={'stamp' + (signed ? ' is-on' : '')} aria-hidden="true">
+      <svg viewBox="0 0 76 76" width="76" height="76">
+        <circle cx="38" cy="38" r={R} fill="none" stroke="currentColor" strokeOpacity="0.15" strokeWidth="6" />
+        <circle className="stamp-arc" cx="38" cy="38" r={R} fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeDasharray={`${(signed ? 1 : share) * C} ${C}`} transform="rotate(-90 38 38)" />
+        {signed && <path className="stamp-tick" d="M25 39 L34 48 L52 29" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" pathLength="1" />}
+      </svg>
+      {!signed && <span className="stamp-n">{cleared}<small>/{total}</small></span>}
+      {awaiting && <span className="stamp-tag">Partner next</span>}
+    </div>
+  );
+}

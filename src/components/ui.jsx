@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export const RING = 'inset 0 0 0 1px rgba(0,0,0,0.1)';
-export const RED = '#FF4747', REDBG = 'rgba(255,71,71,0.1)';
+export const RED = '#C8374B', REDBG = 'var(--snow-status-rejected-bg)';
 export const cap = { fontSize: 12, lineHeight: '18px' };
 export const body = { fontSize: 14, lineHeight: '20px' };
 export const h3 = { fontSize: 18, lineHeight: '28px', fontWeight: 600 };
@@ -19,7 +19,7 @@ export const Pill = ({ bg = 'var(--snow-ink-5)', children, style }) => (
 export const PriPill = ({ pri }) => <Pill bg={PRI_BG[pri]}>{pri}</Pill>;
 
 export const Card = ({ children, tint, style }) => (
-  <div style={{ background: tint || '#fff', borderRadius: 16, boxShadow: tint ? 'none' : RING, padding: 'var(--card-pad)', ...style }}>{children}</div>
+  <div className={'card' + (tint ? ' card-tint' : '')} style={{ background: tint || undefined, padding: 'var(--card-pad)', ...style }}>{children}</div>
 );
 
 export const CardHead = ({ title, aside, small }) => (
@@ -42,17 +42,17 @@ export const FileButton = ({ label, onFile, accept = '.pdf,.xlsx,.xls,.csv,.png,
 );
 
 export const Tile = ({ bg, label, value, sub, flex = '1 1 140px' }) => (
-  <div style={{ flex, minWidth: 140, background: bg, borderRadius: 16, padding: 'var(--card-pad)' }}>
+  <div className="tile" style={{ flex, minWidth: 140, background: bg, padding: 'var(--card-pad)' }}>
     <div style={{ ...body, fontWeight: 600 }}>{label}</div>
     <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginTop: 12, flexWrap: 'wrap' }}>
-      <span style={h2}>{value}</span>
+      <span className="tile-value" style={h2}><CountUp value={value} /></span>
       {sub && <span style={{ ...cap, ...muted }}>{sub}</span>}
     </div>
   </div>
 );
 
 export const Segmented = ({ options, value, onChange, children }) => (
-  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', background: 'var(--snow-primary-light)', borderRadius: 16, padding: 8 }}>
+  <div className="segmented" style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', borderRadius: 12, padding: 4 }}>
     {options.map(([v, l]) => (
       <button type="button" key={v} aria-pressed={value === v} className="seg" onClick={() => onChange(v)} style={{ ...body, height: 32, padding: '0 14px', display: 'inline-flex', alignItems: 'center', border: 0, font: 'inherit', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap', background: value === v ? '#fff' : 'transparent', boxShadow: value === v ? RING : 'none', color: value === v ? 'var(--snow-black-100)' : 'var(--snow-black-40)' }}>{l}</button>
     ))}
@@ -71,3 +71,18 @@ export const StatusButtons = ({ value, onChange, vertical, readOnly }) => readOn
 );
 
 export const Dot = ({ c, size = 6 }) => <span style={{ width: size, height: size, borderRadius: '50%', background: c, flex: '0 0 auto' }} />;
+
+// A number that counts up to its value when it appears or changes (static under reduced motion).
+export function CountUp({ value, ms = 600 }) {
+  const num = typeof value === 'number' && Number.isFinite(value);
+  const [n, setN] = useState(num ? 0 : value);
+  const from = useRef(0);
+  useEffect(() => {
+    if (!num || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setN(value); from.current = num ? value : 0; return; }
+    const a = from.current, t0 = performance.now(); let raf;
+    const tick = t => { const p = Math.min(1, (t - t0) / ms); setN(Math.round(a + (value - a) * (1 - Math.pow(1 - p, 3)))); if (p < 1) raf = requestAnimationFrame(tick); else from.current = value; };
+    raf = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(raf); from.current = value; };
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+  return num ? <><span aria-hidden="true">{n}</span><span className="sr-only">{value}</span></> : <>{value}</>;
+}

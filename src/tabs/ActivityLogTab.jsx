@@ -6,7 +6,7 @@ import { Button, Card, CardHead, Pill, cap, body, h2, muted, page } from '../com
 
 const CATEGORIES = ['Sign-in', 'Users', 'Check rules', 'Engagements', 'Documents', 'Analysis', 'Review points', 'Sign-off', 'AI', 'Activity log'];
 const TINT = { 'Sign-in': 'var(--snow-ink-5)', Users: 'var(--snow-primary-purple)', 'Check rules': 'var(--snow-primary-blue)', Engagements: 'var(--snow-status-complete-bg)',
-  Documents: 'var(--snow-ink-5)', Analysis: 'var(--snow-status-approved-bg)', 'Review points': 'rgba(255,71,71,0.1)', 'Activity log': 'var(--snow-ink-5)', 'Sign-off': 'var(--snow-status-complete-bg)', AI: '#EEF1FB' };
+  Documents: 'var(--snow-ink-5)', Analysis: 'var(--snow-status-approved-bg)', 'Review points': 'var(--snow-status-rejected-bg)', 'Activity log': 'var(--snow-ink-5)', 'Sign-off': 'var(--snow-status-complete-bg)', AI: 'var(--snow-status-pending-bg)' };
 const GRID = '150px minmax(170px,1fr) 128px minmax(320px,2.4fr)';
 const GRID_ALL = '150px minmax(150px,1fr) minmax(130px,0.9fr) 128px minmax(300px,2.2fr)'; // with a Fund column
 const when = iso => new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -103,7 +103,7 @@ export default function ActivityLogTab({ fund = null }) {
       </Card>
 
       {notice && <div role="status" style={{ ...cap, background: 'var(--snow-status-complete-bg)', borderRadius: 8, padding: '10px 14px' }}>{notice}</div>}
-      {error && <div role="alert" style={{ ...cap, background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '10px 14px' }}>{error}</div>}
+      {error && <div role="alert" style={{ ...cap, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '10px 14px' }}>{error}</div>}
 
       <Card>
         <CardHead title="Entries" aside={entries ? `${shown.length} of ${entries.length}` : 'Loading…'} />

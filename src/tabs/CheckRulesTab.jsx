@@ -108,7 +108,7 @@ export default function CheckRulesTab({ store }) {
         </div>
       </div>
 
-      {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, background: msg.kind === 'err' ? 'rgba(255,71,71,0.1)' : 'var(--snow-status-complete-bg)', borderRadius: 8, padding: '10px 14px' }}>{msg.text}</div>}
+      {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, background: msg.kind === 'err' ? 'var(--snow-status-rejected-bg)' : 'var(--snow-status-complete-bg)', borderRadius: 8, padding: '10px 14px' }}>{msg.text}</div>}
 
       {editing && <RuleEditor key={editing.rule.id} rule={editing.rule} isNew={editing.isNew} busy={busy} error={editError}
         onSave={saveRule} onCancel={() => setEditing(null)} onDelete={deleteRule} />}

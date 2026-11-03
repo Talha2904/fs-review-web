@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AppShell from './components/AppShell';
+import { STEP_COLOR } from './components/Sidebar';
 import DocumentsTab from './tabs/DocumentsTab';
 import AnalysisTab from './tabs/AnalysisTab';
 import VarianceTab from './tabs/VarianceTab';
@@ -581,7 +582,7 @@ function Workspace({ user, auth, onSignOut }) {
     ...(clOn ? [{ id: 'disc', label: 'Disclosures', count: done && clSum.unanswered ? clSum.unanswered : '' }] : []),
     { id: 'signoff', label: 'Sign-off', count: signoffBadge },
     { id: 'activity', label: 'Activity Log', count: '' }
-  ].map(t => ({ ...t, locked: ['engagement', 'portfolio'].includes(t.id) ? false : !active ? true : ['docs', 'activity'].includes(t.id) || (t.id === 'sched' && points.length) ? false : !done }))
+  ].map(t => ({ ...t, step: ['docs', 'analysis', 'var', 'sched', 'vers', 'disc', 'signoff'].includes(t.id), locked: ['engagement', 'portfolio'].includes(t.id) ? false : !active ? true : ['docs', 'activity'].includes(t.id) || (t.id === 'sched' && points.length) ? false : !done }))
 ;
 
   const missing = REQUIRED.filter(k => !files[k]).length;
@@ -592,7 +593,7 @@ function Workspace({ user, auth, onSignOut }) {
 
   return (
     <LibraryContext.Provider value={library}>
-    <AppShell root="Financial Statement Review" crumb={CRUMB[tab]}
+    <AppShell root="Financial Statement Review" crumb={CRUMB[tab]} accent={STEP_COLOR[tab]}
       sidebar={{ tabs, tab, onTab: setTab, user, onSignOut, meta: tab === 'portfolio' ? [] : active ? [
         { k: 'Entity', v: activeEntity?.name || '—' }, { k: 'Fund', v: active.fund.name || '—' }, { k: 'Year End', v: fmtDate(active.fund.yearEnd) },
         { k: 'Preparer', v: personName(active.fund, 'preparer', people) || '—' }, { k: 'Reviewer', v: personName(active.fund, 'reviewer', people) || '—' },
@@ -607,12 +608,7 @@ function Workspace({ user, auth, onSignOut }) {
         {active && !['engagement', 'users', 'portfolio'].includes(tab) && <FundDashboard aiLabel={aiOn ? 'Enabled' : 'Off'} aiWhy={aiOn ? `AI assistance is enabled (${aiStatus?.model || 'Claude'}).` : !clientAllowsAi ? AI_REASON[fundAiState] : !aiStatus?.serverKey ? 'Off: no API key on the server.' : 'Off: AI is turned off under AI Settings.'} engagement={setup} entity={activeEntity} people={people} docsAttached={Object.keys(files).length} openPoints={openPoints.length} done={done}
           locked={phase === 'running'} onChange={() => { setDraft(null); setTab('engagement'); }} />}
 
-        <div style={{ padding: '12px var(--gutter) 0' }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '10px 14px' }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--snow-status-approved)' }} />
-            <span style={cap}>Review assistance only. This tool supports the reviewer's judgement; it does not establish that the financial statements are complete or correct.</span>
-          </div>
-        </div>
+        <p className="assist-note">Review assistance only. This tool supports the reviewer's judgement; it does not establish that the financial statements are complete or correct.</p>
 
         {stale && canRun && !['engagement', 'users'].includes(tab) && (
           <div style={{ padding: '12px var(--gutter) 0' }}>
@@ -680,14 +676,21 @@ export default function App() {
 
   const activity = useMemo(() => (auth && user ? makeActivity() : null), [auth, user]);
   if (startError) return (
-    <div role="alert" style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', ...body }}>
-      <div style={{ maxWidth: 420, textAlign: 'center' }}>
+    <div role="alert" className="app-state">
+      <div className="app-state-card">
+        <img src="/pa-mark.png" alt="" width="44" height="44" />
+        <h1 className="app-state-title">Can’t reach FS Review</h1>
         <p>{startError}</p>
-        <button type="button" className="btn" onClick={() => setAttempt(n => n + 1)}>Try Again</button>
+        <button type="button" className="btn btn-primary" onClick={() => setAttempt(n => n + 1)}>Try Again</button>
       </div>
     </div>
   );
-  if (!auth || user === undefined) return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', ...body, ...muted }}>Loading…</div>;
+  if (!auth || user === undefined) return (
+    <div className="app-state" role="status">
+      <div className="app-loader"><span className="app-loader-ring" aria-hidden="true" /><img src="/pa-mark.png" alt="" width="40" height="40" /></div>
+      <span className="app-state-text">Loading FS Review…</span>
+    </div>
+  );
   if (!user) return <LoginPage matrix={getPermissions()} auth={auth} setupRequired={setupRequired} onSignedIn={u => { setSetupRequired(false); setUser(u); }} />;
   return (
     <ActivityContext.Provider value={activity}>

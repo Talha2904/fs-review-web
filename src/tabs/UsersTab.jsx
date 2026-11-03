@@ -43,7 +43,7 @@ export default function UsersTab({ auth, me }) {
       </div>
 
       {notice && <div role="status" style={{ ...cap, background: 'var(--snow-status-complete-bg)', borderRadius: 8, padding: '10px 14px' }}>{notice}</div>}
-      {error && <div role="alert" style={{ ...cap, background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '10px 14px' }}>{error}</div>}
+      {error && <div role="alert" style={{ ...cap, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '10px 14px' }}>{error}</div>}
 
       {form && (
         <Card>
@@ -145,7 +145,7 @@ function EditUserModal({ user, self, auth, onClose, onDone, matrix }) {
         <Field label="Role" hint={self ? 'You cannot change your own role. Another Administrator can.' : describeRole(role, matrix)}>
           <select className="input" value={role} disabled={self} onChange={e => { setRole(e.target.value); setError(''); }}>{ROLES.map(r => <option key={r}>{r}</option>)}</select>
         </Field>
-        {error && <div role="alert" style={{ ...cap, background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '8px 12px' }}>{error}</div>}
+        {error && <div role="alert" style={{ ...cap, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 12px' }}>{error}</div>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
           <Button kind="secondary" onClick={onClose}>Cancel</Button>
           <button type="submit" className="btn btn-primary" style={{ height: 36, padding: '0 16px' }} disabled={busy || !changed || !name.trim()}>{busy ? 'Saving…' : 'Save Changes'}</button>
@@ -183,7 +183,7 @@ function ResetPasswordModal({ user, self, auth, onClose, onDone }) {
         <label style={{ ...cap, display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
           <input type="checkbox" checked={show} onChange={e => setShow(e.target.checked)} /> Show passwords
         </label>
-        {(error || mismatch) && <div role="alert" style={{ ...cap, background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '8px 12px' }}>{error || 'The two passwords do not match.'}</div>}
+        {(error || mismatch) && <div role="alert" style={{ ...cap, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 12px' }}>{error || 'The two passwords do not match.'}</div>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
           <Button kind="secondary" onClick={onClose}>Cancel</Button>
           <button type="submit" className="btn btn-primary" style={{ height: 36, padding: '0 16px' }} disabled={busy || !pw.next || !pw.confirm || mismatch}>{busy ? 'Resetting…' : 'Reset Password'}</button>
@@ -248,7 +248,7 @@ function PermissionMatrix({ auth, saved, onSaved }) {
 
       {nobody.length > 0 && <div style={{ ...cap, marginTop: 12, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '8px 12px' }}>
         No role outside administration will be able to: {nobody.map(p => p.label.charAt(0).toLowerCase() + p.label.slice(1)).join('; ')}.</div>}
-      {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, marginTop: 12, background: msg.kind === 'err' ? 'rgba(255,71,71,0.1)' : 'var(--snow-status-complete-bg)', borderRadius: 8, padding: '8px 12px' }}>{msg.text}</div>}
+      {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, marginTop: 12, background: msg.kind === 'err' ? 'var(--snow-status-rejected-bg)' : 'var(--snow-status-complete-bg)', borderRadius: 8, padding: '8px 12px' }}>{msg.text}</div>}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
         <div style={{ ...cap, ...muted, maxWidth: 520 }}>

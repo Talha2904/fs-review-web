@@ -7,7 +7,7 @@ import { personName } from '../lib/people';
 import { reviewStore } from '../lib/reviewStore';
 import { entityAi } from '../lib/aiDecision';
 
-const GRID = 'minmax(200px,2fr) 108px repeat(3, minmax(88px,1fr)) 92px 64px 180px';
+const GRID = 'minmax(200px,2fr) 108px repeat(3, minmax(88px,1fr)) 92px 64px 204px';
 const COLS = ['Fund', 'Year end', 'Preparer', 'Reviewer', 'Manager', 'Threshold', 'Checks', ''];
 const saved = iso => iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const has = (text, q) => String(text || '').toLowerCase().includes(q);
@@ -55,7 +55,7 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
       </div>
 
       {notice && <div role="status" style={{ ...cap, background: 'var(--snow-status-complete-bg)', borderRadius: 8, padding: '10px 14px' }}>{notice}</div>}
-      {loadError && <div role="alert" style={{ ...cap, background: 'rgba(255,71,71,0.1)', borderRadius: 8, padding: '10px 14px' }}>{loadError}</div>}
+      {loadError && <div role="alert" style={{ ...cap, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '10px 14px' }}>{loadError}</div>}
 
       {loading ? <Card><div style={{ ...body, ...muted }}>Loading engagements…</div></Card> : nothing ? (
         <Card>
@@ -82,7 +82,7 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
                     <div style={h3}>{ent ? ent.name : 'Not linked to an entity'}</div>
                     {ent?.legalForm && <Pill bg="var(--snow-primary-purple)">{ent.legalForm}</Pill>}
                     {ent && entityAi(ent) === 'not-permitted' && <span title={`The client does not permit AI (${ent.aiBasis || 'basis not recorded'}).`}><Pill bg="var(--snow-status-approved-bg)">AI assistance off</Pill></span>}
-                    {ent && entityAi(ent) === 'undecided' && <span title="No AI decision has been recorded for this client. Record it under Edit Entity."><Pill bg="rgba(255,71,71,0.12)">AI assistance off</Pill></span>}
+                    {ent && entityAi(ent) === 'undecided' && <span title="No AI decision has been recorded for this client. Record it under Edit Entity."><Pill bg="var(--snow-status-rejected-bg)">AI assistance off</Pill></span>}
                   </div>
                   <div style={{ ...cap, ...muted, marginTop: 4 }}>
                     {ent ? [ent.client && `Client: ${ent.client}`, ent.jurisdiction, ent.yearEnd && `Year end ${fmtDate(ent.yearEnd)}`, ent.administrator && `Administrator: ${ent.administrator}`, ent.auditor && `Auditor: ${ent.auditor}`].filter(Boolean).join(' · ') || 'No details added yet'

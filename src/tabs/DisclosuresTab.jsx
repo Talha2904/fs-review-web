@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Button, Card, Pill, Segmented, cap, body, h2, muted, page, RING } from '../components/ui';
 import { suggestLocation, checklistSummary } from '../lib/disclosures';
 
-const A = { yes: ['Yes', 'var(--snow-status-complete-bg)'], no: ['No', 'rgba(255,71,71,0.14)'], na: ['N/A', 'var(--snow-ink-5)'] };
+const A = { yes: ['Yes', 'var(--snow-status-complete-bg)'], no: ['No', 'var(--snow-status-rejected-bg)'], na: ['N/A', 'var(--snow-ink-5)'] };
 
 // The disclosure checklist (CHK-13) for this fund: the reviewer answers each item Yes, No or N/A with a
 // reference. Suggestions come from a search of the draft for each item's keywords (no AI).

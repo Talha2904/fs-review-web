@@ -22,6 +22,9 @@ export default function AnalysisTab(p) {
   const refKey = { is: 'IS-', sup: 'SUP-', tb: 'TB ', py: 'Prior year', cy: 'Note' }[cur];
   const docPoints = openPoints.filter(x => (x.doc || 'cy') === cur || (x.refs || '').includes(refKey));
   const vals = tray.map(t => t.value);
+  const [chkF, setChkF] = React.useState('all'); // all | Difference | Agrees | Not tested
+  const tally = { Agrees: 0, Difference: 0, 'Not tested': 0 }; checks.forEach(c => { tally[c.result] = (tally[c.result] || 0) + 1; });
+  const shownChecks = chkF === 'all' ? checks : checks.filter(c => c.result === chkF);
 
   return (
     <div style={page}>
@@ -30,30 +33,38 @@ export default function AnalysisTab(p) {
         <Tile bg="var(--snow-status-approved-bg)" label="Medium" value={count('Medium')} sub="points open" />
         <Tile bg="var(--snow-primary-light)" label="Low" value={count('Low')} sub="points open" />
         <Tile bg="var(--snow-primary-blue)" label="Checks Differ" value={fails} sub={`of ${checks.length}`} />
-        <Card style={{ flex: '1 1 300px', minWidth: 0 }}>
+        <Card style={{ flex: '1 1 380px', minWidth: 0, display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+          <CheckDonut tally={tally} onPick={r => setChkF(chkF === r ? 'all' : r)} />
+          <div style={{ flex: '1 1 220px', minWidth: 0 }}>
           <div style={{ ...body, fontWeight: 600 }}>{hi ? `${hi} high priority point${hi === 1 ? '' : 's'} to clear` : 'No high priority points outstanding'}</div>
           <div style={{ ...cap, ...muted, marginTop: 8 }}>Analysed {analysedAt}. {files.sup ? 'Supporting information was used to corroborate movements.' : 'No supporting information was provided, so movements could not be corroborated.'}</div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
+          <div className="btn-row" style={{ marginTop: 16 }}>
             <Button size="sm" onClick={() => goto('sched')}>Open Review Points</Button>
             <Button size="sm" kind="secondary" onClick={() => goto('var')}>Variance Analysis</Button>
             <Button size="sm" kind="secondary" onClick={() => goto('docs')}>Documents</Button>
+          </div>
           </div>
         </Card>
       </div>
 
       <Card>
         <CardHead title="Recalculations and Cross-references" aside={`${fails} of ${checks.length} show a difference · checks set in the engagement`} />
+        <div className="chk-filter" role="group" aria-label="Show checks">
+          {[['all', 'All', checks.length], ['Difference', 'Differences', tally.Difference], ['Agrees', 'Agrees', tally.Agrees], ['Not tested', 'Not tested', tally['Not tested']]].map(([v, l, n]) => (
+            <button key={v} type="button" className={'chk-chip is-' + v.replace(' ', '-').toLowerCase()} aria-pressed={chkF === v} onClick={() => setChkF(v)}>{l}<span>{n}</span></button>))}
+        </div>
         <div className="dt" style={{ '--cols': CHECK_GRID, '--min': '820px' }}>
           <div className="dt-head">
             {['Check', 'Computed', 'Per Accounts', 'Difference', 'Result'].map(c => <div key={c} style={{ ...cap, ...muted }}>{c}</div>)}
           </div>
-          {checks.map(c => (
-            <div key={c.id} className="row dt-row">
+          {!shownChecks.length && <div style={{ ...cap, ...muted, padding: 12 }}>No checks with this result.</div>}
+          {shownChecks.map(c => (
+            <div key={c.id} className={'row dt-row chk-row is-' + c.result.replace(' ', '-').toLowerCase()}>
               <div className="dt-main"><div style={body}><span style={{ ...cap, ...muted, marginRight: 8 }}>{c.rule}</span>{c.name}</div><div style={{ ...cap, ...muted, marginTop: 2 }}>{c.detail}</div></div>
               <div data-label="Computed" className="num" style={body}>{fmt(c.comp)}</div>
               <div data-label="Per Accounts" className="num" style={body}>{fmt(c.stated)}</div>
               <div data-label="Difference" className="num" style={{ ...body, fontWeight: c.result === 'Difference' ? 600 : 400, color: c.result === 'Difference' ? 'var(--snow-black-100)' : 'var(--snow-black-40)' }}>{c.result === 'Difference' ? (c.count ? `${c.diff} found` : fmt(Math.abs(c.diff))) : '—'}</div>
-              <div data-label="Result"><Pill bg={CHIP[c.result]}>{c.result}</Pill></div>
+              <div data-label="Result"><Pill bg={CHIP[c.result]}><span className="res-dot" aria-hidden="true" />{c.result}</Pill></div>
             </div>
           ))}
         </div>
@@ -81,7 +92,7 @@ export default function AnalysisTab(p) {
           {docIds.map(id => {
             const d = result.docs[id], on = cur === id;
             return (
-              <div key={id} className="hov" onClick={() => setDocSel(id)} style={{ background: on ? 'var(--snow-ink-5)' : 'transparent', borderRadius: 8, padding: '8px 12px', cursor: 'pointer' }}>
+              <div key={id} className={'hov an-file' + (on ? ' is-on' : '')} role="button" tabIndex={0} aria-pressed={on} onClick={() => setDocSel(id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDocSel(id); } }}>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <span style={body}>{d.name}</span>
                   <Pill bg={on ? '#fff' : 'var(--snow-ink-5)'} style={muted}>{id === 'cy' ? 'v' + result.version : d.tag}</Pill>
@@ -208,6 +219,28 @@ function DocTable({ b, bi, cur, doc, tray, pick, setSel, showFlags }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// Checks at a glance: agrees, differs and not tested as one ring; each part filters the table.
+function CheckDonut({ tally, onPick }) {
+  const parts = [['Agrees', '#5E9E2F'], ['Difference', '#C8374B'], ['Not tested', '#C5CEDA']];
+  const total = parts.reduce((a, [k]) => a + (tally[k] || 0), 0) || 1, R = 34, C = 2 * Math.PI * R;
+  let at = 0;
+  return (
+    <div className="donut">
+      <svg viewBox="0 0 88 88" width="88" height="88" aria-hidden="true">
+        <circle cx="44" cy="44" r={R} fill="none" stroke="rgba(20,33,61,0.07)" strokeWidth="10" />
+        {parts.map(([k, c], i) => {
+          const len = ((tally[k] || 0) / total) * C, off = at; at += len;
+          return len ? <circle key={k} className="donut-arc" cx="44" cy="44" r={R} fill="none" stroke={c} strokeWidth="10" strokeDasharray={`${Math.max(0, len - 2)} ${C}`} strokeDashoffset={-off} transform="rotate(-90 44 44)" style={{ '--i': i }} /> : null;
+        })}
+      </svg>
+      <div className="donut-mid"><b>{tally.Agrees || 0}<small>/{total}</small></b><span>agree</span></div>
+      <div className="donut-keys">
+        {parts.map(([k, c]) => <button key={k} type="button" className="link donut-key" onClick={() => onPick(k)}><i style={{ background: c }} />{tally[k] || 0} {{ Agrees: 'agree', Difference: 'differ', 'Not tested': 'not tested' }[k]}</button>)}
+      </div>
     </div>
   );
 }
