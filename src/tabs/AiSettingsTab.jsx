@@ -37,7 +37,7 @@ export default function AiSettingsTab({ auth, me }) {
   return (
     <div style={page}>
       <div style={{ maxWidth: 760 }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><div style={h2}>AI Settings</div><Pill bg={status[1]}>{status[0]}</Pill></div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}><div style={h2}>AI Settings</div><Pill bg={status[1]}>{status[0]}</Pill></div>
         <div style={{ ...body, ...muted, marginTop: 6 }}>Control where the app uses AI (Claude). Every number is still recalculated by the app’s own code, and every point is cleared by a person; AI reads documents and drafts text. Every AI call is recorded in the Activity Log.</div>
       </div>
       {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'rgba(255,71,71,0.1)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}

@@ -75,14 +75,14 @@ export default function ActivityLogTab({ fund = null }) {
           <div style={{ ...body, ...muted, marginTop: 6 }}>{scoped ? <>Everything recorded for <b style={{ color: 'var(--snow-black-100)' }}>{fund.name}</b>: engagement changes, documents, analyses and review points, newest first.</> : 'Every sign-in, user change, check rule change, engagement, document, analysis and review point action across all funds, newest first.'} Entries cannot be edited or deleted.
 </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <Button kind="secondary" onClick={load}>Refresh</Button>
           <Button kind="secondary" disabled={exporting || !shown.length} onClick={exportXlsx}>{exporting ? 'Preparing…' : 'Export Log (.xlsx)'}</Button>
         </div>
       </div>
 
       <Card>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 12 }}>
           <Field label="Activity">
             <select className="input" value={cat} onChange={e => setCat(e.target.value)}><option value="">All activity</option>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select>
           </Field>
@@ -108,17 +108,17 @@ export default function ActivityLogTab({ fund = null }) {
       <Card>
         <CardHead title="Entries" aside={entries ? `${shown.length} of ${entries.length}` : 'Loading…'} />
         {entries && !shown.length ? <div style={{ ...body, ...muted, marginTop: 12 }}>{entries.length ? 'No entries match these filters.' : 'Nothing has been recorded yet.'}</div> : (
-          <div style={{ overflowX: 'auto', marginTop: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 14, padding: '8px 12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)', minWidth: scoped ? 860 : 980 }}>
+          <div className="dt" style={{ '--cols': grid, '--min': scoped ? '860px' : '980px' }}>
+            <div className="dt-head">
               {cols.map(c => <div key={c} style={{ ...cap, ...muted }}>{c}</div>)}
             </div>
             {shown.slice(0, limit).map(e => (
-              <div key={e.id} className="log-row" style={{ display: 'grid', gridTemplateColumns: grid, gap: 14, padding: '10px 12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)', minWidth: scoped ? 860 : 980, alignItems: 'start' }}>
-                <div style={{ ...cap, fontVariantNumeric: 'tabular-nums' }}>{when(e.at)}</div>
-                <div>{e.actor ? <><div style={body}>{e.actor.name}</div><div style={{ ...cap, ...muted }}>{e.actor.role}</div></> : <div style={{ ...cap, ...muted }}>Not signed in</div>}</div>
-                {!scoped && <div style={{ ...cap, overflowWrap: 'anywhere' }}>{e.fundName || <span style={muted}>—</span>}</div>}
-                <div><Pill bg={TINT[e.category] || 'var(--snow-ink-5)'}>{e.category}</Pill></div>
-                <div><div style={body}>{e.summary}</div>{(e.details || e.ip) && <div style={{ ...cap, ...muted, marginTop: 2, overflowWrap: 'anywhere' }}>{[e.details, e.ip && `IP ${e.ip}`].filter(Boolean).join(' · ')}</div>}</div>
+              <div key={e.id} className="log-row dt-row" style={{ alignItems: 'start' }}>
+                <div data-label="Time" style={{ ...cap, fontVariantNumeric: 'tabular-nums' }}>{when(e.at)}</div>
+                <div data-label="Person">{e.actor ? <><div style={body}>{e.actor.name}</div><div style={{ ...cap, ...muted }}>{e.actor.role}</div></> : <div style={{ ...cap, ...muted }}>Not signed in</div>}</div>
+                {!scoped && <div data-label="Fund" style={{ ...cap, overflowWrap: 'anywhere' }}>{e.fundName || <span style={muted}>—</span>}</div>}
+                <div data-label="Activity"><Pill bg={TINT[e.category] || 'var(--snow-ink-5)'}>{e.category}</Pill></div>
+                <div className="dt-main"><div style={body}>{e.summary}</div>{(e.details || e.ip) && <div style={{ ...cap, ...muted, marginTop: 2, overflowWrap: 'anywhere' }}>{[e.details, e.ip && `IP ${e.ip}`].filter(Boolean).join(' · ')}</div>}</div>
               </div>
             ))}
             {shown.length > limit && <div style={{ marginTop: 12 }}><Button size="sm" kind="secondary" onClick={() => setLimit(l => l + 200)}>Show More</Button></div>}

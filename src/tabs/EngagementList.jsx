@@ -47,7 +47,7 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
           <div style={{ ...body, ...muted, marginTop: 6 }}>Funds are listed under the entity they belong to. Click In Review on a fund to open its documents and analysis. {mode && where}</div>
         </div>
         {canWrite && (
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             <Button size="lg" kind="secondary" onClick={onAddEntity}>Add Entity</Button>
             <Button size="lg" onClick={() => onAdd(null)}>Add Engagement</Button>
           </div>
@@ -62,7 +62,7 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
           <div style={{ padding: '24px 0', maxWidth: 560 }}>
             <div style={h3}>No entities or engagements yet</div>
             <div style={{ ...body, ...muted, marginTop: 6 }}>Start by adding the entity, such as the ICAV umbrella, then add each of its funds. Each fund records its year end, who prepares, reviews and manages it, and which checks its review runs.</div>
-            {canWrite ? <div style={{ display: 'flex', gap: 8, marginTop: 16 }}><Button onClick={onAddEntity}>Add Entity</Button></div>
+            {canWrite ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}><Button onClick={onAddEntity}>Add Entity</Button></div>
               : <div style={{ ...cap, ...muted, marginTop: 12 }}>Your role cannot add entities or engagements.</div>}
           </div>
         </Card>
@@ -90,7 +90,7 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
                   </div>
                 </div>
                 {ent && canWrite && (
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     <Button size="sm" kind="secondary" onClick={() => onEditEntity(ent)}>Edit Entity</Button>
                     <Button size="sm" onClick={() => onAdd(ent.id)}>Add Fund</Button>
                   </div>
@@ -100,16 +100,16 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
               {!funds.length ? (
                 <div style={{ ...body, ...muted, marginTop: 14 }}>No funds under this entity yet.{canWrite && ' Click Add Fund to add the first one.'}</div>
               ) : (
-                <div style={{ overflowX: 'auto', marginTop: 12 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 12, padding: '8px 12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)', minWidth: 960 }}>
+                <div className="dt" style={{ '--cols': GRID, '--min': '960px' }}>
+                  <div className="dt-head">
                     {COLS.map((c, i) => <div key={i} style={{ ...cap, ...muted }}>{c}</div>)}
                   </div>
                   {funds.map(e => {
                     const on = e.id === activeId;
                     const checks = LIBRARY.filter(r => runnable(r) && rulesOf(e)[r.id]?.on).length;
                     return (
-                      <div key={e.id} className="row" style={{ display: 'grid', gridTemplateColumns: GRID, gap: 12, alignItems: 'center', padding: '12px', minWidth: 960, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)', background: on ? 'var(--snow-primary-light)' : 'transparent' }}>
-                        <div>
+                      <div key={e.id} className="row dt-row" style={{ background: on ? 'var(--snow-primary-light)' : 'transparent' }}>
+                        <div className="dt-main">
                           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                             <button type="button" className="link" style={{ ...body, fontWeight: 600, textAlign: 'left' }} onClick={() => onOpen(e)}>{e.fund?.name || 'Untitled fund'}</button>
                             {on && <Pill bg="var(--snow-status-complete-bg)">In review</Pill>}
@@ -119,13 +119,13 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
                           </div>
                           <div style={{ ...cap, ...muted, marginTop: 2 }}>Saved {saved(e.savedAt)}</div>
                         </div>
-                        <div style={body}>{fmtDate(e.fund?.yearEnd)}</div>
-                        <div style={body}>{personName(e.fund, 'preparer', people) || '—'}</div>
-                        <div style={body}>{personName(e.fund, 'reviewer', people) || '—'}</div>
-                        <div style={body}>{personName(e.fund, 'manager', people) || '—'}</div>
-                        <div style={body}>{sym(e.fund?.currency)}{fmt(e.threshold)}</div>
-                        <div style={body}>{checks} of {LIBRARY.length}</div>
-                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                        <div data-label="Year end" style={body}>{fmtDate(e.fund?.yearEnd)}</div>
+                        <div data-label="Preparer" style={body}>{personName(e.fund, 'preparer', people) || '—'}</div>
+                        <div data-label="Reviewer" style={body}>{personName(e.fund, 'reviewer', people) || '—'}</div>
+                        <div data-label="Manager" style={body}>{personName(e.fund, 'manager', people) || '—'}</div>
+                        <div data-label="Threshold" style={body}>{sym(e.fund?.currency)}{fmt(e.threshold)}</div>
+                        <div data-label="Checks" style={body}>{checks} of {LIBRARY.length}</div>
+                        <div className="dt-end" style={{ justifyContent: 'flex-end' }}>
                           <Button size="sm" kind="secondary" onClick={() => onOpen(e)}>{canWrite ? 'Open' : 'View'}</Button>
                           <Button size="sm" disabled={on || locked} onClick={() => onActivate(e.id)}>{on ? 'Under Review' : 'In Review'}</Button>
                         </div>

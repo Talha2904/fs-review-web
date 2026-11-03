@@ -76,7 +76,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
             <section key={d.id} aria-label={d.name}
               onDragOver={e => e.preventDefault()}
               onDrop={e => { e.preventDefault(); const file = e.dataTransfer.files?.[0]; if (file && editable) tryAttach(d, file); }}
-              style={{ flex: '1 1 300px', minWidth: 260, display: 'flex', flexDirection: 'column', background: v ? 'var(--snow-primary-light)' : '#fff', borderRadius: 16, boxShadow: v ? 'none' : RING, padding: 24 }}>
+              style={{ flex: '1 1 300px', minWidth: 'min(260px, 100%)', display: 'flex', flexDirection: 'column', background: v ? 'var(--snow-primary-light)' : '#fff', borderRadius: 16, boxShadow: v ? 'none' : RING, padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ ...cap, ...muted }}>{d.kind}</span>
                 {st ? <Pill bg={st[1]}>{st[0]}</Pill> : <Pill bg={d.kind === 'Optional' ? 'var(--snow-ink-5)' : 'var(--snow-status-approved-bg)'}>{d.kind === 'Optional' ? 'Optional' : 'Needed'}</Pill>}
@@ -155,22 +155,22 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
         })}
       </div>
 
-      <section aria-label="Document readiness" style={{ background: '#fff', borderRadius: 16, boxShadow: RING, padding: 24, display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <section aria-label="Document readiness" style={{ background: '#fff', borderRadius: 16, boxShadow: RING, padding: 'var(--card-pad)', display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 640 }}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><div style={h3}>Ready for Review</div><Pill bg={WF[wf.state][1]}>{WF[wf.state][0]}</Pill></div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}><div style={h3}>Ready for Review</div><Pill bg={WF[wf.state][1]}>{WF[wf.state][0]}</Pill></div>
           {wf.state === 'ready' && <div style={{ ...body, marginTop: 6 }}>Marked ready by <b>{wf.by?.name}</b> · {when(wf.at)}. The documents are locked; send them back to change them.</div>}
           {wf.state === 'returned' && <div style={{ ...body, marginTop: 6, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '8px 12px' }}>Sent back by <b>{wf.by?.name}</b> · {when(wf.at)}: “{wf.reason}”</div>}
           {wf.state !== 'ready' && (blockers.length
             ? <ul style={{ ...cap, margin: '10px 0 0', paddingLeft: 18 }}>{blockers.map(b => <li key={b}>{b}</li>)}</ul>
             : <div style={{ ...body, ...muted, marginTop: 6 }}>Every document has passed its checks or been confirmed.</div>)}
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {wf.state !== 'ready' && canAttach && <Button disabled={blockers.length > 0} onClick={onMarkReady}>Mark Ready for Review</Button>}
           {wf.state === 'ready' && canSendBack && !running && <Button kind="secondary" onClick={() => setSendingBack(true)}>Send Back to Preparer</Button>}
         </div>
       </section>
 
-      <div style={{ background: 'var(--snow-primary-blue)', borderRadius: 16, padding: 24, display: 'flex', flexWrap: 'wrap', gap: 28, alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ background: 'var(--snow-primary-blue)', borderRadius: 16, padding: 'var(--card-pad)', display: 'flex', flexWrap: 'wrap', gap: 28, alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 560 }}>
           <div style={h3}>{heading}</div>
           <div style={{ ...body, marginTop: 6 }}>{sub}</div>
@@ -182,11 +182,11 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
             : !canRun && <div style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Your role ({role}) cannot run the analysis. Ask someone whose role can.</div>}
           {error && <div style={{ ...cap, marginTop: 8, background: 'rgba(255,71,71,0.1)', padding: '8px 12px', borderRadius: 8 }}>The analysis stopped: {error}</div>}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 260 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 'min(260px, 100%)' }}>
           {running && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {steps.map((s, i) => (
-                <div key={s} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div key={s} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
                   <Dot c={i < step ? 'var(--snow-status-complete)' : 'var(--snow-black-20)'} />
                   <span style={{ ...cap, color: i < step ? 'var(--snow-black-100)' : 'var(--snow-black-40)' }}>{s}</span>
                 </div>
@@ -227,7 +227,7 @@ function ReasonModal({ title, label, button, required = true, intro, onClose, on
           <span style={{ ...cap, ...muted }}>{label}</span>
           <textarea className="input" rows={3} style={{ height: 'auto', padding: '8px 10px', resize: 'vertical' }} value={reason} onChange={e => setReason(e.target.value)} />
         </label>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' }}>
           <Button kind="secondary" onClick={onClose}>Cancel</Button>
           <button type="submit" className="btn btn-primary" style={{ height: 36, padding: '0 16px' }} disabled={busy || !ok}>{busy ? 'Saving…' : button}</button>
         </div>

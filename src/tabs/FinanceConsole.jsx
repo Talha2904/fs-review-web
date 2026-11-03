@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
-import Sidebar from '../components/Sidebar';
+import AppShell from '../components/AppShell';
 import Modal from '../components/Modal';
 import NotificationBell from '../components/NotificationBell';
 import { Button, Card, CardHead, Pill, cap, body, h2, h3, muted, page, RING } from '../components/ui';
@@ -49,13 +49,9 @@ export default function FinanceConsole({ user, auth, onSignOut }) {
     updates: [] };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'stretch' }}>
-      <Sidebar tabs={tabs} tab={open ? 'invoices' : tab} onTab={t => { setOpen(null); setTab(t); setMsg({ kind: '', text: '' }); }} user={user} onSignOut={onSignOut} meta={[]} navTitle="Billing" subtitle="Finance" />
-      <main style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        <header style={{ minHeight: 68, padding: '12px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)' }}>
-          <div style={{ ...body, display: 'flex', gap: 8 }}><span style={muted}>Billing</span><span style={{ color: 'var(--snow-black-20)' }}>/</span><span style={{ fontWeight: 600 }}>{open ? 'Invoice' : CRUMB[tab]}</span></div>
-          <NotificationBell actions={notes.actions} updates={notes.updates} seenAt="" onSeen={() => {}} onGo={n => { setTab(n.go); setOpen(n.inv || null); }} />
-        </header>
+    <AppShell root="Billing" crumb={open ? 'Invoice' : CRUMB[tab]}
+      sidebar={{ tabs, tab: open ? 'invoices' : tab, onTab: t => { setOpen(null); setTab(t); setMsg({ kind: '', text: '' }); }, user, onSignOut, meta: [], navTitle: 'Billing', subtitle: 'Finance' }}
+      actions={<NotificationBell actions={notes.actions} updates={notes.updates} seenAt="" onSeen={() => {}} onGo={n => { setTab(n.go); setOpen(n.inv || null); }} />}>
         <div style={page}>
           {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'rgba(255,71,71,0.1)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}
           {!st ? <div style={{ ...body, ...muted }}>Loading…</div>
@@ -65,8 +61,7 @@ export default function FinanceConsole({ user, auth, onSignOut }) {
             : tab === 'recovery' ? <Recovery st={st} usage={usage} />
             : <Settings st={st} act={act} extra={extra} auth={auth} integ={integ} reloadInteg={loadInteg} />}
         </div>
-      </main>
-    </div>
+    </AppShell>
   );
 }
 
@@ -77,7 +72,7 @@ function Ready({ queue, unlocked, st, onCreate }) {
     {unlocked.length > 0 && <div role="status" style={{ ...cap, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '10px 14px' }}>Unlocked after invoicing: {unlocked.map(e => e.fundName).join(', ')}. If it is signed off again, any new AI usage will appear here for a supplementary invoice.</div>}
     <Card>
       {!queue.length ? <div style={{ ...body, ...muted }}>Nothing is waiting to be invoiced.</div> : (
-        <div style={{ overflowX: 'auto' }}>
+        <div className="dt" style={{ '--cols': GRID6, '--min': '900px', marginTop: 0 }}>
           <Row head cols={['Client', 'Fund', 'Year end', 'Signed off', 'AI usage to bill', '']} />
           {queue.map(x => (
             <Row key={x.e.engagementId} cols={[
@@ -94,9 +89,12 @@ function Ready({ queue, unlocked, st, onCreate }) {
   </>);
 }
 const GRID6 = 'minmax(180px,1.4fr) minmax(160px,1.2fr) 120px 140px 150px 130px';
+const READY_COLS = ['Client', 'Fund', 'Year end', 'Signed off', 'AI usage to bill', ''];
+const READY_CELL = ['dt-main', '', '', '', '', 'dt-end'];
 const Row = ({ cols, head }) => (
-  <div style={{ display: 'grid', gridTemplateColumns: GRID6, gap: 12, alignItems: 'center', padding: head ? '8px 10px' : '12px 10px', minWidth: 900, boxShadow: head ? 'inset 0 -1px 0 rgba(0,0,0,0.1)' : 'inset 0 -1px 0 rgba(0,0,0,0.05)' }}>
-    {cols.map((c, i) => <div key={i} style={head ? { ...cap, ...muted } : { minWidth: 0 }}>{c}</div>)}
+  <div className={head ? 'dt-head' : 'dt-row'}>
+    {cols.map((c, i) => head ? <div key={i} style={{ ...cap, ...muted }}>{c}</div>
+      : <div key={i} className={READY_CELL[i] || undefined} data-label={READY_CELL[i] ? undefined : READY_COLS[i]}>{c}</div>)}
   </div>);
 
 // ---- Invoices list -------------------------------------------------------------------------
@@ -112,8 +110,8 @@ function Invoices({ st, onOpen }) {
   return (<>
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', alignItems: 'flex-end' }}>
       <div style={h2}>Invoices</div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <select className="input" style={{ width: 180 }} aria-label="Show" value={f} onChange={e => setF(e.target.value)}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        <select className="input" style={{ width: 180, maxWidth: '100%' }} aria-label="Show" value={f} onChange={e => setF(e.target.value)}>
           <option value="all">All invoices</option><option value="draft">Drafts</option><option value="open">Unpaid</option><option value="overdue">Overdue</option><option value="cancelled">Cancelled</option>
         </select>
         <Button kind="secondary" onClick={exportList}>Export (.xlsx)</Button>
@@ -122,15 +120,15 @@ function Invoices({ st, onOpen }) {
     </div>
     <Card>
       {!list.length ? <div style={{ ...body, ...muted }}>No invoices in this view.</div> : (
-        <div style={{ overflowX: 'auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '8px 10px', minWidth: 900, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)' }}>{['Invoice', 'Client / fund', 'Issued', 'Due', 'Total', 'Outstanding', 'Status'].map(c => <div key={c} style={{ ...cap, ...muted }}>{c}</div>)}</div>
+        <div className="dt" style={{ '--cols': grid, '--min': '900px', marginTop: 0 }}>
+          <div className="dt-head">{['Invoice', 'Client / fund', 'Issued', 'Due', 'Total', 'Outstanding', 'Status'].map(c => <div key={c} style={{ ...cap, ...muted }}>{c}</div>)}</div>
           {list.map(i => { const t = totals(i), s = invoiceStatus(i); return (
-            <button type="button" key={i.id} className="row" onClick={() => onOpen(i.id)} style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'center', padding: '12px 10px', minWidth: 900, width: '100%', border: 0, background: 'transparent', font: 'inherit', textAlign: 'left', cursor: 'pointer', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)' }}>
-              <span style={{ ...body, fontWeight: 600 }}>{i.number || 'Draft'}{i.kind === 'supplementary' && <span style={{ ...cap, ...muted, display: 'block', fontWeight: 400 }}>Supplementary</span>}</span>
-              <span><span style={body}>{i.clientName}</span><span style={{ ...cap, ...muted, display: 'block' }}>{i.fundName}</span></span>
-              <span style={cap}>{d(i.issuedAt)}</span><span style={cap}>{d(i.dueDate)}</span>
-              <span style={body}>{money(t.gross)}</span><span style={{ ...body, fontWeight: t.outstanding ? 600 : 400 }}>{i.status === 'issued' ? money(t.outstanding) : '—'}</span>
-              <span><Pill bg={STATUS_BG[s]}>{s}</Pill>{daysOverdue(i) > 0 && <span style={{ ...cap, color: '#B42318', marginLeft: 6 }}>{daysOverdue(i)} days</span>}{i.xero && <span style={{ ...cap, ...muted, marginLeft: 6 }}>In Xero</span>}</span>
+            <button type="button" key={i.id} className="row dt-row" onClick={() => onOpen(i.id)} style={{ border: 0, background: 'transparent', font: 'inherit', textAlign: 'left', cursor: 'pointer', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)' }}>
+              <span data-label="Invoice" style={{ ...body, fontWeight: 600 }}>{i.number || 'Draft'}{i.kind === 'supplementary' && <span style={{ ...cap, ...muted, display: 'block', fontWeight: 400 }}>Supplementary</span>}</span>
+              <span className="dt-main"><span style={body}>{i.clientName}</span><span style={{ ...cap, ...muted, display: 'block' }}>{i.fundName}</span></span>
+              <span data-label="Issued" style={cap}>{d(i.issuedAt)}</span><span data-label="Due" style={cap}>{d(i.dueDate)}</span>
+              <span data-label="Total" style={body}>{money(t.gross)}</span><span data-label="Outstanding" style={{ ...body, fontWeight: t.outstanding ? 600 : 400 }}>{i.status === 'issued' ? money(t.outstanding) : '—'}</span>
+              <span data-label="Status"><Pill bg={STATUS_BG[s]}>{s}</Pill>{daysOverdue(i) > 0 && <span style={{ ...cap, color: '#B42318', marginLeft: 6 }}>{daysOverdue(i)} days</span>}{i.xero && <span style={{ ...cap, ...muted, marginLeft: 6 }}>In Xero</span>}</span>
             </button>); })}
         </div>)}
     </Card>
@@ -163,7 +161,7 @@ function InvoiceDetail({ inv, st, usage, act, extra, auth, integ, onBack }) {
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', alignItems: 'flex-end' }}>
       <div>
         <button type="button" className="link" style={{ ...cap, ...muted }} onClick={onBack}>‹ Invoices</button>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 6 }}><div style={h2}>{inv.number || 'Draft invoice'}</div><Pill bg={STATUS_BG[s]}>{s}</Pill>{inv.kind === 'supplementary' && <Pill bg="var(--snow-primary-blue)">Supplementary</Pill>}</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginTop: 6 }}><div style={h2}>{inv.number || 'Draft invoice'}</div><Pill bg={STATUS_BG[s]}>{s}</Pill>{inv.kind === 'supplementary' && <Pill bg="var(--snow-primary-blue)">Supplementary</Pill>}</div>
         <div style={{ ...body, ...muted, marginTop: 4 }}>{inv.clientName} · {inv.fundName} · signed off by {inv.signedBy || '—'} on {d(inv.signedAt)}</div>
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -179,7 +177,7 @@ function InvoiceDetail({ inv, st, usage, act, extra, auth, integ, onBack }) {
       <CardHead title="Lines" aside={draft ? 'Amounts in £, before VAT' : `Issued ${d(inv.issuedAt)} · due ${d(inv.dueDate)}`} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
         {view.lines.map(l => (
-          <div key={l.id} style={{ display: 'grid', gridTemplateColumns: '1fr 160px 36px', gap: 10, alignItems: 'start', padding: 12, borderRadius: 10, background: l.kind === 'ai' ? '#F4F6FD' : 'var(--snow-primary-light)' }}>
+          <div key={l.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(96px,160px) 36px', gap: 10, alignItems: 'start', padding: 12, borderRadius: 10, background: l.kind === 'ai' ? '#F4F6FD' : 'var(--snow-primary-light)' }}>
             <div>
               {draft ? <input className="input" aria-label="Line description" value={l.description} onChange={e => setLine(l.id, { description: e.target.value })} /> : <div style={body}>{l.description}</div>}
               {l.kind === 'ai' && <div style={{ ...cap, ...muted, marginTop: 6 }}>{l.unpriced && l.usageCount ? 'AI prices or the USD to GBP rate are not set, so this line can’t be charged yet.' : `${money(l.costAtCost)} at cost${l.markupPct ? ` plus ${l.markupPct}% = ${money(Math.round((l.costAtCost || 0) * (1 + l.markupPct / 100)))}` : ''}`}{l.usageCount === 0 && ' No AI was used on this fund.'}</div>}
@@ -195,13 +193,13 @@ function InvoiceDetail({ inv, st, usage, act, extra, auth, integ, onBack }) {
         <Button size="sm" kind="secondary" onClick={() => setLines(ls => [...ls, { id: 'n' + Date.now(), kind: 'other', description: '', amount: 0 }])}>Add Line</Button>
         <Button size="sm" kind="secondary" onClick={() => act({ type: 'refreshAi', id: inv.id }, 'AI usage recalculated from the latest usage and prices.')}>Recalculate AI Usage</Button>
       </div>}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: 6, marginTop: 16, paddingTop: 12, boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.1)', ...body }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 6, marginTop: 16, paddingTop: 12, boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.1)', ...body }}>
         <span>Net</span><span style={{ textAlign: 'right' }}>{money(t.net)}</span>
         <span>VAT at {draft ? <input className="input" aria-label="VAT rate" style={{ width: 64, display: 'inline-block', height: 28 }} value={vatRate} onChange={e => setVat(e.target.value)} /> : inv.vatRate}%</span><span style={{ textAlign: 'right' }}>{money(t.vat)}</span>
         <b>Total</b><b style={{ textAlign: 'right' }}>{money(t.gross)}</b>
         {!draft && <>{t.credited > 0 && <><span>Credited</span><span style={{ textAlign: 'right' }}>{money(t.credited)}</span></>}<span>Paid</span><span style={{ textAlign: 'right' }}>{money(t.paid)}</span>{t.writtenOff > 0 && <><span>Written off</span><span style={{ textAlign: 'right' }}>{money(t.writtenOff)}</span></>}<b>Outstanding</b><b style={{ textAlign: 'right' }}>{money(t.outstanding)}</b></>}
       </div>
-      {draft && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginTop: 14 }}>
+      {draft && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12, marginTop: 14 }}>
         <label style={{ ...cap, display: 'flex', flexDirection: 'column', gap: 4 }}><span style={muted}>Payment terms (days)</span><input className="input" value={terms} onChange={e => setTerms(e.target.value)} /></label>
         <label style={{ ...cap, display: 'flex', flexDirection: 'column', gap: 4 }}><span style={muted}>Note on the invoice (optional)</span><input className="input" value={notes} onChange={e => setNotes(e.target.value)} /></label>
       </div>}
@@ -259,7 +257,7 @@ function EmailForm({ inv, st, integ, onClose, onSend }) {
           <label key={k} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}><span style={{ ...cap, ...muted }}>{label}</span><input className="input" value={v[k]} onChange={e => setV(x => ({ ...x, [k]: e.target.value }))} /></label>))}
         <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}><span style={{ ...cap, ...muted }}>Message</span><textarea className="input" rows={4} style={{ height: 'auto', padding: '8px 10px' }} value={v.message} onChange={e => setV(x => ({ ...x, message: e.target.value }))} /></label>
         <span style={{ ...cap, ...muted }}>The invoice PDF is attached{integ?.email?.from ? `; sent from ${integ.email.from}` : ''}.</span>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}><Button kind="secondary" onClick={onClose}>Cancel</Button><button type="submit" className="btn btn-primary" style={{ height: 36, padding: '0 16px' }} disabled={!ok || !v.to.trim()}>Send Email</button></div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' }}><Button kind="secondary" onClick={onClose}>Cancel</Button><button type="submit" className="btn btn-primary" style={{ height: 36, padding: '0 16px' }} disabled={!ok || !v.to.trim()}>Send Email</button></div>
       </form>
     </Modal>);
 }
@@ -279,7 +277,7 @@ function Form({ title, fields, button, onClose, onSubmit }) {
         {fields.map(([k, label, , type]) => (
           <label key={k} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}><span style={{ ...cap, ...muted }}>{label}</span>
             <input className="input" type={type || 'text'} value={v[k]} onChange={e => setV(x => ({ ...x, [k]: e.target.value }))} /></label>))}
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}><Button kind="secondary" onClick={onClose}>Cancel</Button><button type="submit" className="btn btn-primary" style={{ height: 36, padding: '0 16px' }}>{button}</button></div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' }}><Button kind="secondary" onClick={onClose}>Cancel</Button><button type="submit" className="btn btn-primary" style={{ height: 36, padding: '0 16px' }}>{button}</button></div>
       </form>
     </Modal>);
 }
@@ -303,13 +301,13 @@ function Recovery({ st, usage }) {
       <div><div style={h2}>Recovery</div><div style={{ ...body, ...muted, marginTop: 6 }}>Cash collected against invoices, what is still owed and for how long, and how much of the AI cost was recharged.</div></div>
       <Button kind="secondary" onClick={exportR}>Export (.xlsx)</Button>
     </div>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(170px, 100%), 1fr))', gap: 12 }}>
       {tiles.map(([k, v, x]) => <div key={k} style={{ background: '#fff', boxShadow: RING, borderRadius: 14, padding: 16 }}><div style={{ ...cap, ...muted }}>{k}</div><div style={{ ...h3, marginTop: 4 }}>{v}</div>{x && <div style={{ ...cap, ...muted, marginTop: 2 }}>{x}</div>}</div>)}
     </div>
     <Card>
       <CardHead title="Ageing of Outstanding" />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-        {ages.map(([k, v]) => <div key={k} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 120px', gap: 10, alignItems: 'center', ...cap }}>
+        {ages.map(([k, v]) => <div key={k} style={{ display: 'grid', gridTemplateColumns: 'minmax(72px,120px) 1fr minmax(64px,120px)', gap: 10, alignItems: 'center', ...cap }}>
           <span>{k}</span><span style={{ height: 12, borderRadius: 6, background: 'var(--snow-ink-5)' }}><span style={{ display: 'block', height: 12, borderRadius: 6, width: `${(v / maxAge) * 100}%`, background: k === 'Not yet due' ? '#4F86D3' : '#D92D20' }} /></span><span style={{ textAlign: 'right' }}>{money(v)}</span></div>)}
       </div>
     </Card>
@@ -336,18 +334,18 @@ function Settings({ st, act, extra, auth, integ, reloadInteg }) {
   return (<>
     <div><div style={h2}>Billing Settings</div><div style={{ ...body, ...muted, marginTop: 6 }}>Invoice details, payment terms and the prices used to charge AI usage.</div></div>
     <Card><CardHead title="On the Invoice" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginTop: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12, marginTop: 12 }}>
         {F({ k: 'firmName', label: 'Firm name' })}{F({ k: 'firmAddress', label: 'Firm address' })}{F({ k: 'vatNumber', label: 'VAT number' })}
         {F({ k: 'invoicePrefix', label: 'Invoice number prefix', hint: 'For example INV- gives INV-2026-0001' })}{F({ k: 'paymentTermsDays', label: 'Payment terms (days)' })}{F({ k: 'vatRate', label: 'VAT rate (%)' })}
         <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}><span style={{ ...cap, ...muted }}>Default professional fee (£)</span><input className="input" value={s._fee ?? fromP(s.defaultFee)} onChange={e => set('_fee', e.target.value)} /><span style={{ ...cap, ...muted }}>Suggested on new invoices; can be changed on each one</span></label>
       </div></Card>
     <Card><CardHead title="AI Usage Charges" />
       <div style={{ ...cap, ...muted, marginTop: 8, maxWidth: 760 }}>Enter each model’s current prices from Anthropic’s pricing page (US dollars per million tokens). AI cost is converted to pounds at your rate, then the markup is added. Until a model has prices and a rate is set, its usage shows on invoices without a charge.</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginTop: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12, marginTop: 12 }}>
         {F({ k: 'usdToGbp', label: 'USD to GBP rate', placeholder: 'e.g. the rate on your invoice date' })}{F({ k: 'aiMarkupPct', label: 'AI markup (%)', hint: '0 recharges AI at cost' })}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
-        {MODELS.map(m => <div key={m.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(180px,1fr) 170px 170px', gap: 10, alignItems: 'end' }}>
+        {MODELS.map(m => <div key={m.id} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))', gap: 10, alignItems: 'end' }}>
           <span style={body}><b>{m.name}</b> <code style={{ ...cap, ...muted }}>{m.id}</code></span>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}><span style={{ ...cap, ...muted }}>Input ($ per 1M tokens)</span><input className="input" aria-label={`${m.name} input price`} value={s.rates?.[m.id]?.in ?? ''} onChange={e => rate(m.id, 'in', e.target.value)} /></label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}><span style={{ ...cap, ...muted }}>Output ($ per 1M tokens)</span><input className="input" aria-label={`${m.name} output price`} value={s.rates?.[m.id]?.out ?? ''} onChange={e => rate(m.id, 'out', e.target.value)} /></label>
@@ -363,12 +361,12 @@ function Settings({ st, act, extra, auth, integ, reloadInteg }) {
       <div style={{ ...cap, marginTop: 8 }}>{st.settings.lockDate ? <>Locked up to <b>{d(st.settings.lockDate)}</b>: no invoice, payment, credit note or write-off can be dated on or before it.</> : 'No lock date. Set one when a month is closed so its billing can’t change.'}</div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', marginTop: 10, flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}><span style={{ ...cap, ...muted }}>Lock date</span><input className="input" type="date" aria-label="Lock date" value={lock} onChange={e => setLock(e.target.value)} /></label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 220 }}><span style={{ ...cap, ...muted }}>Reason (required)</span><input className="input" aria-label="Reason for the lock date" value={lockWhy} onChange={e => setLockWhy(e.target.value)} placeholder="e.g. October 2026 closed" /></label>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 'min(220px, 100%)' }}><span style={{ ...cap, ...muted }}>Reason (required)</span><input className="input" aria-label="Reason for the lock date" value={lockWhy} onChange={e => setLockWhy(e.target.value)} placeholder="e.g. October 2026 closed" /></label>
         <Button onClick={async () => { const r = await act({ type: 'setLock', lockDate: lock || null, reason: lockWhy }, lock ? `Billing locked up to ${lock}.` : 'Lock date removed.'); if (r) setLockWhy(''); }}>{lock ? 'Set Lock Date' : 'Remove Lock'}</Button>
       </div></Card>
     <Card><CardHead title="Email" />
       <div style={{ ...cap, marginTop: 8 }}>{integ?.email?.configured ? `Invoices are emailed from ${integ.email.from}.` : 'Not set up: the server needs SMTP_HOST and MAIL_FROM, plus SMTP_PORT, SMTP_USER and SMTP_PASS if the mail server requires them.'} Templates can use {'{number}'}, {'{firm}'}, {'{fund}'} and {'{due}'}.</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12, marginTop: 10 }}>{F({ k: 'emailSubject', label: 'Subject' })}{F({ k: 'emailMessage', label: 'Message' })}</div></Card>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 12, marginTop: 10 }}>{F({ k: 'emailSubject', label: 'Subject' })}{F({ k: 'emailMessage', label: 'Message' })}</div></Card>
     <Card><CardHead title="Xero" />
       <div style={{ ...cap, marginTop: 8 }}>{!integ?.xero?.configured ? 'Not set up: create an app at developer.xero.com and set XERO_CLIENT_ID, XERO_CLIENT_SECRET and XERO_REDIRECT_URI on the server. Until then, use Export for Xero (.csv).'
         : integ.xero.connected ? <>Connected to <b>{integ.xero.tenantName}</b>. Issued invoices can be sent to Xero as authorised sales invoices.</> : 'Ready to connect.'}</div>

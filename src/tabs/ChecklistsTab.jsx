@@ -57,27 +57,27 @@ export default function ChecklistsTab({ store }) {
       <Card>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ ...body }}><b>{fw}</b> · version {saved.version}{saved.savedAt ? ` · saved ${new Date(saved.savedAt).toLocaleDateString('en-GB')}` : ''} · {items.length} items</div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             <FileButton label="Import from Excel" accept=".xlsx,.xls,.csv" onFile={importXlsx} />
             <Button kind="secondary" onClick={template}>Export (.xlsx)</Button>
             <Button kind="secondary" onClick={() => { setItems(xs => [...xs, { id: '', ref: '', section: 'General', text: '', keywords: [] }]); setDirty(true); }}>Add Item</Button>
           </div>
         </div>
-        <div style={{ overflowX: 'auto', marginTop: 12 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '110px 170px minmax(280px,2fr) minmax(200px,1.2fr) 36px', gap: 10, padding: '6px 4px', minWidth: 860, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)' }}>
+        <div className="dt" style={{ '--cols': '110px 170px minmax(280px,2fr) minmax(200px,1.2fr) 36px', '--min': '860px' }}>
+          <div className="dt-head" style={{ gap: 10, padding: '6px 4px' }}>
             {['Ref', 'Section', 'Requirement', 'Keywords (comma separated)', ''].map(c => <span key={c} style={{ ...cap, ...muted }}>{c}</span>)}
           </div>
           {items.map((x, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '110px 170px minmax(280px,2fr) minmax(200px,1.2fr) 36px', gap: 10, padding: '6px 4px', minWidth: 860, alignItems: 'center' }}>
-              <input className="input" aria-label="Reference" value={x.ref} onChange={e => set(i, { ref: e.target.value })} />
-              <input className="input" aria-label="Section" value={x.section} onChange={e => set(i, { section: e.target.value })} />
-              <input className="input" aria-label="Requirement" value={x.text} onChange={e => set(i, { text: e.target.value })} />
-              <input className="input" aria-label="Keywords" value={Array.isArray(x.keywords) ? x.keywords.join(', ') : x.keywords} onChange={e => set(i, { keywords: e.target.value })} />
+            <div key={i} className="dt-row dt-edit" style={{ gap: 10, padding: '6px 4px' }}>
+              <div data-label="Ref"><input className="input" aria-label="Reference" value={x.ref} onChange={e => set(i, { ref: e.target.value })} /></div>
+              <div data-label="Section"><input className="input" aria-label="Section" value={x.section} onChange={e => set(i, { section: e.target.value })} /></div>
+              <div data-label="Requirement" className="dt-main"><input className="input" aria-label="Requirement" value={x.text} onChange={e => set(i, { text: e.target.value })} /></div>
+              <div data-label="Keywords" className="dt-main"><input className="input" aria-label="Keywords" value={Array.isArray(x.keywords) ? x.keywords.join(', ') : x.keywords} onChange={e => set(i, { keywords: e.target.value })} /></div>
               <button type="button" className="link" aria-label={`Remove ${x.ref || 'item'}`} onClick={() => { setItems(xs => xs.filter((_, j) => j !== i)); setDirty(true); }} style={{ ...body, ...muted }}>×</button>
             </div>))}
         </div>
       </Card>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--snow-primary-light)', borderRadius: 16, padding: '16px 24px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', alignItems: 'center', background: 'var(--snow-primary-light)', borderRadius: 16, padding: '16px var(--card-pad)' }}>
         <span style={{ ...cap, ...muted }}>{dirty ? 'You have unsaved changes.' : 'No unsaved changes.'} CHK-13 itself is switched on or off under Check Rules, by client on its entity, or by fund.</span>
         <Button size="lg" disabled={!dirty} onClick={save}>Save as {nextVersion()}</Button>
       </div>

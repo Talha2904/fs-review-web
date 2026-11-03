@@ -102,7 +102,7 @@ export default function CheckRulesTab({ store }) {
           <div style={h2}>Check Rules</div>
           <div style={{ ...body, ...muted, marginTop: 6 }}>The firm’s check library. Add rules, edit existing ones, and set which run by default. New engagements start from these rules; Managers can still adjust them for a single engagement.</div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <Button kind="secondary" disabled={busy || !!editing} onClick={reset}>Reset Defaults</Button>
           <Button size="lg" disabled={busy || !!editing || !store} onClick={addRule}>Add Rule</Button>
         </div>

@@ -24,7 +24,7 @@ export default function DisclosuresTab({ framework, list, state, cy, canAnswer, 
     <div style={page}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><div style={h2}>Disclosures</div><Pill bg="var(--snow-primary-purple)">{framework}</Pill>{(state?.version || list.version) === 'starter' && <Pill bg="var(--snow-status-approved-bg)">Starter checklist</Pill>}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}><div style={h2}>Disclosures</div><Pill bg="var(--snow-primary-purple)">{framework}</Pill>{(state?.version || list.version) === 'starter' && <Pill bg="var(--snow-status-approved-bg)">Starter checklist</Pill>}</div>
           <div style={{ ...cap, ...muted, marginTop: 4 }}>{sum.answered} of {sum.total} answered · {sum.no} “No” · checklist version {state?.version || list.version}{(state?.version || list.version) === 'starter' ? ' · a short generic list: the Administrator should replace it with the firm’s checklist' : ''}</div>
         </div>
         <Segmented value={view} onChange={setView} options={[['open', `To Answer (${sum.unanswered})`], ['no', `No (${sum.no})`], ['done', 'Answered'], ['all', 'All']]} />
@@ -38,7 +38,7 @@ export default function DisclosuresTab({ framework, list, state, cy, canAnswer, 
             {shown.filter(i => i.section === sec).map(i => {
               const a = answers[i.id], h = hints[i.id];
               return (
-                <div key={i.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(260px,1.6fr) minmax(220px,1.2fr) auto', gap: 14, alignItems: 'start', padding: '12px 0', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.06)' }}>
+                <div key={i.id} className="dt-row dt-1" style={{ '--cols': 'minmax(260px,1.6fr) minmax(220px,1.2fr) auto', gap: 14, alignItems: 'start', padding: '12px 0' }}>
                   <div>
                     <div style={body}><span style={{ ...cap, ...muted, marginRight: 6 }}>{i.ref}</span>{i.text}</div>
                     <div style={{ ...cap, marginTop: 4, color: h ? '#2E6B12' : 'var(--snow-black-40)' }}>{h ? <>Possibly in <b>{h.where}</b>: “{h.snippet}”</> : 'Nothing found in the draft for this item’s keywords.'}</div>
@@ -46,7 +46,7 @@ export default function DisclosuresTab({ framework, list, state, cy, canAnswer, 
                   </div>
                   <input className="input" aria-label={`Reference for ${i.ref}`} placeholder="Where disclosed (e.g. Note 5), or why N/A" disabled={!canAnswer}
                     value={refs[i.id] ?? a?.ref ?? (h && !a ? h.where : '')} onChange={e => setRefs(x => ({ ...x, [i.id]: e.target.value }))} />
-                  <div role="group" aria-label={`Answer for ${i.ref}`} style={{ display: 'flex', gap: 6 }}>
+                  <div role="group" aria-label={`Answer for ${i.ref}`} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {Object.entries(A).map(([k, [label, bg]]) => (
                       <button key={k} type="button" disabled={!canAnswer} aria-pressed={a?.answer === k}
                         onClick={() => onAnswer(i, k, refs[i.id] ?? a?.ref ?? (h ? h.where : ''))}

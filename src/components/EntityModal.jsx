@@ -38,7 +38,7 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
         <div style={{ ...cap, ...muted }}>The legal entity the funds belong to, such as an ICAV umbrella. Its funds are listed under it.
           {!isNew && fundCount > 0 && (fundCount === 1 ? ' Changes apply to its fund.' : ` Changes apply to all ${fundCount} of its funds.`)}</div>
         <Field label="Entity name"><input className="input" value={e.name} onChange={set('name')} placeholder="For example, Meridian Funds ICAV" autoFocus /></Field>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 14 }}>
           <Field label="Client name" hint="The firm you report to, if different"><input className="input" value={e.client} onChange={set('client')} placeholder="For example, Meridian Asset Management" /></Field>
           <Field label="Legal form">
             <select className="input" value={e.legalForm} onChange={set('legalForm')}>
@@ -59,7 +59,7 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
           <span style={{ ...cap, ...muted }}>Billing contact email (for invoices)</span>
           <input className="input" type="email" aria-label="Billing contact email" value={e.billingEmail || ''} onChange={set('billingEmail')} placeholder="accounts@client.com" />
         </label>
-        <fieldset style={{ border: 0, margin: 0, padding: '12px 14px', background: 'var(--snow-primary-light)', borderRadius: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+        <fieldset style={{ border: 0, margin: 0, padding: '12px 14px', background: 'var(--snow-primary-light)', borderRadius: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12 }}>
           <legend style={{ ...cap, fontWeight: 600, padding: 0, float: 'left', marginBottom: 6 }}>Review settings for this client</legend>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4, clear: 'both' }}>
             <span style={{ ...cap, ...muted }}>Accounting framework</span>

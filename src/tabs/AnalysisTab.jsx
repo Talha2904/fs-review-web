@@ -30,7 +30,7 @@ export default function AnalysisTab(p) {
         <Tile bg="var(--snow-status-approved-bg)" label="Medium" value={count('Medium')} sub="points open" />
         <Tile bg="var(--snow-primary-light)" label="Low" value={count('Low')} sub="points open" />
         <Tile bg="var(--snow-primary-blue)" label="Checks Differ" value={fails} sub={`of ${checks.length}`} />
-        <Card style={{ flex: '1 1 300px', minWidth: 260 }}>
+        <Card style={{ flex: '1 1 300px', minWidth: 0 }}>
           <div style={{ ...body, fontWeight: 600 }}>{hi ? `${hi} high priority point${hi === 1 ? '' : 's'} to clear` : 'No high priority points outstanding'}</div>
           <div style={{ ...cap, ...muted, marginTop: 8 }}>Analysed {analysedAt}. {files.sup ? 'Supporting information was used to corroborate movements.' : 'No supporting information was provided, so movements could not be corroborated.'}</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
@@ -43,17 +43,17 @@ export default function AnalysisTab(p) {
 
       <Card>
         <CardHead title="Recalculations and Cross-references" aside={`${fails} of ${checks.length} show a difference · checks set in the engagement`} />
-        <div style={{ overflowX: 'auto', marginTop: 12 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: CHECK_GRID, gap: 16, padding: '8px 12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)', minWidth: 820 }}>
+        <div className="dt" style={{ '--cols': CHECK_GRID, '--min': '820px' }}>
+          <div className="dt-head">
             {['Check', 'Computed', 'Per Accounts', 'Difference', 'Result'].map(c => <div key={c} style={{ ...cap, ...muted }}>{c}</div>)}
           </div>
           {checks.map(c => (
-            <div key={c.id} className="row" style={{ display: 'grid', gridTemplateColumns: CHECK_GRID, gap: 16, alignItems: 'center', padding: '10px 12px', minHeight: 40, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)', minWidth: 820 }}>
-              <div><div style={body}><span style={{ ...cap, ...muted, marginRight: 8 }}>{c.rule}</span>{c.name}</div><div style={{ ...cap, ...muted, marginTop: 2 }}>{c.detail}</div></div>
-              <div style={{ ...body, textAlign: 'right' }}>{fmt(c.comp)}</div>
-              <div style={{ ...body, textAlign: 'right' }}>{fmt(c.stated)}</div>
-              <div style={{ ...body, textAlign: 'right', fontWeight: c.result === 'Difference' ? 600 : 400, color: c.result === 'Difference' ? 'var(--snow-black-100)' : 'var(--snow-black-40)' }}>{c.result === 'Difference' ? (c.count ? `${c.diff} found` : fmt(Math.abs(c.diff))) : '—'}</div>
-              <div><Pill bg={CHIP[c.result]}>{c.result}</Pill></div>
+            <div key={c.id} className="row dt-row">
+              <div className="dt-main"><div style={body}><span style={{ ...cap, ...muted, marginRight: 8 }}>{c.rule}</span>{c.name}</div><div style={{ ...cap, ...muted, marginTop: 2 }}>{c.detail}</div></div>
+              <div data-label="Computed" className="num" style={body}>{fmt(c.comp)}</div>
+              <div data-label="Per Accounts" className="num" style={body}>{fmt(c.stated)}</div>
+              <div data-label="Difference" className="num" style={{ ...body, fontWeight: c.result === 'Difference' ? 600 : 400, color: c.result === 'Difference' ? 'var(--snow-black-100)' : 'var(--snow-black-40)' }}>{c.result === 'Difference' ? (c.count ? `${c.diff} found` : fmt(Math.abs(c.diff))) : '—'}</div>
+              <div data-label="Result"><Pill bg={CHIP[c.result]}>{c.result}</Pill></div>
             </div>
           ))}
         </div>
@@ -76,8 +76,8 @@ export default function AnalysisTab(p) {
       {mapping && <TbMapModal docs={result.docs} map={tbMap} tol={tbTol} canEdit={canMap} onSave={onSaveMap} onClose={() => setMapping(false)} />}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start' }}>
-        <div style={{ flex: '0 1 232px', minWidth: 200, display: 'flex', flexDirection: 'column', gap: 4, position: 'sticky', top: 16 }}>
-          <div style={{ ...cap, ...muted, padding: '0 4px 4px' }}>Review File</div>
+        <div className="an-files">
+          <div className="an-files-title" style={{ ...cap, ...muted, padding: '0 4px 4px' }}>Review File</div>
           {docIds.map(id => {
             const d = result.docs[id], on = cur === id;
             return (
@@ -92,7 +92,7 @@ export default function AnalysisTab(p) {
           })}
         </div>
 
-        <Card style={{ flex: '1 1 520px', minWidth: 300 }}>
+        <Card style={{ flex: '1 1 520px', minWidth: 0 }}>
           <CardHead title={doc.title} aside={doc.meta} />
           <div style={{ ...cap, ...muted, paddingBottom: 16, marginTop: 6, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)' }}>Click any figure to add it to the tie-out tray. Highlighted lines carry a review point.</div>
           {doc.blocks.map((b, bi) => (
@@ -113,7 +113,7 @@ export default function AnalysisTab(p) {
           ))}
         </Card>
 
-        <div style={{ flex: '1 1 320px', minWidth: 280, display: 'flex', flexDirection: 'column', gap: 20, position: 'sticky', top: 16 }}>
+        <div className="an-side">
           <Card tint="var(--snow-primary-light)">
             <CardHead small title="Tie-out Tray" aside={tray.length ? `${tray.length} of 4 selected` : ''} />
             {!tray.length && <div style={{ ...cap, ...muted, marginTop: 8 }}>Empty. Click a figure in any document — pick two to compute the difference, or several to cast a total.</div>}
@@ -176,17 +176,18 @@ const Res = ({ k, v, big }) => (
 
 function DocTable({ b, bi, cur, doc, tray, pick, setSel, showFlags }) {
   const nc = b.cols.length;
-  const grid = `minmax(180px,1fr) repeat(${nc},minmax(96px,120px))`;
+  const grid = `minmax(140px,1fr) repeat(${nc},minmax(84px,120px))`;
+  const minWidth = 140 + nc * 96 + 24;
   return (
     <div style={{ overflowX: 'auto' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '8px 12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)', minWidth: 480 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '8px 12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)', minWidth }}>
         <div style={{ ...cap, ...muted }}>{b.label || ''}</div>
         {b.cols.map(c => <div key={c} style={{ ...cap, ...muted, textAlign: 'right' }}>{c}</div>)}
       </div>
       {b.rows.map((r, ri) => {
         const on = showFlags && r.flag;
         return (
-          <div key={ri} className="row" style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'baseline', padding: '8px 12px', minWidth: 480, minHeight: 40, ...flagBox(on), boxShadow: r.b ? 'inset 0 1px 0 rgba(0,0,0,0.2)' : r.h ? 'none' : 'inset 0 -1px 0 rgba(0,0,0,0.05)' }}>
+          <div key={ri} className="row" style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, alignItems: 'baseline', padding: '8px 12px', minWidth, minHeight: 40, ...flagBox(on), boxShadow: r.b ? 'inset 0 1px 0 rgba(0,0,0,0.2)' : r.h ? 'none' : 'inset 0 -1px 0 rgba(0,0,0,0.05)' }}>
             <div style={{ fontSize: r.h ? 12 : 14, lineHeight: r.h ? '18px' : '20px', fontWeight: r.b || r.h ? 600 : 400, color: r.h ? 'var(--snow-black-40)' : 'inherit', paddingTop: r.h ? 8 : 0 }}>
               <span>{r.l}</span>
               {r.ref && <span style={{ marginLeft: 8, fontSize: 12, ...muted }}>{r.ref}</span>}

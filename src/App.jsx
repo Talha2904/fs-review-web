@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import Sidebar from './components/Sidebar';
+import AppShell from './components/AppShell';
 import DocumentsTab from './tabs/DocumentsTab';
 import AnalysisTab from './tabs/AnalysisTab';
 import VarianceTab from './tabs/VarianceTab';
@@ -592,29 +592,22 @@ function Workspace({ user, auth, onSignOut }) {
 
   return (
     <LibraryContext.Provider value={library}>
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'stretch' }}>
-      <Sidebar tabs={tabs} tab={tab} onTab={setTab} user={user} onSignOut={onSignOut} meta={tab === 'portfolio' ? [] : active ? [
+    <AppShell root="Financial Statement Review" crumb={CRUMB[tab]}
+      sidebar={{ tabs, tab, onTab: setTab, user, onSignOut, meta: tab === 'portfolio' ? [] : active ? [
         { k: 'Entity', v: activeEntity?.name || '—' }, { k: 'Fund', v: active.fund.name || '—' }, { k: 'Year End', v: fmtDate(active.fund.yearEnd) },
         { k: 'Preparer', v: personName(active.fund, 'preparer', people) || '—' }, { k: 'Reviewer', v: personName(active.fund, 'reviewer', people) || '—' },
         { k: 'Manager', v: personName(active.fund, 'manager', people) || '—' }, { k: 'Threshold', v: sym() + fmt(active.threshold) }
-      ] : []} />
-
-      <main style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        <header style={{ minHeight: 68, padding: '12px 28px', display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)' }}>
-          <div style={{ ...body, display: 'flex', gap: 8 }}>
-            <span style={muted}>Financial Statement Review</span><span style={{ color: 'var(--snow-black-20)' }}>/</span><span style={{ fontWeight: 600 }}>{CRUMB[tab]}</span>
-          </div>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            {finalSigned && tab !== 'portfolio' && <Pill bg="var(--snow-status-complete-bg)">Signed off</Pill>}
-            {review.signoff?.state === 'manager-signed' && tab !== 'portfolio' && <Pill bg="var(--snow-primary-blue)">Awaiting partner</Pill>}
-            <NotificationBell actions={notes.actions} actionCount={notes.actionCount ?? notes.actions.length} updates={notes.updates} seenAt={seenAt} onSeen={markSeen} onGo={goToNotice} />
-          </div>
-        </header>
+      ] : [] }}
+      actions={<>
+        {finalSigned && tab !== 'portfolio' && <Pill bg="var(--snow-status-complete-bg)">Signed off</Pill>}
+        {review.signoff?.state === 'manager-signed' && tab !== 'portfolio' && <Pill bg="var(--snow-primary-blue)">Awaiting partner</Pill>}
+        <NotificationBell actions={notes.actions} actionCount={notes.actionCount ?? notes.actions.length} updates={notes.updates} seenAt={seenAt} onSeen={markSeen} onGo={goToNotice} />
+      </>}>
 
         {active && !['engagement', 'users', 'portfolio'].includes(tab) && <FundDashboard aiLabel={aiOn ? 'Enabled' : 'Off'} aiWhy={aiOn ? `AI assistance is enabled (${aiStatus?.model || 'Claude'}).` : !clientAllowsAi ? AI_REASON[fundAiState] : !aiStatus?.serverKey ? 'Off: no API key on the server.' : 'Off: AI is turned off under AI Settings.'} engagement={setup} entity={activeEntity} people={people} docsAttached={Object.keys(files).length} openPoints={openPoints.length} done={done}
           locked={phase === 'running'} onChange={() => { setDraft(null); setTab('engagement'); }} />}
 
-        <div style={{ padding: '12px 28px 0' }}>
+        <div style={{ padding: '12px var(--gutter) 0' }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '10px 14px' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--snow-status-approved)' }} />
             <span style={cap}>Review assistance only. This tool supports the reviewer's judgement; it does not establish that the financial statements are complete or correct.</span>
@@ -622,7 +615,7 @@ function Workspace({ user, auth, onSignOut }) {
         </div>
 
         {stale && canRun && !['engagement', 'users'].includes(tab) && (
-          <div style={{ padding: '12px 28px 0' }}>
+          <div style={{ padding: '12px var(--gutter) 0' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', background: 'var(--snow-primary-blue)', borderRadius: 8, padding: '10px 14px' }}>
               <span style={cap}>The engagement settings have changed since this analysis ran. The checks table already reflects them; review points come from the last analysis and are refreshed the next time a document changes.</span>
             </div>
@@ -630,7 +623,7 @@ function Workspace({ user, auth, onSignOut }) {
         )}
 
         {result?.aiSkipped?.length > 0 && ['analysis', 'var', 'sched', 'vers'].includes(tab) && (
-          <div style={{ padding: '12px 28px 0' }}>
+          <div style={{ padding: '12px var(--gutter) 0' }}>
             <div role="status" style={{ ...cap, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '10px 14px' }}>
               This analysis ran without AI for: {result.aiSkipped.join(', ')}. The recalculation checks and variance arithmetic ran as normal.
             </div>
@@ -656,8 +649,7 @@ function Workspace({ user, auth, onSignOut }) {
         {tab === 'activity' && active && <ActivityLogTab key={active.id} fund={{ id: active.id, name: active.fund.name }} />}
         {tab === 'vers' && done && <VersionsTab result={result} points={points} running={phase === 'running'} onNextDraft={analyse} onAttachNextDraft={attachNextDraft} nextDraftBlock="" canRun={canRun && !signed}
           onRejected={(d, file, why) => log('Documents', `Refused a file for ${d.name}: ${file.name}`, why)} />}
-      </main>
-    </div>
+    </AppShell>
     </LibraryContext.Provider>
   );
 }
@@ -674,8 +666,14 @@ export default function App() {
     connectAuth().then(async a => {
       setAuth(a);
       try { const m = await a.getPermissions().catch(() => null); if (m) setPermissions(m); } catch { /* keep defaults */ }
-      try { const [st, me] = await Promise.all([a.status(), a.me()]); setSetupRequired(st.setupRequired); setUser(me); }
-      catch { setUser(null); }
+      try {
+        const [st, me] = await Promise.all([a.status(), a.me()]);
+        setSetupRequired(st.setupRequired);
+        // A password reset link is for whoever opened it, not the session already in this browser: sign that
+        // session out so the link's reset form shows (it lives on the login page).
+        if (me && new URLSearchParams(window.location.search).get('reset')) { await a.logout().catch(() => {}); setUser(null); }
+        else setUser(me);
+      } catch { setUser(null); }
     }, e => setStartError(e.message));
   }, [attempt]);
   const signOut = async () => { try { await auth.logout(); } catch { /* signed out locally either way */ } setSetupRequired(false); setUser(null); };

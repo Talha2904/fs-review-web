@@ -26,7 +26,7 @@ export default function VersionsTab({ result, points, onNextDraft, onAttachNextD
   return (
     <div style={page}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
-        <div style={{ flex: '2 1 380px', minWidth: 280, background: 'var(--snow-primary-purple)', borderRadius: 16, padding: 24 }}>
+        <div style={{ flex: '2 1 380px', minWidth: 'min(280px, 100%)', background: 'var(--snow-primary-purple)', borderRadius: 16, padding: 'var(--card-pad)' }}>
           <div style={{ ...cap, ...muted }}>Version Pass</div>
           <div style={{ ...h2, marginTop: 6 }}>{v > 1 ? `Draft v${v - 1} → Draft v${v}` : 'Draft v1 — first pass'}</div>
           <div style={{ ...body, marginTop: 8, maxWidth: 620 }}>Every point raised on the earlier draft is re-tested against the new one, and the new draft is read for matters not previously present. Resolution is assessed against the evidence on file; where no evidence was provided the point stays outstanding.</div>
@@ -53,7 +53,7 @@ export default function VersionsTab({ result, points, onNextDraft, onAttachNextD
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start' }}>
         {cols.map(([title, c, note, items]) => (
-          <div key={title} style={{ flex: '1 1 300px', minWidth: 270, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div key={title} style={{ flex: '1 1 300px', minWidth: 'min(270px, 100%)', display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '0 4px' }}>
               <Dot c={c} size={8} /><span style={{ ...body, fontWeight: 600 }}>{title}</span><span style={{ ...cap, ...muted }}>{plural(items.length, 'point')}</span>
             </div>

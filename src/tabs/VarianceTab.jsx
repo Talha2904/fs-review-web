@@ -45,7 +45,7 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
             <div key={d.label} style={{ background: 'var(--snow-primary-light)', borderRadius: 16, padding: 16 }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'start' }}>
                 <div style={{ ...body, fontWeight: 600 }}>{d.label}</div>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span style={{ ...body, whiteSpace: 'nowrap' }}>{signedGbp(d.delta)} · {pctLabel(d.pct)}</span><PriPill pri={d.pri} /></div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}><span style={{ ...body, whiteSpace: 'nowrap' }}>{signedGbp(d.delta)} · {pctLabel(d.pct)}</span><PriPill pri={d.pri} /></div>
               </div>
               <div style={{ ...cap, marginTop: 6, maxWidth: 900 }}>{d.note}</div>
               <div style={{ ...cap, marginTop: 6, maxWidth: 900 }}><span style={muted}>Suggested work — </span>{d.action}</div>
@@ -57,26 +57,26 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
       {groups.map(g => (
         <Card key={g.title}>
           <CardHead title={g.title} aside={filter === 'all' ? `${g.rows.length} lines` : `${g.rows.filter(r => r.band !== 'Expected').length} of ${g.rows.length} lines`} />
-          <div style={{ overflowX: 'auto', marginTop: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 16, padding: 12, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)', minWidth: 680 }}>
+          <div className="dt" style={{ '--cols': GRID, '--min': '680px' }}>
+            <div className="dt-head">
               {COLS.map(c => <div key={c} style={{ ...cap, ...muted }}>{c}</div>)}
             </div>
             {g.rows.filter(r => filter === 'all' || r.band !== 'Expected').map(r => {
               const isRaised = raised(r.label);
-              const num = { ...body, textAlign: 'right', fontWeight: r.sub ? 600 : 400 };
-              const dl = { ...body, textAlign: 'right', fontWeight: r.band === 'Investigate' ? 600 : 400 };
+              const num = { ...body, fontWeight: r.sub ? 600 : 400 };
+              const dl = { ...body, fontWeight: r.band === 'Investigate' ? 600 : 400 };
               return (
                 <div key={r.label} style={{ padding: '4px 0', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 16, alignItems: 'baseline', padding: '8px 12px', minWidth: 680 }}>
-                    <div style={{ minWidth: 0 }}>
+                  <div className="dt-row" style={{ alignItems: 'baseline', boxShadow: 'none' }}>
+                    <div className="dt-main">
                       <div style={{ ...body, fontWeight: r.sub ? 600 : 400 }}>{r.label}</div>
                       <div style={{ ...cap, ...muted, marginTop: 2 }}>{r.expect}</div>
                     </div>
-                    <div style={num}>{gbp(r.cy)}</div>
-                    <div style={num}>{gbp(r.py)}</div>
-                    <div style={dl}>{signedGbp(r.delta)}</div>
-                    <div style={dl}>{pctLabel(r.pct)}</div>
-                    <div><Pill bg={BAND_BG[r.band]}>{r.band}</Pill></div>
+                    <div data-label="Current year draft" className="num" style={num}>{gbp(r.cy)}</div>
+                    <div data-label="Prior year signed" className="num" style={num}>{gbp(r.py)}</div>
+                    <div data-label="Movement" className="num" style={dl}>{signedGbp(r.delta)}</div>
+                    <div data-label="Movement %" className="num" style={dl}>{pctLabel(r.pct)}</div>
+                    <div data-label="Assessment"><Pill bg={BAND_BG[r.band]}>{r.band}</Pill></div>
                   </div>
                   {r.note && r.band !== 'Expected' && (
                     <div style={{ padding: '0 12px 10px', maxWidth: 860, ...cap }}>

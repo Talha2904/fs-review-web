@@ -51,7 +51,7 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
 
       <fieldset disabled={locked || !canWrite} style={{ border: 0, padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'stretch' }}>
-          <Card style={{ flex: '1 1 320px', minWidth: 280 }}>
+          <Card style={{ flex: '1 1 320px', minWidth: 'min(280px, 100%)' }}>
             <CardHead title="Fund" aside={entity ? [entity.legalForm, entity.jurisdiction].filter(Boolean).join(' · ') : ''} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 16 }}>
               <Field label="Entity" hint={entity ? (entity.client ? `Client: ${entity.client}` : 'The legal entity this fund belongs to') : 'Choose the legal entity this fund belongs to'}>
@@ -76,9 +76,9 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
             </div>
           </Card>
 
-          <Card style={{ flex: '2 1 480px', minWidth: 300 }}>
+          <Card style={{ flex: '2 1 480px', minWidth: 'min(300px, 100%)' }}>
             <CardHead title="Review Parameters" />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14, marginTop: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))', gap: 14, marginTop: 16 }}>
               <Field label={`Review threshold (${sym(setup.fund.currency)})`} hint="Materiality for review points and CHK-11">
                 <Num value={setup.threshold} min={0} onChange={v => set({ threshold: v ?? 0 })} />
               </Field>
@@ -104,7 +104,7 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
                   ? 'As approved: every line moving by the threshold or more is listed. Lines far from the net-asset expectation are still marked for investigation.'
                   : 'Stricter than the approved rule: a material line is listed only when it is also outside the expectation bands below.'}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14, marginTop: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))', gap: 14, marginTop: 14 }}>
                 <Field label="Investigate when off expectation by (%)"><Num value={setup.investigatePct} min={0} onChange={v => set({ investigatePct: v ?? 0 })} /></Field>
                 <Field label="Explain when off expectation by (%)"><Num value={setup.explainPct} min={0} onChange={v => set({ explainPct: v ?? 0 })} /></Field>
               </div>
@@ -141,7 +141,7 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
             : isNew ? 'Saving adds this engagement to the listing. Click In Review there to start reviewing it.'
             : 'Saving updates this engagement in the listing.'}
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <Button kind="secondary" onClick={onCancel}>{canWrite ? 'Cancel' : 'Back to Engagements'}</Button>
           {canWrite && <Button size="lg" disabled={locked || saving || missing.length > 0} onClick={onSave}>{saving ? 'Saving…' : 'Save Engagement'}</Button>}
         </div>
@@ -159,8 +159,8 @@ export function RulesTable({ setup, setRule, onEdit, library, editingId, templat
   const fallback = r => ({ on: false, tol: r.tol, tolKind: r.tolKind });
   const setRuleSafe = (id, patch) => setRule(id, { ...(setup.rules[id] || fallback(LIBRARY.find(x => x.id === id))), ...patch });
   return (
-    <div style={{ overflowX: 'auto', marginTop: 12 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 14, padding: '8px 12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)', minWidth }}>
+    <div className="dt" style={{ '--cols': grid, '--min': minWidth + 'px' }}>
+      <div className="dt-head" style={{ gap: 14 }}>
         {COLS.concat(onEdit ? [''] : []).map((c, i) => <div key={i} style={{ ...cap, ...muted }}>{c}</div>)}
       </div>
       {LIBRARY.map(r => <RuleRow key={r.id} r={r} s={setup.rules[r.id] || fallback(r)} setup={setup} setRule={setRuleSafe} grid={grid} minWidth={minWidth} onEdit={onEdit} editing={editingId === r.id} template={template} firmTemplate={firmTemplate} />)}
@@ -186,20 +186,20 @@ function RuleRow({ r, s, setup, setRule, grid, minWidth, onEdit, editing, templa
   else how = ['Not built yet', r.gap];
 
   return (
-    <div className="row" style={{ display: 'grid', gridTemplateColumns: grid, gap: 14, alignItems: 'start', padding: '12px', minWidth, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)', background: editing ? 'var(--snow-primary-light)' : undefined }}>
-      <div>{runnable ? <Toggle on={s.on} onChange={on => setRule(r.id, { on })} label={`Run ${r.id}`} /> : <span style={{ ...cap, ...muted }}>—</span>}</div>
-      <div style={{ ...body, fontWeight: 600, opacity: off ? 0.62 : 1 }}>{r.id}</div>
-      <div style={{ opacity: off ? 0.62 : 1 }}><div style={body}>{r.name}{!r.builtIn && <span style={{ ...cap, ...muted, marginLeft: 8 }}>Firm rule</span>}</div><div style={{ ...cap, ...muted, marginTop: 2 }}>{r.desc}</div></div>
-      <div><Tolerance r={r} s={s} setup={setup} setRule={setRule} editable={runnable} />
+    <div className="row dt-row" style={{ gap: 14, alignItems: 'start', background: editing ? 'var(--snow-primary-light)' : undefined }}>
+      <div data-label="Run">{runnable ? <Toggle on={s.on} onChange={on => setRule(r.id, { on })} label={`Run ${r.id}`} /> : <span style={{ ...cap, ...muted }}>—</span>}</div>
+      <div data-label="Rule" style={{ ...body, fontWeight: 600, opacity: off ? 0.62 : 1 }}>{r.id}</div>
+      <div className="dt-main" style={{ opacity: off ? 0.62 : 1 }}><div style={body}>{r.name}{!r.builtIn && <span style={{ ...cap, ...muted, marginLeft: 8 }}>Firm rule</span>}</div><div style={{ ...cap, ...muted, marginTop: 2 }}>{r.desc}</div></div>
+      <div data-label="Tolerance"><Tolerance r={r} s={s} setup={setup} setRule={setRule} editable={runnable} />
         {changed && <div style={{ marginTop: 6 }}><Pill bg="var(--snow-status-approved-bg)">Approved: {tolText(r.tolKind, r.tol, setup)}</Pill></div>}
       </div>
-      <div><Pill bg={statusBg}>{statusLabel}</Pill>
+      <div data-label="Status"><Pill bg={statusBg}>{statusLabel}</Pill>
         {template && template[r.id] && (overridden
           ? <div style={{ marginTop: 6, display: 'flex', gap: 6, alignItems: 'center' }}><Pill bg="var(--snow-status-approved-bg)">Overridden</Pill><button type="button" className="link" style={{ ...cap }} onClick={() => setRule(r.id, { ...template[r.id] })} aria-label={`Reset ${r.id} to the firm template`}>Reset</button></div>
           : <div style={{ marginTop: 6 }}><span style={{ ...cap, ...muted }}>{fromClient ? 'Client setting' : 'Template'}</span></div>)}
       </div>
-      <div style={{ opacity: off ? 0.62 : 1 }}><div style={cap}>{how[0]}</div>{how[1] && <div style={{ ...cap, ...muted, marginTop: 2, overflowWrap: 'anywhere' }}>{how[1]}</div>}</div>
-      {onEdit && <div><button type="button" className="btn btn-secondary" style={{ height: 32, padding: '0 12px' }} onClick={() => onEdit(r)}>Edit</button></div>}
+      <div data-label="How it runs" className="dt-main" style={{ opacity: off ? 0.62 : 1 }}><div style={cap}>{how[0]}</div>{how[1] && <div style={{ ...cap, ...muted, marginTop: 2, overflowWrap: 'anywhere' }}>{how[1]}</div>}</div>
+      {onEdit && <div className="dt-end"><button type="button" className="btn btn-secondary" style={{ height: 32, padding: '0 12px' }} onClick={() => onEdit(r)}>Edit</button></div>}
     </div>
   );
 }
@@ -210,7 +210,7 @@ const tolText = (kind, tol, setup) => kind === 'abs' ? `± ${fmt(tol, 2)}` : kin
 function Tolerance({ r, s, setup, setRule, editable }) {
   if (!editable || !['abs', 'pct'].includes(s.tolKind)) return <div style={{ ...cap, paddingTop: 2 }}>{tolText(s.tolKind, s.tol, setup)}</div>;
   return (
-    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
       <span style={cap}>±</span>
       {s.tolKind === 'abs' && <span style={cap}>{sym(setup.fund?.currency).trim()}</span>}
       <Num value={s.tol} min={0} step={s.tolKind === 'pct' ? 0.1 : 1} style={{ width: 72 }} aria-label={`${r.id} tolerance`} onChange={v => setRule(r.id, { tol: v ?? 0 })} />
@@ -235,7 +235,7 @@ function FundOptions({ entity, setup, onChange }) {
     </label>);
   const umb = setup.umbrella === 'on' || (setup.umbrella !== 'off' && entity.umbrella);
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, background: 'var(--snow-primary-light)', borderRadius: 8, padding: '8px 10px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 10, background: 'var(--snow-primary-light)', borderRadius: 8, padding: '8px 10px' }}>
       {sel('partnerSignoff', 'Partner sign-off', 'Required', 'Not required', !!entity.partnerSignoff)}
       {sel('umbrella', 'Financial statements', 'Umbrella accounts', 'Separate accounts', !!entity.umbrella)}
       {umb && <label style={{ display: 'flex', flexDirection: 'column', gap: 4, gridColumn: '1 / -1' }}>

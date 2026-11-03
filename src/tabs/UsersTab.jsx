@@ -48,7 +48,7 @@ export default function UsersTab({ auth, me }) {
       {form && (
         <Card>
           <CardHead title="Add User" />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginTop: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 14, marginTop: 16 }}>
             <Field label="Full name"><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></Field>
             <Field label="Username"><input className="input" autoCapitalize="none" spellCheck={false} value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} /></Field>
             <Field label="Role" hint={describeRole(form.role, matrix)}>
@@ -59,7 +59,7 @@ export default function UsersTab({ auth, me }) {
               <input className="input" type="text" autoComplete="off" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
             </Field>
           </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 20, justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 20, justifyContent: 'flex-end' }}>
             <Button kind="secondary" onClick={() => setForm(null)}>Cancel</Button>
             <Button disabled={busy || !form.name.trim() || !form.username || !form.password} onClick={add}>{busy ? 'Adding…' : 'Add User'}</Button>
           </div>
@@ -69,26 +69,26 @@ export default function UsersTab({ auth, me }) {
       <Card>
         <CardHead title="Staff directory" aside={ROLES.map(r => `${counts[r]} ${r}`).join(' · ')} />
         {users === null ? <div style={{ ...body, ...muted, marginTop: 12 }}>Loading users…</div> : (
-          <div style={{ overflowX: 'auto', marginTop: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 14, padding: '8px 12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)', minWidth: 900 }}>
+          <div className="dt" style={{ '--cols': GRID, '--min': '900px' }}>
+            <div className="dt-head">
               {['User', 'Role', 'Status', 'Last sign-in', ''].map((c, i) => <div key={i} style={{ ...cap, ...muted }}>{c}</div>)}
             </div>
             {users.map(u => {
               const self = u.id === me.id;
               return (
-                <div key={u.id} style={{ padding: '12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)', minWidth: 900, opacity: u.active ? 1 : 0.6 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 14, alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', minWidth: 0 }}>
+                <div key={u.id} style={{ opacity: u.active ? 1 : 0.6 }}>
+                  <div className="dt-row">
+                    <div className="dt-main" style={{ display: 'flex', gap: 12, alignItems: 'center', minWidth: 0 }}>
                       <div aria-hidden="true" style={{ width: 36, height: 36, flex: '0 0 auto', borderRadius: '50%', background: 'var(--snow-primary-purple)', display: 'grid', placeItems: 'center', ...cap, fontWeight: 600 }}>{initials(u.name)}</div>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ ...body, fontWeight: 600 }}>{u.name}{self && <span style={{ ...cap, ...muted, fontWeight: 400, marginLeft: 8 }}>You</span>}</div>
                         <div style={{ ...cap, ...muted }}>{u.username}</div>
                       </div>
                     </div>
-                    <div style={body}>{u.role}</div>
-                    <div><Pill bg={u.active ? 'var(--snow-status-complete-bg)' : 'var(--snow-ink-5)'}>{u.active ? 'Active' : 'Deactivated'}</Pill></div>
-                    <div style={{ ...cap }}>{lastSeen(u.lastSignInAt)}</div>
-                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                    <div data-label="Role" style={body}>{u.role}</div>
+                    <div data-label="Status"><Pill bg={u.active ? 'var(--snow-status-complete-bg)' : 'var(--snow-ink-5)'}>{u.active ? 'Active' : 'Deactivated'}</Pill></div>
+                    <div data-label="Last sign-in" style={{ ...cap }}>{lastSeen(u.lastSignInAt)}</div>
+                    <div className="dt-end" style={{ justifyContent: 'flex-end' }}>
                       <Button size="sm" kind="secondary" disabled={busy} onClick={() => { setNotice(''); setError(''); setEditFor(u); }}>Edit</Button>
                       <Button size="sm" kind="secondary" disabled={busy} onClick={() => { setNotice(''); setError(''); setResetFor(u); }}>Reset Password</Button>
                       {self
@@ -212,36 +212,36 @@ function PermissionMatrix({ auth, saved, onSaved }) {
     catch (e) { setMsg({ kind: 'err', text: `The permissions were not saved: ${e.message}` }); }
     finally { setBusy(false); }
   }
-  const Locked = ({ on, why }) => <div style={{ ...body, textAlign: 'center' }} title={why}>{on ? '✓' : <span style={muted}>—</span>}<span className="sr-only">{on ? 'Yes' : 'No'} (fixed)</span></div>;
+  const Locked = ({ on, why, r }) => <div data-label={r} style={{ ...body, textAlign: 'center' }} title={why}>{on ? '✓' : <span style={muted}>—</span>}<span className="sr-only">{on ? 'Yes' : 'No'} (fixed)</span></div>;
 
   return (
     <Card>
       <CardHead title="Who can do what" aside="Every role can view engagements, the analysis and review points" />
       <div style={{ ...cap, ...muted, marginTop: 6, maxWidth: 720 }}>Tick the roles that hold each permission, then save. Administrators always have full access, and only they manage users, permissions and check rules.</div>
-      <div style={{ overflowX: 'auto', marginTop: 12 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '8px 12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)', minWidth: 700 }}>
+      <div className="dt dt-3" style={{ '--cols': grid, '--min': '700px' }}>
+        <div className="dt-head">
           <div style={{ ...cap, ...muted }}>Permission</div>
           {ROLES.map(r => <div key={r} style={{ ...cap, ...muted, textAlign: 'center' }}>{r}</div>)}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)', minWidth: 700, alignItems: 'center' }}>
-          <div style={body}>Manage users, permissions and check rules</div>
-          {ROLES.map(r => <Locked key={r} on={r === 'Administrator'} why="Fixed: only Administrators have the administration area." />)}
+        <div className="dt-row">
+          <div className="dt-main" style={body}>Manage users, permissions and check rules</div>
+          {ROLES.map(r => <Locked key={r} r={r} on={r === 'Administrator'} why="Fixed: only Administrators have the administration area." />)}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)', minWidth: 700, alignItems: 'center' }}>
-          <div style={body}>Billing: invoices, payments and recovery</div>
-          {ROLES.map(r => <Locked key={r} on={r === 'Finance'} why="Fixed: only Finance has the billing area, and Finance has nothing else." />)}
+        <div className="dt-row">
+          <div className="dt-main" style={body}>Billing: invoices, payments and recovery</div>
+          {ROLES.map(r => <Locked key={r} r={r} on={r === 'Finance'} why="Fixed: only Finance has the billing area, and Finance has nothing else." />)}
         </div>
         {EDITABLE_PERMS.map(p => (
-          <div key={p.id} style={{ display: 'grid', gridTemplateColumns: grid, gap: 12, padding: '12px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)', minWidth: 700, alignItems: 'center',
+          <div key={p.id} className="dt-row" style={{
             background: STAFF_ROLES.some(r => saved[p.id].includes(r) !== draft[p.id].includes(r)) ? 'var(--snow-primary-light)' : undefined }}>
-            <div style={body}>{p.label}</div>
-            <Locked on why="Fixed: Administrators always have full access." />
-            {STAFF_ROLES.map(r => p.noPreparer && r === 'Preparer' ? <Locked key={r} on={false} why="Fixed: a preparer never clears points; the person who raised it, or a senior, accepts the answer." /> : (
-              <div key={r} style={{ textAlign: 'center' }}>
+            <div className="dt-main" style={body}>{p.label}</div>
+            <Locked r="Administrator" on why="Fixed: Administrators always have full access." />
+            {STAFF_ROLES.map(r => p.noPreparer && r === 'Preparer' ? <Locked key={r} r={r} on={false} why="Fixed: a preparer never clears points; the person who raised it, or a senior, accepts the answer." /> : (
+              <div key={r} data-label={r} style={{ textAlign: 'center' }}>
                 <input type="checkbox" className="perm-check" aria-label={`${r}: ${p.label}`} checked={draft[p.id].includes(r)} disabled={busy} onChange={() => toggle(p.id, r)} />
               </div>
             ))}
-            <Locked on={false} why="Fixed: Finance works only in the billing area." />
+            <Locked r="Finance" on={false} why="Fixed: Finance works only in the billing area." />
           </div>
         ))}
       </div>
@@ -254,7 +254,7 @@ function PermissionMatrix({ auth, saved, onSaved }) {
         <div style={{ ...cap, ...muted, maxWidth: 520 }}>
           {changes.length ? `${changes.length} unsaved change${changes.length === 1 ? '' : 's'}.` : 'No unsaved changes.'} Saved changes apply to each person’s next action; their screens update when they next sign in.
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <Button kind="secondary" disabled={busy} onClick={() => { setDraft(normalizeMatrix(DEFAULT_MATRIX)); setMsg({ kind: '', text: '' }); }}>Reset to Defaults</Button>
           {changes.length > 0 && <Button kind="secondary" disabled={busy} onClick={() => setDraft(saved)}>Discard Changes</Button>}
           <Button disabled={busy || !changes.length} onClick={save}>{busy ? 'Saving…' : 'Save Permissions'}</Button>

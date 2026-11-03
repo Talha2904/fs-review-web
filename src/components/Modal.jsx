@@ -25,10 +25,10 @@ export default function Modal({ title, onClose, children, footer, width = 440 })
 
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div ref={box} role="dialog" aria-modal="true" aria-labelledby="modal-title" tabIndex={-1} className="modal" style={{ maxWidth: width }}>
+      <div ref={box} role="dialog" aria-modal="true" aria-labelledby="modal-title" tabIndex={-1} className="modal" style={{ '--modal-w': width + 'px' }}>
         <h2 id="modal-title" style={{ ...h3, margin: 0 }}>{title}</h2>
         <div style={{ marginTop: 16 }}>{children}</div>
-        {footer && <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 24 }}>{footer}</div>}
+        {footer && <div className="modal-footer">{footer}</div>}
       </div>
     </div>
   );

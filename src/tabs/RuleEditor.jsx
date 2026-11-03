@@ -47,7 +47,7 @@ export default function RuleEditor({ rule, isNew, busy, error, onSave, onCancel,
     <Card style={{ boxShadow: 'inset 0 0 0 2px var(--snow-black-100)' }}>
       <CardHead title={isNew ? `New rule ${r.id}` : `Edit ${r.id}`} aside={custom ? 'Firm rule' : 'Built-in rule'} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginTop: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 14, marginTop: 16 }}>
         <Field label="Rule name"><input className="input" value={r.name || ''} onChange={e => set({ name: e.target.value })} placeholder="For example, Note 4 agrees to the balance sheet" /></Field>
         <Field label="Version"><input className="input" value={r.version || ''} onChange={e => set({ version: e.target.value })} placeholder="v1.0" /></Field>
         <Field label="Status">
@@ -102,7 +102,7 @@ export default function RuleEditor({ rule, isNew, busy, error, onSave, onCancel,
       {tolEditable && (
         <div style={{ marginTop: 20, paddingTop: 16, boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.1)', display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <Field label="Approved tolerance" hint="Engagements whose tolerance differs from this are flagged.">
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
               <span style={cap}>±</span>
               <input className="input" type="number" min={0} step={r.tolKind === 'pct' ? 0.1 : 1} style={{ width: 110 }} value={r.tol ?? ''} onChange={e => set({ tol: e.target.value === '' ? null : Number(e.target.value) })} />
               {(r.engine === 'custom-tieout' || r.id === 'CHK-10')
@@ -122,7 +122,7 @@ export default function RuleEditor({ rule, isNew, busy, error, onSave, onCancel,
                 <Button size="sm" disabled={busy} onClick={onDelete}>Delete Rule</Button><Button size="sm" kind="secondary" onClick={() => setConfirmDelete(false)}>Keep</Button></span>
             : <Button size="sm" kind="secondary" onClick={() => setConfirmDelete(true)}>Delete Rule</Button>)}
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <Button kind="secondary" onClick={onCancel}>Cancel</Button>
           <Button disabled={busy || !!problem} onClick={save}>{busy ? 'Saving…' : isNew ? 'Add Rule' : 'Save Rule'}</Button>
         </div>

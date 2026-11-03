@@ -10,7 +10,7 @@ export const muted = { color: 'var(--snow-black-40)' };
 export const PRI_BG = { High: REDBG, Medium: 'var(--snow-status-approved-bg)', Low: 'var(--snow-ink-5)' };
 export const BAND_BG = { Investigate: 'var(--snow-status-rejected-bg)', Explain: 'var(--snow-status-pending-bg)', Expected: 'var(--snow-status-complete-bg)' };
 export const STATUS_LABEL = { open: 'Open', info: 'Info Requested', cleared: 'Cleared' };
-export const page = { padding: '20px 28px 40px', display: 'flex', flexDirection: 'column', gap: 20 };
+export const page = { padding: '20px var(--gutter) 40px', display: 'flex', flexDirection: 'column', gap: 20 };
 export const hairBottom = { boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)' };
 
 export const Pill = ({ bg = 'var(--snow-ink-5)', children, style }) => (
@@ -19,7 +19,7 @@ export const Pill = ({ bg = 'var(--snow-ink-5)', children, style }) => (
 export const PriPill = ({ pri }) => <Pill bg={PRI_BG[pri]}>{pri}</Pill>;
 
 export const Card = ({ children, tint, style }) => (
-  <div style={{ background: tint || '#fff', borderRadius: 16, boxShadow: tint ? 'none' : RING, padding: 24, ...style }}>{children}</div>
+  <div style={{ background: tint || '#fff', borderRadius: 16, boxShadow: tint ? 'none' : RING, padding: 'var(--card-pad)', ...style }}>{children}</div>
 );
 
 export const CardHead = ({ title, aside, small }) => (
@@ -41,8 +41,8 @@ export const FileButton = ({ label, onFile, accept = '.pdf,.xlsx,.xls,.csv,.png,
   </label>
 );
 
-export const Tile = ({ bg, label, value, sub, flex = '1 1 180px' }) => (
-  <div style={{ flex, minWidth: 160, background: bg, borderRadius: 16, padding: 24 }}>
+export const Tile = ({ bg, label, value, sub, flex = '1 1 140px' }) => (
+  <div style={{ flex, minWidth: 140, background: bg, borderRadius: 16, padding: 'var(--card-pad)' }}>
     <div style={{ ...body, fontWeight: 600 }}>{label}</div>
     <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginTop: 12, flexWrap: 'wrap' }}>
       <span style={h2}>{value}</span>

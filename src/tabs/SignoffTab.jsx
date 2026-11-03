@@ -83,18 +83,18 @@ export default function SignoffTab({ reports = [], reportActions, review, summar
 
       <Card>
         <CardHead title="Review Points" aside={`${summary.rows.filter(r => r.status === 'cleared').length} of ${summary.rows.length} cleared`} />
-        <div style={{ overflowX: 'auto', marginTop: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '78px minmax(240px,2fr) 110px 150px 90px minmax(220px,2fr)', gap: 12, padding: '8px 4px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)', minWidth: 940 }}>
+        <div className="dt" style={{ '--cols': '78px minmax(240px,2fr) 110px 150px 90px minmax(220px,2fr)', '--min': '940px' }}>
+          <div className="dt-head">
             {['Point', 'Title', 'Status', 'Cleared by', 'Rounds', 'Last response'].map(c => <div key={c} style={{ ...cap, ...muted }}>{c}</div>)}
           </div>
           {summary.rows.map(r => (
-            <div key={r.ref} style={{ display: 'grid', gridTemplateColumns: '78px minmax(240px,2fr) 110px 150px 90px minmax(220px,2fr)', gap: 12, padding: '10px 4px', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)', minWidth: 940, alignItems: 'start' }}>
-              <div><div style={{ ...body, fontWeight: 600 }}>{r.ref}</div><PriPill pri={r.pri} /></div>
-              <div style={body}>{r.title}</div>
-              <div><PointStatus status={r.status} /></div>
-              <div style={cap}>{r.clearedBy || '—'}<div style={muted}>{when(r.clearedAt)}</div></div>
-              <div style={cap}>{r.responses} response{r.responses === 1 ? '' : 's'}{r.reopened ? `, ${r.reopened} reopened` : ''}</div>
-              <div style={{ ...cap, ...muted, overflowWrap: 'anywhere' }}>{r.lastResponse || (r.status === 'cleared' ? 'Cleared without a response.' : '—')}</div>
+            <div key={r.ref} className="dt-row" style={{ alignItems: 'start' }}>
+              <div data-label="Point"><div style={{ ...body, fontWeight: 600 }}>{r.ref}</div><PriPill pri={r.pri} /></div>
+              <div className="dt-main" style={body}>{r.title}</div>
+              <div data-label="Status"><PointStatus status={r.status} /></div>
+              <div data-label="Cleared by" style={cap}>{r.clearedBy || '—'}<div style={muted}>{when(r.clearedAt)}</div></div>
+              <div data-label="Rounds" style={cap}>{r.responses} response{r.responses === 1 ? '' : 's'}{r.reopened ? `, ${r.reopened} reopened` : ''}</div>
+              <div data-label="Last response" className="dt-main" style={{ ...cap, ...muted, overflowWrap: 'anywhere' }}>{r.lastResponse || (r.status === 'cleared' ? 'Cleared without a response.' : '—')}</div>
             </div>
           ))}
         </div>

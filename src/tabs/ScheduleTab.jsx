@@ -47,12 +47,12 @@ export default function ScheduleTab({ points, messages, user, people, sel, setSe
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start' }}>
-        <div role="list" aria-label="Review points" style={{ flex: '1 1 380px', minWidth: 320, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div role="list" aria-label="Review points" style={{ flex: '1 1 380px', minWidth: 'min(320px, 100%)', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {!rows.length && <Card><div style={{ ...body, ...muted }}>{view === 'mine' ? 'Nothing is waiting for you.' : 'No points in this view.'}</div></Card>}
           {rows.map(p => {
             const on = current?.ref === p.ref, last = messages.filter(m => m.pointId === p.id).slice(-1)[0];
             return (
-              <button type="button" role="listitem" key={p.id} onClick={() => setSel(p.ref)} aria-current={on ? 'true' : undefined} className="point-row"
+              <button type="button" role="listitem" key={p.id} onClick={() => { setSel(p.ref); if (!window.matchMedia('(min-width: 1024px)').matches) requestAnimationFrame(() => document.getElementById('point-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }} aria-current={on ? 'true' : undefined} className="point-row"
                 style={{ textAlign: 'left', border: 0, font: 'inherit', cursor: 'pointer', background: on ? 'var(--snow-primary-light)' : '#fff', borderRadius: 12, padding: '12px 14px', boxShadow: on ? 'inset 0 0 0 2px var(--snow-black-100)' : RING }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   <span style={{ ...body, fontWeight: 600 }}>{p.ref}</span><PriPill pri={p.pri} /><PointStatus status={p.status} />
@@ -104,7 +104,7 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
     : p.status === 'cleared' && canClear ? 'To reopen this point, say why.' : '';
 
   return (
-    <section aria-label={`${p.ref} detail`} style={{ flex: '1.4 1 520px', minWidth: 320, background: '#fff', borderRadius: 16, boxShadow: RING, padding: 24, position: 'sticky', top: 12 }}>
+    <section id="point-detail" className="point-detail" aria-label={`${p.ref} detail`} style={{ flex: '1.4 1 520px', minWidth: 'min(320px, 100%)', background: '#fff', borderRadius: 16, boxShadow: RING, padding: 'var(--card-pad)' }}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><span style={h3}>{p.ref}</span><PriPill pri={p.pri} /><PointStatus status={p.status} />{p.aiDrafted && <Pill bg="#EEF1FB">Drafted by AI</Pill>}</div>
       <div style={{ ...h3, fontWeight: 600, marginTop: 8 }}>{p.title}</div>
       <div style={{ ...cap, ...muted, marginTop: 4 }}>{[p.area, p.refs, p.amount != null && `${gbp(p.amount)} (${p.amount >= threshold ? 'above' : 'below'} threshold)`].filter(Boolean).join(' · ')}</div>
@@ -113,19 +113,19 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 16, paddingTop: 12, boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.08)', ...cap }}>
         <span><span style={muted}>Raised by</span> {p.raisedBy?.name || '—'} · {when(p.raisedAt)}</span>
-        <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <label style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
           <span style={muted}>Type</span>
           {canRaise && p.status !== 'cleared' && !locked
             ? <select className="input" style={{ height: 30, width: 'auto', fontSize: 12 }} value={p.type} onChange={e => actions.meta(p, { type: e.target.value })}>{Object.entries(TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
             : <b>{TYPES[p.type]}</b>}
         </label>
-        <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <label style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
           <span style={muted}>Due</span>
           {canRaise && p.status !== 'cleared' && !locked
             ? <input type="date" className="input" style={{ height: 30, width: 'auto', fontSize: 12 }} value={p.dueDate || ''} onChange={e => actions.meta(p, { dueDate: e.target.value || null })} aria-label="Due date" />
             : <b style={{ color: isOverdue(p) ? '#B42318' : undefined }}>{p.dueDate ? dayLabel(p.dueDate) + (isOverdue(p) ? ' (overdue)' : '') : 'No due date'}</b>}
         </label>
-        <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <label style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
           <span style={muted}>Assigned to</span>
           {canRaise && p.status !== 'cleared'
             ? <select className="input" style={{ height: 30, width: 'auto', fontSize: 12 }} value={p.assignedTo?.id || ''} onChange={e => actions.assign(p, e.target.value)}>

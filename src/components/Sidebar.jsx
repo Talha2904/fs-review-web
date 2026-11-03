@@ -3,10 +3,10 @@ import { cap, body, muted } from './ui';
 
 // Fixed to the window height. The header and the signed-in user are pinned; the navigation and
 // fund details sit between them and scroll only if a window is too short to show everything.
-export default function Sidebar({ tabs, tab, onTab, meta, user, onSignOut, navTitle = 'Review', subtitle = 'Fund reporting' }) {
+export default function Sidebar({ tabs, tab, onTab, meta, user, onSignOut, navTitle = 'Review', subtitle = 'Fund reporting', open = false }) {
   const wide = new Set(['Entity', 'Fund', 'Engagement', 'Year End', 'Preparer', 'Reviewer', 'Manager']); // values that need the full width
   return (
-    <aside className="sidebar">
+    <aside id="app-sidebar" className={'sidebar' + (open ? ' is-open' : '')}>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '0 8px', flex: '0 0 auto' }}>
         <img src="/pa-mark.png" alt="Project Accountants" style={{ width: 28, height: 28 }} />
         <div>
