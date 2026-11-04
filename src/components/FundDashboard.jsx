@@ -3,6 +3,7 @@ import { runnable } from '../data/checkLibrary';
 import { useLibrary } from '../lib/library';
 import { fmt, fmtDate, sym } from '../lib/format';
 import { Button } from './ui';
+import { slotDefs } from '../data/sampleFund';
 import { personName } from '../lib/people';
 
 // Summary of the engagement under review, shown at the top of every tab.
@@ -17,7 +18,7 @@ export default function FundDashboard({ aiLabel = '', aiWhy = '', engagement, en
     ['Manager', personName(f, 'manager', people) || '—'],
     ['Review threshold', sym() + fmt(engagement.threshold)],
     ['Checks running', `${checks} of ${LIBRARY.length}`],
-    ['Documents', `${docsAttached} of 5`],
+    ['Documents', `${docsAttached} of ${slotDefs.length}`],
     ['Points open', done ? String(openPoints) : 'Not analysed'],
     ['AI assistance', aiLabel, aiWhy]
   ];

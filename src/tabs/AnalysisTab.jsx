@@ -16,10 +16,10 @@ export default function AnalysisTab(p) {
   const fails = checks.filter(c => c.result === 'Difference').length;
   const count = pri => openPoints.filter(x => x.pri === pri).length;
   const hi = count('High');
-  const docIds = ['cy', 'py', 'tb', 'is', 'sup'].filter(id => files[id] && result.docs[id]);
+  const docIds = ['cy', 'py', 'tb', 'is', 'sup', 'ag'].filter(id => files[id] && result.docs[id]);
   const cur = docIds.includes(docSel) ? docSel : docIds[0];
   const doc = result.docs[cur];
-  const refKey = { is: 'IS-', sup: 'SUP-', tb: 'TB ', py: 'Prior year', cy: 'Note' }[cur];
+  const refKey = { is: 'IS-', sup: 'SUP-', ag: 'AG-', tb: 'TB ', py: 'Prior year', cy: 'Note' }[cur];
   const docPoints = openPoints.filter(x => (x.doc || 'cy') === cur || (x.refs || '').includes(refKey));
   const vals = tray.map(t => t.value);
   const [chkF, setChkF] = React.useState('all'); // all | Difference | Agrees | Not tested
@@ -37,7 +37,7 @@ export default function AnalysisTab(p) {
           <CheckDonut tally={tally} onPick={r => setChkF(chkF === r ? 'all' : r)} />
           <div style={{ flex: '1 1 220px', minWidth: 0 }}>
           <div style={{ ...body, fontWeight: 600 }}>{hi ? `${hi} high priority point${hi === 1 ? '' : 's'} to clear` : 'No high priority points outstanding'}</div>
-          <div style={{ ...cap, ...muted, marginTop: 8 }}>Analysed {analysedAt}. {files.sup ? 'Supporting information was used to corroborate movements.' : 'No supporting information was provided, so movements could not be corroborated.'}</div>
+          <div style={{ ...cap, ...muted, marginTop: 8 }}>Analysed {analysedAt}. {files.sup || files.ag ? 'Supporting documents were used to corroborate movements.' : 'No supporting information was provided, so movements could not be corroborated.'}</div>
           <div className="btn-row" style={{ marginTop: 16 }}>
             <Button size="sm" onClick={() => goto('sched')}>Open Review Points</Button>
             <Button size="sm" kind="secondary" onClick={() => goto('var')}>Variance Analysis</Button>
@@ -46,6 +46,19 @@ export default function AnalysisTab(p) {
           </div>
         </Card>
       </div>
+
+      {result.review?.summary && (
+        <Card>
+          <CardHead title="Reviewer Summary" aside={<Pill bg={result.review.readyForApproval ? 'var(--snow-status-approved-bg)' : REDBG}>{result.review.readyForApproval ? 'Ready for approval' : 'Not ready for approval'}</Pill>} />
+          <div style={{ ...body, marginTop: 12 }}>{result.review.summary}</div>
+          {result.review.blockers?.length > 0 && (
+            <div style={{ ...cap, marginTop: 12 }}><b>Should prevent approval:</b>
+              <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{result.review.blockers.map((b, i) => <li key={i}>{b}</li>)}</ul>
+            </div>
+          )}
+          <div style={{ ...cap, ...muted, marginTop: 12 }}>Drafted by AI to support your judgement. It is not a conclusion that the statements are complete or correct.</div>
+        </Card>
+      )}
 
       <Card>
         <CardHead title="Recalculations and Cross-references" aside={`${fails} of ${checks.length} show a difference · checks set in the engagement`} />

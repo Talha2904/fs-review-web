@@ -19,29 +19,56 @@ const yearCols = t => (t.cols || []).map((c, i) => (/^(19|20)\d{2}$/.test(String
 // A total equals the lines since the previous total, or the previous total plus those lines
 // (running totals such as net operating profit). Net assets (assets less liabilities) is CHK-03's
 // own net assets check. Tables with a Total column are also cast across.
+// A table of key figures and ratios (financial highlights): its bold lines are measures, not sums.
+// Never a primary statement: a balance sheet with a per-share line still casts.
+const isMetrics = (head, t) => !isPrimary(head) && (/highlight|ratio|key (figure|metric|performance)|performance measure/i.test(head)
+  || (t.rows || []).filter(r => /\(%\)|\bratio\b|\birr\b|rate of return/i.test(r.l || '')).length >= 2);
+// A movement grid: a row per period, Opening … Closing across (e.g. changes in equity or partners' capital).
+// A subtotal even when not printed bold: profit before tax sits between the lines and the profit for the year.
+const SUBTOTAL = /^(profit|loss|\(loss\)|profit\s*\/\s*\(loss\))( \/ \(loss\))? before (income )?tax/i;
+const OPENING = /^(opening|at (the )?(start|beginning)|beginning|brought forward|b\/f)/i;
+const CLOSING = /^(closing|total|at (the )?end|end of (the )?(year|period)|carried forward|c\/f)/i;
+
 export function castAll(cy, tol = 1) {
   const results = [];
   for (const { head, t } of sections(cy?.blocks)) {
-    const cols = yearCols(t).length ? yearCols(t) : (t.cols || []).map((_, i) => i);
+    const tc = t.cols || [];
+    // movement grid: each row casts across, and each period's closing is the next period's opening
+    if (tc.length >= 3 && OPENING.test(String(tc[0]).trim()) && CLOSING.test(String(tc[tc.length - 1]).trim())) {
+      const last = tc.length - 1, rows = (t.rows || []).filter(r => r.v && r.v[0] != null && r.v[last] != null);
+      rows.forEach((r, k) => {
+        const closing = r.v[last], sum = r.v.slice(0, last).reduce((s, x) => s + (x || 0), 0);
+        results.push({ where: `${head} · ${r.l} (across)`, col: String(tc[last]), stated: closing, comp: sum, ok: Math.abs(sum - closing) <= tol });
+        const nxt = rows[k + 1];
+        if (nxt) results.push({ where: `${head} · ${r.l} closing to ${nxt.l} opening`, col: String(tc[0]), stated: nxt.v[0], comp: closing, ok: Math.abs(nxt.v[0] - closing) <= tol });
+      });
+      continue;
+    }
+    if (isMetrics(head, t)) continue;
+    const cols = yearCols(t).length ? yearCols(t) : tc.map((_, i) => i);
     for (const ci of cols) {
-      let since = [], prevTotal = null;
+      let since = [], labels = [], prevTotal = null;
       for (const r of t.rows || []) {
-        if (r.h) { since = []; prevTotal = null; continue; }
+        if (r.h) { since = []; labels = []; prevTotal = null; continue; }
         const v = r.v?.[ci];
         if (r.dp || /per share|shares in issue/i.test(r.l || '')) continue;
-        if (r.b) {
-          if (/net assets attributable|^net assets$/i.test(r.l || '') && isPrimary(head)) { since = []; prevTotal = null; continue; }
+        if (r.b || SUBTOTAL.test(r.l || '')) {
+          if (/net assets attributable|^net assets$/i.test(r.l || '') && isPrimary(head)) { since = []; labels = []; prevTotal = null; continue; }
           if (v != null && since.length) {
             const a = since.reduce((s, x) => s + x, 0), b = prevTotal != null ? prevTotal + a : null;
-            const ok = Math.abs(a - v) <= tol || (b != null && Math.abs(b - v) <= tol);
+            // a total of one kind among other lines ("Total lease liability" below the right-of-use asset):
+            // the lines that share a word with it
+            const kin = since.filter((_, i) => overlap(r.l, labels[i]) > 0);
+            const k = kin.length && kin.length < since.length ? kin.reduce((s, x) => s + x, 0) : null;
+            const ok = Math.abs(a - v) <= tol || (b != null && Math.abs(b - v) <= tol) || (k != null && Math.abs(k - v) <= tol);
             // a bold line straight after a single line that doesn't add up is a line, not a total
             // (e.g. "Increase in net assets from operations" within the movement in net assets)
-            if (!ok && since.length === 1 && prevTotal == null) { since.push(v); continue; }
+            if (!ok && since.length === 1 && prevTotal == null) { since.push(v); labels.push(r.l || ''); continue; }
             results.push({ where: `${head} · ${r.l}`, col: t.cols?.[ci] || '', stated: v, comp: ok ? v : (b != null && Math.abs(b - v) < Math.abs(a - v) ? b : a), ok });
           }
-          prevTotal = v; since = []; continue;
+          prevTotal = v; since = []; labels = []; continue;
         }
-        if (v != null) since.push(v);
+        if (v != null) { since.push(v); labels.push(r.l || ''); }
       }
     }
     // across: Level 1 + Level 2 + Level 3 = Total
@@ -70,11 +97,24 @@ export function notesTieOut(cy, tol = 1) {
     for (const r of totals) {
       // the statement line that refers to this note, else the one whose wording matches best
       const byRef = num ? lines.filter(l => new RegExp(`note ${num}\\b`, 'i').test(`${l.label} ${l.ref}`)) : [];
-      const cands = (byRef.length ? byRef : lines).map(l => ({ l, s: Math.max(overlap(r.l, l.label), overlap(head, l.label)) })).sort((a, b) => b.s - a.s);
+      // a one-word note heading ("Income") matches too much ("Current income tax"): only longer headings count
+      const cands = (byRef.length ? byRef : lines).map(l => ({ l, s: Math.max(overlap(r.l, l.label), words(head).size >= 2 ? overlap(head, l.label) : 0) })).sort((a, b) => b.s - a.s);
       const best = cands[0];
       if (!best || (best.s < 0.6 && !byRef.length)) continue;
-      const ok = Math.abs(Math.abs(best.l.v) - Math.abs(r.v[ci])) <= tol;
-      results.push({ note: head, total: r.l, line: `${best.l.head} · ${best.l.label}`, stated: Math.abs(best.l.v), comp: Math.abs(r.v[ci]), ok });
+      const value = Math.abs(r.v[ci]);
+      let line = best.l.label, stated = Math.abs(best.l.v);
+      // a note total may gather several adjacent statement lines (cash income + bank interest = total income)
+      if (Math.abs(stated - value) > tol) {
+        const at = lines.indexOf(best.l);
+        for (let from = Math.max(0, at - 3); from <= at && stated !== value; from++)
+          for (let to = at; to < Math.min(lines.length, from + 4); to++) {
+            const run = lines.slice(from, to + 1);
+            if (run.length < 2 || run.some(l => l.head !== best.l.head)) continue;
+            const sum = Math.abs(run.reduce((s, l) => s + l.v, 0));
+            if (Math.abs(sum - value) <= tol) { line = run.map(l => l.label).join(' + '); stated = sum; break; }
+          }
+      }
+      results.push({ note: head, total: r.l, line: `${best.l.head} · ${line}`, stated, comp: value, ok: Math.abs(stated - value) <= tol });
     }
   }
   return results;

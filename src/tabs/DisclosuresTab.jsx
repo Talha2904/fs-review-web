@@ -18,7 +18,7 @@ export default function DisclosuresTab({ framework, list, state, cy, canAnswer, 
 
   if (!framework || framework === 'Other' || !list) return (
     <div style={page}><div style={h2}>Disclosures</div>
-      <Card><div style={body}>{!framework ? 'The client’s accounting framework isn’t set, so there is no checklist to complete. A Manager sets it on the client’s entity (Engagement › Edit Entity).' : framework === 'Other' ? 'The client’s framework is “Other”, so there is no built-in checklist. Ask the Administrator to add one, or set the framework to FRS 102 or IFRS.' : 'No checklist is available for this framework.'}</div></Card></div>);
+      <Card><div style={body}>{!framework ? 'The client’s accounting framework isn’t set, so there is no checklist to complete. A Manager sets it on the client’s entity (Engagement › Edit Entity).' : framework === 'Other' ? 'The client’s framework is “Other”, so there is no built-in checklist. Ask the Administrator to add one, or set the framework to FRS 102, IFRS or US GAAP.' : 'No checklist is available for this framework.'}</div></Card></div>);
 
   return (
     <div style={page}>

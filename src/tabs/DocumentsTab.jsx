@@ -157,7 +157,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
                 <div className="doc-empty">
                   <span className="doc-empty-hint">Drag a file here, or</span>
                   <FileButton label="Attach File" accept={ACCEPT[SLOT_RULES[d.id]?.type]} onFile={file => tryAttach(d, file)} />
-                  <Button kind="secondary" onClick={() => useSample(d)}>Sample</Button>
+                  {d.sample && <Button kind="secondary" onClick={() => useSample(d)}>Sample</Button>}
                 </div>
               )}
             </section>

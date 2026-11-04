@@ -3,7 +3,7 @@
 // Checklists › Import from Excel). keywords are used to suggest where an item may be disclosed.
 const it = (ref, section, text, keywords) => ({ id: `${ref}`.replace(/[^A-Za-z0-9.]/g, '') + '-' + text.slice(0, 12).replace(/\W/g, ''), ref, section, text, keywords });
 
-export const FRAMEWORKS = ['FRS 102', 'IFRS'];
+export const FRAMEWORKS = ['FRS 102', 'IFRS', 'US GAAP'];
 export const STARTER = {
   'FRS 102': { version: 'starter', starter: true, items: [
     it('3.3', 'Basis of preparation', 'Statement of compliance with FRS 102', ['FRS 102', 'compliance with']),
@@ -43,5 +43,22 @@ export const STARTER = {
     it('IAS 10.21', 'Events after the reporting date', 'Events after the reporting period', ['events after', 'subsequent event', 'after the reporting date']),
     it('IAS 10.17', 'Approval', 'Date of authorisation for issue and who authorised it', ['authorised for issue', 'approved by the board']),
     it('IAS 1.38', 'Comparatives', 'Comparative information for the preceding period', ['prior year', 'comparative'])
+  ] },
+  'US GAAP': { version: 'starter', starter: true, items: [
+    it('ASC 235-10-50', 'Basis of preparation', 'Statement that the financial statements are prepared under US GAAP, and significant accounting policies', ['generally accepted accounting principles', 'US GAAP', 'significant accounting policies']),
+    it('ASC 205-40-50', 'Basis of preparation', 'Going concern evaluation and any substantial doubt', ['going concern', 'substantial doubt']),
+    it('ASC 946-10-50', 'Investment company', 'Investment company status under ASC 946, if applicable', ['investment company', 'ASC 946']),
+    it('ASC 830-10-50', 'Basis of preparation', 'Functional and reporting currency', ['functional currency', 'reporting currency', 'presented in']),
+    it('ASC 820-10-50', 'Fair value', 'Fair value hierarchy analysis by level', ['fair value hierarchy', 'level 1', 'level 2']),
+    it('ASC 820-10-50-2', 'Fair value', 'Valuation techniques and significant unobservable inputs for Level 3, with a rollforward', ['level 3', 'valuation technique', 'unobservable']),
+    it('ASC 946-210-50', 'Investment company', 'Schedule of investments', ['schedule of investments']),
+    it('ASC 946-205-50', 'Investment company', 'Financial highlights (returns and expense ratios)', ['financial highlights', 'expense ratio', 'total return']),
+    it('ASC 326-20-50', 'Financial instruments', 'Credit losses on financial assets at amortised cost', ['credit loss', 'allowance']),
+    it('ASC 842-20-50', 'Leases', 'Lease costs, terms and maturity of lease liabilities', ['lease']),
+    it('ASC 450-20-50', 'Commitments', 'Commitments and contingencies', ['commitment', 'contingenc']),
+    it('ASC 850-10-50', 'Related parties', 'Related party transactions, including management and performance fees', ['related part', 'management fee']),
+    it('ASC 740-10-50', 'Taxation', 'Income taxes and uncertain tax positions', ['income tax', 'uncertain tax']),
+    it('ASC 855-10-50', 'Subsequent events', 'Subsequent events and the date through which they were evaluated', ['subsequent event', 'evaluated through']),
+    it('ASC 205-10-45', 'Comparatives', 'Comparative information for the preceding period', ['prior year', 'comparative'])
   ] }
 };

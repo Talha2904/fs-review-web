@@ -20,7 +20,8 @@ export const slotDefs = [
     { id: 'py', kind: 'Required', name: 'Prior Year Signed Financial Statements', desc: 'Signed and audited comparatives, used to test carried-forward narrative.', sample: 'MGEF_2024_signed_FS.pdf' },
     { id: 'tb', kind: 'Required', name: 'Trial Balance', desc: 'Ledger export at the year end, used to agree the primary statements.', sample: 'MGEF_TB_31Dec2025.xlsx' },
     { id: 'is', kind: 'Required', name: 'Investment Schedule', desc: 'Custodian valuation report supporting the investment note.', sample: 'Custodian_valuation_31Dec2025.xlsx' },
-    { id: 'sup', kind: 'Optional', name: 'Supporting Information', desc: 'Board minutes, prospectus extracts and manager correspondence.', sample: 'Board_minutes_and_prospectus_extracts.pdf' }
+    { id: 'sup', kind: 'Optional', name: 'Supporting Information', desc: 'Board minutes, prospectus extracts and manager correspondence.', sample: 'Board_minutes_and_prospectus_extracts.pdf' },
+    { id: 'ag', kind: 'Optional', name: 'Agreements and Correspondence', desc: 'Executed agreements, facility and valuation evidence, and correspondence.', sample: null }
   ];
 
 export const steps = [

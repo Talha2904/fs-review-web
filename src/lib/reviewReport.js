@@ -108,6 +108,8 @@ export async function reviewReport({ eng, entity, snap, checks, slotName, checkl
     text(`${p.ref}  ${c.title || ''}`.slice(0, 120), M, y, { size: 10, f: bold }); y -= 13;
     para(`${c.pri || ''} priority · ${c.area || ''} · status ${p.status}${p.dueDate ? ` · due ${day(p.dueDate)}` : ''}${c.rule ? ` · ${c.rule}` : ''}${c.aiDrafted ? ' · drafted by AI' : ''}`, { color: GREY, size: 8 });
     if (c.basis) para(c.basis, { size: 8.5 });
+    if (c.evidence) para(`Evidence: ${c.evidence}`, { size: 8 });
+    if (c.fix) para(`Proposed correction: ${c.fix}`, { size: 8 });
     for (const m of byPoint(p.id)) {
       const att = (m.attachments || []).map(a => (a.type === 'version' ? `revised ${slotName(a.slot)} v${a.version}` : `evidence ${a.fileName}`)).join(', ');
       para(`${KIND[m.kind] || m.kind} · ${m.author?.name || ''} · ${when(m.at)}${m.text ? `: ${m.text}` : ''}${att ? ` [${att}]` : ''}`, { size: 8, indent: 12 });

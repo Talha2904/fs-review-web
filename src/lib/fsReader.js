@@ -27,16 +27,22 @@ export function layoutBlocks(lines, names = []) {
   for (let i = 0; i < body.length; i++) {
     const ln = body[i], cells = ln.cells;
     let k = cells.length; while (k > 0 && isNum(cells[k - 1].str)) k--;
-    const nums = cells.slice(k), labelCells = cells.slice(0, k), label = labelCells.map(c => c.str).join(' ').trim();
+    let nums = cells.slice(k), label = cells.slice(0, k).map(c => c.str).join(' ').trim();
+    // a grid row labelled by its year ("2024 | 66,756,000 | …" under Opening … Closing): the year is its label
+    if (!label && cols && !cols.some(isYear) && nums.length === cols.length + 1 && isYear(nums[0].str)) { label = nums[0].str; nums = nums.slice(1); }
     const last = blocks[blocks.length - 1];
     if (!nums.length) {
       if (HEADING.test(label) && label.length < 90) { blocks.push({ k: 'head', title: label, sub: '' }); table = null; cols = null; colX = null; continue; }
       if (last?.k === 'head' && !table && SUBLINE.test(label) && label.length < 60 && cells.length === 1) { last.sub = last.sub ? `${last.sub} · ${label}` : label; continue; }
       // a header row of short column titles to the right (e.g. Level 1 | Level 2 | Level 3 | Total)
-      const right = cells.filter(c => c.x > ln.pageWidth * 0.4);
-      if (right.length >= 2 && right.every(c => (c.str.length <= 14 || isName(c.str)) && !isNum(c.str))) {
+      // a row of four or more short titles is a grid header whole (Year | Opening | Contributions | … | Closing)
+      const short = c => (c.str.length <= 14 || isName(c.str)) && !isNum(c.str);
+      // (only when titles start in the left part, which the right-hand rule would otherwise drop)
+      const grid = cells.length >= 4 && cells.every(short) && cells[1].x <= ln.pageWidth * 0.4;
+      const right = grid ? cells.slice(1) : cells.filter(c => c.x > ln.pageWidth * 0.4);
+      if (right.length >= 2 && right.every(short)) {
         cols = right.map(c => c.str); colX = right.map(c => c.x2);
-        table = { k: 'table', cols, label: cells.filter(c => c.x <= ln.pageWidth * 0.4).map(c => c.str).join(' '), rows: [] }; blocks.push(table); continue;
+        table = { k: 'table', cols, label: (grid ? cells.slice(0, 1) : cells.filter(c => c.x <= ln.pageWidth * 0.4)).map(c => c.str).join(' '), rows: [] }; blocks.push(table); continue;
       }
       // a short line between table rows is a sub-heading inside the table (e.g. "Liabilities")
       const nxt = body[i + 1];
@@ -58,9 +64,11 @@ export function layoutBlocks(lines, names = []) {
     }
     if (!label) continue;
     if (!table) { cols = nums.map((_, j) => `Value ${j + 1}`); colX = nums.map(c => c.x2); table = { k: 'table', cols, label: '', rows: [] }; blocks.push(table); }
-    // place each number in the column whose header ends nearest to it
+    // a full row fills the columns in order; a short one goes by the column whose header ends nearest
+    // (headers may be left-aligned over right-aligned figures, so nearest alone can pick the wrong one)
     const v = cols.map(() => null);
-    nums.forEach(c => { let best = 0, d = Infinity; colX.forEach((x, j) => { const dd = Math.abs(x - c.x2); if (dd < d) { d = dd; best = j; } }); v[best] = parseAmount(c.str); });
+    if (nums.length === v.length) nums.forEach((c, j) => { v[j] = parseAmount(c.str); });
+    else nums.forEach(c => { let best = 0, d = Infinity; colX.forEach((x, j) => { const dd = Math.abs(x - c.x2); if (dd < d) { d = dd; best = j; } }); v[best] = parseAmount(c.str); });
     table.rows.push({ l: label, v, ...(TOTAL.test(label) ? { b: true } : {}), ...(/per share/i.test(label) ? { dp: 4 } : {}) });
   }
   return blocks.filter(b => b.k !== 'table' || b.rows.length);
@@ -114,14 +122,15 @@ export function statementFigures(blocks) {
   const find = (re, not) => secs.filter(s => re.test(s.head) && !(not && not.test(s.head)));
   const rowsOf = list => list.flatMap(s => s.t.rows.map(r => ({ ...r, cy: r.v ? r.v[cyIndex(s.t)] : null, py: r.v && pyIndex(s.t) != null ? r.v[pyIndex(s.t)] : null })));
   // Statement of financial position: asset lines, liability lines, totals
-  const sfp = rowsOf(find(/financial position|balance sheet/i, /changes/i));
+  const sfp = rowsOf(find(/financial position|balance sheet|assets and liabilities|statement of net assets/i, /changes/i));
   if (sfp.length) {
     let phase = 'assets'; F.ca = []; F.cl = [];
     for (const r of sfp) {
       if (r.h) { if (/liabilit/i.test(r.l)) phase = 'liab'; continue; }
       if (/^total assets/i.test(r.l)) { F.statedTA = r.cy; phase = 'liab'; continue; }
       if (/^total liabilities/i.test(r.l)) { phase = 'after'; continue; }
-      if (/^net assets attributable|^net assets$/i.test(r.l)) { F.statedNA = r.cy; phase = 'after'; continue; }
+      // funds: net assets attributable; companies and partnerships: equity, partners' or members' capital
+      if (/^net assets attributable|^net assets(\s*\/\s*equity)?$|^total (equity|partners'? capital|members'? (equity|interests))$/i.test(r.l)) { F.statedNA = r.cy; phase = 'after'; continue; }
       if (r.b || r.dp || /per share|shares in issue/i.test(r.l) || r.cy == null) continue;
       if (phase === 'assets') F.ca.push(r.cy); else if (phase === 'liab') F.cl.push(Math.abs(r.cy));
     }
@@ -135,14 +144,14 @@ export function statementFigures(blocks) {
       if (!r.b && !r.h && r.cy != null) F.income.push(r.cy);
     }
     const ex = sci.find(r => /operating expenses|^total expenses|^expenses/i.test(r.l)); if (ex) F.sciExp = Math.abs(ex.cy);
-    const op = sci.find(r => /(increase|decrease) in net assets.*operations|profit for the year/i.test(r.l)); if (op) F.ops = op.cy;
+    const op = sci.find(r => /(increase|decrease) in net assets.*operations|^(net )?(profit|loss|income) for the (year|period)/i.test(r.l)); if (op) F.ops = op.cy;
   }
   // Statement of changes in net assets
-  const socna = rowsOf(find(/changes in net assets|changes in equity/i));
+  const socna = rowsOf(find(/changes in (net assets|equity|partners'? capital|members'? (equity|capital)|shareholders'? equity)/i));
   if (socna.length) {
     const open = socna.find(r => /beginning|brought forward|opening|^at 1 /i.test(r.l)); if (open) { F.pyNA = open.cy; if (open.py != null) F.pyOpenNA = open.py; }
-    const sub = socna.find(r => /subscription|issue of (redeemable )?(participating )?shares/i.test(r.l)); if (sub) F.subs = Math.abs(sub.cy);
-    const red = socna.find(r => /redemption/i.test(r.l)); if (red) F.reds = Math.abs(red.cy);
+    const sub = socna.find(r => /subscription|issue of (redeemable )?(participating )?shares|capital contributions?|^contributions?$/i.test(r.l)); if (sub) F.subs = Math.abs(sub.cy);
+    const red = socna.find(r => /redemption|withdrawals? of capital/i.test(r.l)); if (red) F.reds = Math.abs(red.cy);
     const dist = socna.find(r => /distribution|dividends? (paid|to shareholders|declared)/i.test(r.l)); F.dists = dist ? Math.abs(dist.cy || 0) : 0;
     const op = socna.find(r => /(increase|decrease) in net assets.*operations/i.test(r.l)); if (op && F.ops == null) F.ops = op.cy;
   }
@@ -161,7 +170,8 @@ export function statementFigures(blocks) {
 }
 
 // ---- per document type ----------------------------------------------------------------------
-const REQUIRED_CY = ['statedTA', 'statedNA', 'statedIncome'];
+// a total income line is a fund's; a company shows revenue and a partnership its income lines without one
+const REQUIRED_CY = ['statedTA', 'statedNA'];
 // umbrella: { name, names } to read one sub-fund from umbrella accounts
 export function parseFinancialPdf(content, slot, umbrella = null) {
   const lines = content?.lines || [];
@@ -169,7 +179,7 @@ export function parseFinancialPdf(content, slot, umbrella = null) {
   let blocks = layoutBlocks(lines, umbrella?.names || []), umbrellaCast = null;
   if (umbrella?.name && umbrella.names?.length > 1) { const sel = selectFund(blocks, umbrella.name, umbrella.names); blocks = sel.blocks; umbrellaCast = sel.cast; }
   const tables = blocks.filter(b => b.k === 'table'), heads = blocks.filter(b => b.k === 'head');
-  if (slot === 'sup') {
+  if (slot === 'sup' || slot === 'ag') {
     const text = content.text || '';
     const m = text.match(/management fee\.?[^%]{0,200}?(\d+(?:\.\d+)?)\s*%/i);
     const figures = m ? { mgmtRate: Number(m[1]) / 100 } : {};

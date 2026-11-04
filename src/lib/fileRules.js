@@ -6,7 +6,8 @@ export const SLOT_RULES = {
   py: { type: 'pdf', label: 'PDF' },
   tb: { type: 'xlsx', label: 'Excel (.xlsx)' },
   is: { type: 'xlsx', label: 'Excel (.xlsx)' },
-  sup: { type: 'pdf', label: 'PDF' }
+  sup: { type: 'pdf', label: 'PDF' },
+  ag: { type: 'pdf', label: 'PDF' }
 };
 export const ACCEPT = {
   pdf: '.pdf,application/pdf',

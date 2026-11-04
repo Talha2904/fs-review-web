@@ -1,6 +1,6 @@
 import { sym } from './format';
 // Document recognition by fixed rules: no AI, no network. Given a document's text, works out which
-// of the five documents it is, which period it covers and which fund it mentions, and compares that
+// of the six documents it is, which period it covers and which fund it mentions, and compares that
 // with the slot it was attached to and the engagement in review. Pure functions, so the same rules
 // can run on the server later.
 
@@ -35,15 +35,18 @@ export function findPeriod(text) {
 export function scoreDocument({ text, sheets }, format, expectedCy) {
   const t = norm(text);
   if (format === 'pdf') {
-    const st = has(t, ['statement of financial position', 'statement of comprehensive income', 'statement of changes in net assets', 'notes to the financial statements', 'balance sheet', 'income statement', 'statement of net assets']);
+    const st = has(t, ['statement of financial position', 'statement of comprehensive income', 'statement of changes in net assets', 'notes to the financial statements', 'balance sheet', 'income statement', 'statement of net assets',
+      'statement of profit or loss', 'statement of operations', 'statement of assets and liabilities', 'statement of changes in equity', "statement of changes in partners' capital", 'statement of cash flows']);
     const draft = (/\bdraft\b/.test(t) ? 2 : 0) + has(t, ['subject to audit', 'not yet been approved', 'not for distribution']);
     const signed = has(t, ["independent auditor", "auditor's report", 'true and fair view', 'statutory audit firm']) + (/approved by the board( of directors)? on \d/.test(t) ? 1 : 0);
-    const support = has(t, ['minutes of', 'board meeting', 'present:', 'in attendance', 'prospectus', 'supplement', 'investment manager commentary', 'company secretary']);
+    const support = has(t, ['minutes of', 'board meeting', 'present:', 'in attendance', 'prospectus', 'supplement', 'investment manager commentary', 'company secretary', 'committee', 'minutes']);
+    const agree = has(t, ['agreement', 'clause', 'executed', 'correspondence', 'facility', 'side letter', 'amendment', 'dear ', 'yours sincerely']);
     const fs = st >= 2, period = findPeriod(text);
     const s = {
       cy: fs ? 4 + (draft ? 2 : 0) - (signed >= 2 && !draft ? 3 : 0) : 0,
       py: fs ? 4 + (signed >= 2 ? 2 : 0) - (draft ? 2 : 0) : 0,
-      sup: Math.max(0, support * 1.5 - st * 2) + (st === 0 && support >= 2 ? 3 : 0)
+      sup: Math.max(0, support * 1.5 - st * 2) + (st === 0 && support >= 2 ? 3 : 0),
+      ag: Math.max(0, agree * 1.5 - st * 2) + (st === 0 && agree >= 2 ? 3 : 0)
     };
     if (fs && period && expectedCy) { if (period === expectedCy) s.cy += 3; else if (period === minusYear(expectedCy)) s.py += 3; }
     return { scores: s, period, signals: { statements: st, draft, signed, support } };
@@ -52,7 +55,7 @@ export function scoreDocument({ text, sheets }, format, expectedCy) {
   const anyRow = re => header.some(h => re.test(h));
   const s = {
     tb: (t.includes('trial balance') ? 3 : 0) + (anyRow(/\bdebit\b/) && anyRow(/\bcredit\b/) ? 4 : 0) + (anyRow(/\baccount\b/) ? 1 : 0),
-    is: (/(custodian|valuation report|portfolio valuation|schedule of investments)/.test(t) ? 2 : 0) + (anyRow(/market value/) ? 3 : 0)
+    is: (/(custodian|valuation report|portfolio valuation|schedule of investments|investment register|supporting schedules)/.test(t) ? 2 : 0) + (anyRow(/market value|fair value/) ? 3 : 0)
       + (anyRow(/(quantity|nominal|holding)/) ? 1 : 0) + (anyRow(/(security|isin|issuer)/) ? 1 : 0) + (anyRow(/\bprice\b/) ? 1 : 0)
   };
   return { scores: s, period: findPeriod(text), signals: {} };
@@ -61,13 +64,15 @@ export function scoreDocument({ text, sheets }, format, expectedCy) {
 // Debits against credits, from the first sheet with Debit and Credit columns.
 export function trialBalanceTotals(sheets) {
   for (const sh of sheets || []) {
-    const hi = sh.rows.findIndex(r => r.some(c => /^debit/i.test(String(c ?? '').trim())) && r.some(c => /^credit/i.test(String(c ?? '').trim())));
+    // "Debit", or "2025 debit" beside "2024 debit" (the last such column is the latest year)
+    const DR = /^(\d{4}\s+)?debit/i, CR = /^(\d{4}\s+)?credit/i, cell = c => String(c ?? '').trim();
+    const hi = sh.rows.findIndex(r => r.some(c => DR.test(cell(c))) && r.some(c => CR.test(cell(c))));
     if (hi < 0) continue;
-    const dc = sh.rows[hi].findIndex(c => /^debit/i.test(String(c ?? '').trim())), cc = sh.rows[hi].findIndex(c => /^credit/i.test(String(c ?? '').trim()));
+    const dc = sh.rows[hi].findLastIndex(c => DR.test(cell(c))), cc = sh.rows[hi].findLastIndex(c => CR.test(cell(c)));
     let dr = 0, cr = 0, stated = null;
     for (const r of sh.rows.slice(hi + 1)) {
       const label = r.filter(c => typeof c === 'string').join(' ').toLowerCase();
-      const d = typeof r[dc] === 'number' ? r[dc] : 0, c = typeof r[cc] === 'number' ? r[cc] : 0;
+      const d = typeof r[dc] === 'number' ? Math.abs(r[dc]) : 0, c = typeof r[cc] === 'number' ? Math.abs(r[cc]) : 0; // credits may be shown negative
       if (/\btotal/.test(label)) { if (d || c) stated = { dr: d, cr: c }; break; }
       dr += d; cr += c;
     }
@@ -77,7 +82,10 @@ export function trialBalanceTotals(sheets) {
   return null;
 }
 
-const SLOT_NAMES = { cy: 'Current Year Draft Financial Statements', py: 'Prior Year Signed Financial Statements', tb: 'Trial Balance', is: 'Investment Schedule', sup: 'Supporting Information' };
+const SLOT_NAMES = { cy: 'Current Year Draft Financial Statements', py: 'Prior Year Signed Financial Statements', tb: 'Trial Balance', is: 'Investment Schedule', sup: 'Supporting Information', ag: 'Agreements and Correspondence' };
+// minutes and agreements often share wording, so either supporting slot accepts the other's kind of document
+const SUPPORTING = ['sup', 'ag'];
+const sameKind = (a, b) => a === b || (SUPPORTING.includes(a) && SUPPORTING.includes(b));
 export const slotName = id => SLOT_NAMES[id] || id;
 const money = n => sym() + Math.round(n).toLocaleString('en-GB');
 
@@ -102,8 +110,8 @@ export function validateDocument(content, format, ctx) {
   const confidence = !recognisedAs ? 'unsure' : best - second >= 4 ? 'strong' : best - second >= 2 ? 'likely' : 'unsure';
   if (scanned) add('warn', 'Document type', 'No readable text was found (it may be a scanned image), so the document could not be checked.');
   else if (!recognisedAs) add('warn', 'Document type', `Couldn’t tell what this document is. Confirm it is the ${slotName(ctx.slot)}.`);
-  else if (recognisedAs !== ctx.slot && confidence !== 'unsure') add('fail', 'Document type', `This looks like the ${slotName(recognisedAs)}, not the ${slotName(ctx.slot)}.`);
-  else if (recognisedAs !== ctx.slot) add('warn', 'Document type', `This may be the ${slotName(recognisedAs)} rather than the ${slotName(ctx.slot)}.`);
+  else if (!sameKind(recognisedAs, ctx.slot) && confidence !== 'unsure') add('fail', 'Document type', `This looks like the ${slotName(recognisedAs)}, not the ${slotName(ctx.slot)}.`);
+  else if (!sameKind(recognisedAs, ctx.slot)) add('warn', 'Document type', `This may be the ${slotName(recognisedAs)} rather than the ${slotName(ctx.slot)}.`);
   else add(confidence === 'unsure' ? 'warn' : 'ok', 'Document type', `Looks like the ${slotName(ctx.slot)}${confidence === 'strong' ? '' : ' (probable match)'}.`);
 
   // 2. Which fund? The fund or its entity counts, so umbrella accounts are accepted.
@@ -119,7 +127,7 @@ export function validateDocument(content, format, ctx) {
   }
 
   // 3. Which period? Supporting information is not tied to one date.
-  if (!scanned && ctx.slot !== 'sup' && ctx.yearEnd) {
+  if (!scanned && !SUPPORTING.includes(ctx.slot) && ctx.yearEnd) {
     const expected = ctx.slot === 'py' ? minusYear(ctx.yearEnd) : ctx.yearEnd;
     if (!period) add('warn', 'Reporting date', `Couldn’t find the reporting date. Expected ${fmtDay(expected)}.`);
     else if (period === expected) add('ok', 'Reporting date', `${fmtDay(period)}, as expected.`);

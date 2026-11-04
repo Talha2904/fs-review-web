@@ -3,8 +3,11 @@ import Modal from './Modal';
 import { Button, cap, muted } from './ui';
 import { ENTITY_FIELDS } from '../lib/engagements';
 
-const LEGAL_FORMS = ['ICAV', 'SICAV', 'Unit trust', 'Investment company', 'Limited partnership', 'Common contractual fund', 'Other'];
-const JURISDICTIONS = ['Ireland', 'Luxembourg', 'United Kingdom', 'Cayman Islands', 'Jersey', 'Guernsey', 'Pakistan', 'United Arab Emirates', 'Singapore'];
+const LEGAL_FORMS = ['ICAV', 'SICAV', 'Unit trust', 'Investment company', 'Limited partnership', 'Common contractual fund', 'Private limited company', 'Public limited company', 'LLC', 'Other'];
+const JURISDICTIONS = ['Ireland', 'Luxembourg', 'United Kingdom', 'Cayman Islands', 'Jersey', 'Guernsey', 'United States', 'Pakistan', 'United Arab Emirates', 'Singapore'];
+// What the entity is: the AI review reads the statements differently for a fund, a partnership and a company.
+// Kept in step with ENTITY_TYPES in the api (application/ai/prompts.ts).
+const ENTITY_TYPES = ['Open-ended fund', 'Private equity fund', 'Private debt fund', 'Investment manager', 'Trust or fiduciary company', 'Other company'];
 const norm = s => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
 // Adds or edits an entity. Names must be unique (ignoring case and spacing) so funds are never
@@ -64,9 +67,16 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4, clear: 'both' }}>
             <span style={{ ...cap, ...muted }}>Accounting framework</span>
             <select className="input" aria-label="Accounting framework" value={e.framework || ''} onChange={ev => setE(x => ({ ...x, framework: ev.target.value }))}>
-              <option value="">Not set</option><option value="FRS 102">FRS 102</option><option value="IFRS">IFRS</option><option value="Other">Other</option>
+              <option value="">Not set</option><option value="FRS 102">FRS 102</option><option value="IFRS">IFRS</option><option value="US GAAP">US GAAP</option><option value="Other">Other</option>
             </select>
-            <span style={{ ...cap, ...muted }}>Chooses the disclosure checklist (CHK-13) for this client’s funds.</span>
+            <span style={{ ...cap, ...muted }}>Chooses the disclosure checklist (CHK-13) and the standards the AI review applies.</span>
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ ...cap, ...muted }}>Entity type</span>
+            <select className="input" aria-label="Entity type" value={e.entityType || ''} onChange={set('entityType')}>
+              <option value="">Open-ended fund (default)</option>{ENTITY_TYPES.slice(1).map(t => <option key={t}>{t}</option>)}
+            </select>
+            <span style={{ ...cap, ...muted }}>Tells the review whether it is reading a fund, a partnership or a company.</span>
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ ...cap, ...muted }}>Disclosure checklist (CHK-13)</span>

@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { gbp, fmt } from '../lib/format';
+import { gbp, fmt, signedGbp } from '../lib/format';
+
+// What correcting a point changes (from the AI review): profit before tax, tax and net assets.
+const effects = p => [
+  p.pbtEffect != null && `profit before tax ${p.pbtEffect ? signedGbp(p.pbtEffect) : 'unchanged'}`,
+  p.taxEffect != null && p.taxEffect !== 0 && `tax ${signedGbp(p.taxEffect)}`,
+  p.netAssetsEffect != null && `net assets ${p.netAssetsEffect ? signedGbp(p.netAssetsEffect) : 'unchanged'}`
+].filter(Boolean).join(' · ');
 import { can, canClearPoint } from '../lib/roles';
 import { Button, Card, Pill, PriPill, Segmented, FileButton, cap, body, h2, h3, muted, page, RING } from '../components/ui';
 import { slotDefs } from '../data/sampleFund';
@@ -106,8 +113,12 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
     <section id="point-detail" className="point-detail" aria-label={`${p.ref} detail`} style={{ flex: '1.4 1 520px', minWidth: 'min(320px, 100%)', background: '#fff', borderRadius: 16, boxShadow: RING, padding: 'var(--card-pad)' }}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><span style={h3}>{p.ref}</span><PriPill pri={p.pri} /><PointStatus status={p.status} />{p.aiDrafted && <Pill bg="var(--snow-status-pending-bg)">Drafted by AI</Pill>}</div>
       <div style={{ ...h3, fontWeight: 600, marginTop: 8 }}>{p.title}</div>
-      <div style={{ ...cap, ...muted, marginTop: 4 }}>{[p.area, p.refs, p.amount != null && `${gbp(p.amount)} (${p.amount >= threshold ? 'above' : 'below'} threshold)`].filter(Boolean).join(' · ')}</div>
+      <div style={{ ...cap, ...muted, marginTop: 4 }}>{[p.kind, p.area, p.refs, p.amount != null && `${gbp(p.amount)} (${p.amount >= threshold ? 'above' : 'below'} threshold)`].filter(Boolean).join(' · ')}</div>
       {p.basis && <div style={{ ...body, marginTop: 12 }}>{p.basis}</div>}
+      {p.evidence && <div style={{ ...cap, marginTop: 8 }}><b>Evidence:</b> {p.evidence}</div>}
+      {p.fix && <div style={{ ...cap, marginTop: 8 }}><b>Proposed correction:</b> {p.fix}</div>}
+      {effects(p) && <div style={{ ...cap, marginTop: 8 }}><b>Effect:</b> {effects(p)}</div>}
+      {p.missing && <div style={{ ...cap, marginTop: 8 }}><b>Information needed:</b> {p.missing}</div>}
       {p.follow && <div style={{ ...cap, marginTop: 8 }}><b>Suggested follow-up:</b> {p.follow}</div>}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 16, paddingTop: 12, boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.08)', ...cap }}>

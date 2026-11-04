@@ -266,8 +266,8 @@ function Workspace({ user, auth, onSignOut }) {
         if (local) validation.checks = [...validation.checks, { result: 'ok', label: 'Reading', detail: `Can be read without AI: ${local.local.accounts} accounts${local.local.statedTotals ? ' and a totals row' : ''}.` }];
       }
       // A digitally produced PDF of the statements or supporting information can often be read too.
-      if (['cy', 'py', 'sup'].includes(slot) && extOf(file.name) === 'pdf') {
-        const local = parseFinancialPdf(content, slot, slot === 'sup' ? null : umbrella);
+      if (['cy', 'py', 'sup', 'ag'].includes(slot) && extOf(file.name) === 'pdf') {
+        const local = parseFinancialPdf(content, slot, slot === 'sup' || slot === 'ag' ? null : umbrella);
         validation.localReadable = !!local;
         const NAMES = { ca: 'asset lines', cl: 'liability lines', pyNA: 'opening net assets', pyOpenNA: 'prior-year opening net assets', subs: 'subscriptions', reds: 'redemptions', ops: 'result for the year',
           income: 'income lines', sciExp: 'expenses', exp: 'expense note', statedNote4: 'investment note total', hier: 'fair value hierarchy', mgmtCharged: 'management fee charged', mgmtRate: 'management fee rate' };
@@ -313,7 +313,7 @@ function Workspace({ user, auth, onSignOut }) {
   const detach = async id => { if (!editable) return; await reviewStore.remove(active.id, id, { user }); log('Documents', `Removed ${slotName(id)}`); };
   const attachAll = async () => {
     if (!editable) return;
-    for (const d of slotDefs) if (contentKey(review.current[d.id]) !== 'sample:' + d.sample) await reviewStore.addVersion({ engagementId: active.id, slot: d.id, fileName: d.sample, sample: true, user });
+    for (const d of slotDefs.filter(d => d.sample)) if (contentKey(review.current[d.id]) !== 'sample:' + d.sample) await reviewStore.addVersion({ engagementId: active.id, slot: d.id, fileName: d.sample, sample: true, user });
     log('Documents', 'Attached all sample documents');
   };
   // Umbrella documents are shared: copy the draft, signed accounts and supporting information from a
@@ -360,7 +360,9 @@ function Workspace({ user, auth, onSignOut }) {
   async function attachNextDraft(f) {
     const hash = await sha256(f.file), cur = review.current.cy;
     if (cur && contentKey(cur) === hash) return `“${f.name}” has the same content as the current draft (v${cur.version}), so there is nothing new to analyse.`;
-    const rec = await reviewStore.addVersion({ engagementId: active.id, slot: 'cy', fileName: f.name, size: f.file.size, sha256: hash, file: f.file, user });
+    let rec;
+    try { rec = await reviewStore.addVersion({ engagementId: active.id, slot: 'cy', fileName: f.name, size: f.file.size, sha256: hash, file: f.file, user, nextDraft: true }); }
+    catch (e) { return e.message; }
     log('Documents', `Attached Current Year Draft Financial Statements v${rec.version}: ${f.name}`);
     const v = await validateVersion(rec, f.file, 'cy', review.current);
     if (v.status === 'mismatch') return v.summary;
@@ -574,7 +576,7 @@ function Workspace({ user, auth, onSignOut }) {
   const tabs = [
     { id: 'portfolio', label: 'Portfolio', count: '' },
     { id: 'engagement', label: 'Engagement', count: engagements?.length || '' },
-    { id: 'docs', label: 'Documents', count: `${Object.keys(review.current).length}/5` },
+    { id: 'docs', label: 'Documents', count: `${Object.keys(review.current).length}/${slotDefs.length}` },
     { id: 'analysis', label: 'Analysis', count: done ? fails : '' },
     { id: 'var', label: 'Variance Analysis', count: done && varianceOn ? investigate : '' },
     { id: 'sched', label: 'Review Points', count: myQueue.length || '' }, // points waiting for the signed-in person
@@ -589,7 +591,7 @@ function Workspace({ user, auth, onSignOut }) {
   const reads = result?.aiReads;
   const analysisSub = done ? `The file was analysed on ${analysedAt}. ${openPoints.length} review points are open and ${fails} of ${checks.length} checks show a difference.`
     + (reads && (reads.read.length || reads.reused.length) ? ` AI read ${reads.read.length} document${reads.read.length === 1 ? '' : 's'}; ${reads.reused.length} unchanged document${reads.reused.length === 1 ? ' was' : 's were'} reused without AI.` : '')
-    + (reads?.local?.length ? ` Read by the app without AI: ${reads.local.map(s => ({ cy: 'draft statements', py: 'signed statements', tb: 'trial balance', is: 'investment schedule', sup: 'supporting information' })[s]).join(', ')}.` : '') : '';
+    + (reads?.local?.length ? ` Read by the app without AI: ${reads.local.map(s => ({ cy: 'draft statements', py: 'signed statements', tb: 'trial balance', is: 'investment schedule', sup: 'supporting information', ag: 'agreements and correspondence' })[s]).join(', ')}.` : '') : '';
 
   return (
     <LibraryContext.Provider value={library}>

@@ -14,7 +14,7 @@ export const newId = (prefix = 'eng') => prefix + '-' + Date.now().toString(36) 
 // Engagements link to it by entityId, so renaming an entity never breaks the link.
 export const ENTITY_FIELDS = { name: '', client: '', legalForm: '', jurisdiction: '', yearEnd: '', administrator: '', auditor: '',
   aiPermitted: null, aiBasis: '', aiDecidedBy: null, aiDecidedAt: null, // the client's AI decision (see lib/aiDecision.js)
-  framework: '', ruleOverrides: {}, partnerSignoff: false, umbrella: false, billingEmail: '' }; // accounting framework (picks the disclosure checklist); the client's check rule overrides
+  framework: '', entityType: '', ruleOverrides: {}, partnerSignoff: false, umbrella: false, billingEmail: '' }; // accounting framework (picks the disclosure checklist); the client's check rule overrides
 const toEntity = e => ({ ...ENTITY_FIELDS, ...e });
 const plain = v => JSON.parse(JSON.stringify(v)); // strips undefined
 

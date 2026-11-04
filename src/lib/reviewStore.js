@@ -119,11 +119,11 @@ export const reviewStore = {
   // ---- documents ----
   // The same content as the current version makes no new version; the api says so with `unchanged`.
   // responseTo: the id of the open point a revised document answers (allowed while the documents are marked ready).
-  async addVersion({ engagementId, slot, fileName, sample = false, file = null, responseTo = null }) {
+  async addVersion({ engagementId, slot, fileName, sample = false, file = null, responseTo = null, nextDraft = false }) {
     let out;
     if (sample || !file) out = await call(`/api/engagements/${encodeURIComponent(engagementId)}/documents/sample`, 'POST', { slot, name: fileName });
     else {
-      const form = new FormData(); form.append('slot', slot); if (responseTo) form.append('responseTo', responseTo); form.append('file', file, fileName);
+      const form = new FormData(); form.append('slot', slot); if (responseTo) form.append('responseTo', responseTo); if (nextDraft) form.append('nextDraft', '1'); form.append('file', file, fileName);
       out = await call(`/api/engagements/${encodeURIComponent(engagementId)}/documents`, 'POST', null, form);
       fileBlobs.set(out.version.id, file);
     }
