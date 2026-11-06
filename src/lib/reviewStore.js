@@ -35,7 +35,7 @@ const changeListeners = new Set(); // callbacks told that something changed some
 let allLoaded = false, stream = null, pollTimer = null;
 
 const EMPTY = id => ({ engagementId: id, versions: [], current: {}, workflow: { engagementId: id, state: 'preparing', by: null, at: null, reason: '', history: [] },
-  signoff: { engagementId: id, state: 'none', by: null, at: null, text: '', summary: null, history: [] }, points: [], messages: [], checklist: null, reports: [], latestRun: null, analysisJob: null });
+  signoff: { engagementId: id, state: 'none', by: null, at: null, text: '', summary: null, history: [] }, points: [], messages: [], checklist: null, reports: [], latestRun: null, analysisJob: null, shared: { points: [], messages: [] } });
 const snapshot = id => server.get(id) || EMPTY(id);
 const snapshotAll = () => Object.fromEntries([...server.keys()].map(id => [id, snapshot(id)]));
 function emit(id) { (listeners.get(id) || []).forEach(cb => cb(snapshot(id))); emitAll(); }
@@ -95,6 +95,8 @@ function connect() {
   if (!pollTimer) pollTimer = setInterval(() => { listeners.forEach((_, id) => load(id)); if (allListeners.size) loadAll(); }, 30000);
 }
 const after = async (engagementId, promise) => { const out = await promise; await load(engagementId); return out; };
+// a shared point changed several funds: those open in this tab are fetched again now (others follow the event stream)
+const afterShared = async out => { await Promise.all([...new Set(out.points.map(p => p.engagementId))].filter(id => listeners.has(id)).map(id => load(id))); return out; };
 const engagementOfVersion = versionId => { for (const s of server.values()) if (s.versions.some(v => v.id === versionId)) return s.engagementId; return null; };
 const engagementOfPoint = pointId => { for (const s of server.values()) if (s.points.some(p => p.id === pointId)) return s.engagementId; return null; };
 const person = p => (p ? { id: p.id, name: p.name, role: p.role || '' } : null);
@@ -215,6 +217,18 @@ export const reviewStore = {
   async act(pointId, { kind, text = '', attachments = [] }) {
     const { point } = await call(`/api/points/${encodeURIComponent(pointId)}/act`, 'POST', { kind, text, attachments });
     await load(point.engagementId);
+  },
+  // Points shared across related funds: each fund keeps and clears its own copy; the threads are read together.
+  async sharePoint(pointId, engagementIds) {
+    return afterShared(await call(`/api/points/${encodeURIComponent(pointId)}/share`, 'POST', { engagementIds }));
+  },
+  async linkShared(pointIds) {
+    return afterShared(await call('/api/points/shared', 'POST', { pointIds }));
+  },
+  async unsharePoint(pointId) {
+    const { point } = await call(`/api/points/${encodeURIComponent(pointId)}/share`, 'DELETE');
+    await load(point.engagementId);
+    return point;
   },
 
   engagementOfVersion,

@@ -105,6 +105,9 @@ function Workspace({ user, auth, onSignOut }) {
   // the Consolidated Review opens on the group of the fund or entity it was opened from (a new object each time)
   const [consFocus, setConsFocus] = useState(null);
   const openConsolidated = (focus = null) => { setConsFocus(focus); setDraft(null); setTab('consolidated'); };
+  // a point in any fund: that fund is put in review and the point opened (Consolidated Review, a shared point)
+  const openFundPoint = (id, ref) => { if (id !== activeId) activate(id); setDraft(null); setSel(ref); setFocusPoint(ref); setTab('sched'); };
+  const fundNameOf = id => (engagements || []).find(e => e.id === id)?.fund?.name || 'Another fund';
 
   const startRules = () => ({ ...ruleTemplate });
   // A new fund can be started from an entity's Add Fund button, which links it and fills its year end.
@@ -396,7 +399,7 @@ function Workspace({ user, auth, onSignOut }) {
 
   // Review points live in the review store with their owner, assignee and thread.
   const points = useMemo(() => rankPoints(review.points.map(p => ({ ...p.content, ref: p.ref, id: p.id, status: p.status, source: p.source, type: p.type || 'change', dueDate: p.dueDate || null,
-    assignedTo: p.assignedTo, raisedBy: p.raisedBy, raisedAt: p.raisedAt, clearedBy: p.clearedBy, clearedAt: p.clearedAt, updatedAt: p.updatedAt }))), [review]);
+    assignedTo: p.assignedTo, raisedBy: p.raisedBy, raisedAt: p.raisedAt, clearedBy: p.clearedBy, clearedAt: p.clearedAt, updatedAt: p.updatedAt, sharedGroupId: p.sharedGroupId || null }))), [review]);
   const openPoints = points.filter(p => p.status !== 'cleared');
   // Checks re-run instantly when the engagement changes; review points refresh on the next analysis.
   // CHK-13: the disclosure checklist for the client's framework (copied into the review when first answered)
@@ -469,7 +472,10 @@ function Workspace({ user, auth, onSignOut }) {
     clear: async (pt, text) => { await reviewStore.act(pt.id, { kind: 'clear', user, text }); log('Review points', `${pt.ref}: cleared`, text || pt.title); },
     comment: async (pt, text) => { await reviewStore.comment(pt.id, { user, text }); log('Review points', `${pt.ref}: comment`, text); },
     meta: async (pt, patch) => { await reviewStore.setPointMeta(pt.id, { ...patch, user }); log('Review points', `${pt.ref}: ${patch.type ? `type ${patch.type}` : patch.dueDate ? `due ${patch.dueDate}` : 'due date removed'}`); },
-    assign: async (pt, personId) => { const a = people.find(x => x.id === personId) || null; await reviewStore.assignPoint(pt.id, { assignee: a, user }); log('Review points', `${pt.ref}: ${a ? `assigned to ${a.name}` : 'unassigned'}`); }
+    assign: async (pt, personId) => { const a = people.find(x => x.id === personId) || null; await reviewStore.assignPoint(pt.id, { assignee: a, user }); log('Review points', `${pt.ref}: ${a ? `assigned to ${a.name}` : 'unassigned'}`); },
+    // the api records sharing in each point's thread and the activity log is per fund, so it is logged here too
+    share: async (pt, ids) => { const out = await reviewStore.sharePoint(pt.id, ids); log('Review points', `${pt.ref}: shared with ${ids.map(fundNameOf).join(', ')}`); return out; },
+    unshare: async pt => { await reviewStore.unsharePoint(pt.id); log('Review points', `${pt.ref}: no longer shared with other funds`); }
   };
   const waitingForMe = pt => (canRespond && ['open', 'reopened'].includes(pt.status) && (!pt.assignedTo || pt.assignedTo.id === user.id))
     || (pt.status === 'responded' && canClearPoint(user, pt));
@@ -662,7 +668,7 @@ function Workspace({ user, auth, onSignOut }) {
           onOpen={(e, t) => { if (e.id !== activeId) activate(e.id); setDraft(null); setTab(t); }} />}
         {tab === 'consolidated' && <ConsolidatedTab focus={consFocus} canRun={canRun}
           onOpenFund={id => { if (id !== activeId) activate(id); else setTab('docs'); }}
-          onOpenPoint={(id, ref) => { if (id !== activeId) activate(id); setDraft(null); setSel(ref); setFocusPoint(ref); setTab('sched'); }} />}
+          canLink={canRaise0} onOpenPoint={openFundPoint} />}
         {tab === 'engagement' && !draft && <EngagementList onConsolidated={ent => openConsolidated({ entityName: ent.name, label: ent.name })} rulesOf={rulesOf} engagements={engagements} activeId={activeId} mode={store?.mode} loadError={loadError} notice={notice} locked={phase === 'running'} canWrite={canWrite && canEditEng} entities={entities} people={people} onAdd={entityId => openEngagement(null, entityId)} onOpen={e => openEngagement(e)} onActivate={activate}
           onAddEntity={() => setEntityModal({ entity: null })} onEditEntity={ent => setEntityModal({ entity: ent })} />}
         {entityModal && <EntityModal me={user} entity={entityModal.entity} entities={entities || []} onSave={saveEntity} onClose={() => setEntityModal(null)}
@@ -674,7 +680,7 @@ function Workspace({ user, auth, onSignOut }) {
         {tab === 'analysis' && done && <AnalysisTab result={result} checks={checks} openPoints={openPoints} files={files} docSel={docSel} setDocSel={setDocSel} tray={tray} pick={pick} clearTray={() => setTray([])} addFromTray={addFromTray} sel={sel} setSel={setSel} goto={setTab} openPoint={openPoint} hasPoint={ref => points.some(p => p.ref === ref)} showFlags={CONFIG.showFlags} analysedAt={analysedAt} canRaise={canRaise}
           tbOn={ruleOn(setup, 'CHK-02')} tbMap={active?.tbMap || {}} tbTol={setup.rules?.['CHK-02']?.tol ?? 1} canMap={(canAttach || canRun) && !signed} onSaveMap={saveTbMap} />}
         {tab === 'var' && done && <VarianceTab aiNotes={Object.values(result.varNotes || {}).some(n => n?.aiDrafted)} canEditPoints={canRaise} enabled={varianceOn} mode={setup.varianceMode} goSetup={() => { setDraft(null); setTab('engagement'); }} model={vm} filter={varFilter} setFilter={setVarFilter} raised={raised} onRaise={raiseVariance} openPoint={openPoint} threshold={th} growth={growth} avgGrowth={avgGrowth} />}
-        {tab === 'sched' && points.length > 0 && <ScheduleTab points={points} messages={review.messages} user={user} people={people} sel={sel} setSel={setSel} focus={focusPoint} onFocused={() => setFocusPoint(null)} actions={pointActions} waitingForMe={waitingForMe}
+        {tab === 'sched' && points.length > 0 && review.engagementId === activeId && <ScheduleTab key={review.engagementId} engagementId={activeId} shared={review.shared} fundNameOf={fundNameOf} onOpenFundPoint={openFundPoint} points={points} messages={review.messages} user={user} people={people} sel={sel} setSel={setSel} focus={focusPoint} onFocused={() => setFocusPoint(null)} actions={pointActions} waitingForMe={waitingForMe}
           canRaise={canRaise} canRespond={canRespond} locked={signed} threshold={th} version={result?.version} />}
         {tab === 'disc' && done && clOn && <DisclosuresTab framework={clFramework} list={clList} state={clState} cy={result.docs?.cy} signed={signed} canAnswer={canRaise} onAnswer={answerDisclosure} />}
         {tab === 'signoff' && done && <SignoffTab reports={review.reports || []} reportActions={reportActions} review={review} summary={summary} partnerRequired={partnerReq} canPartner={canPartner} canSignoff={canSignoff} canResubmit={canResubmit} actions={signoffActions} />}

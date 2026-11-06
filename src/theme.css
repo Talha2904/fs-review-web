@@ -495,3 +495,15 @@
   .cselect-opt { min-height: 44px; white-space: normal; } /* finger-sized; long labels wrap on a phone instead of being cut */
 }
 @media (prefers-reduced-motion: reduce) { .cselect-list { animation: none; } .cselect-chev { transition: none; } }
+
+/* Share a point: one row per fund, finger-sized on a phone */
+.share-fund { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.share-fund:hover { background: rgba(62,124,196,0.06); }
+.share-fund input { width: 18px; height: 18px; flex: 0 0 auto; accent-color: var(--pa-blue); }
+@media (max-width: 1023px) { .share-fund { min-height: 44px; } }
+
+/* filter buttons (Segmented) wrap within the screen instead of widening the page on a phone */
+.segmented { max-width: 100%; min-width: 0; }
+.share-fund.is-locked { cursor: default; opacity: 0.6; }
+.share-fund.is-locked:hover { background: none; }
+.cselect-sub { list-style: none; margin: 0; padding: 0; }

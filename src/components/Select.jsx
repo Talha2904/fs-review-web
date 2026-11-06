@@ -21,6 +21,16 @@ function optionsOf(children, group = null, out = []) {
   return out;
 }
 
+// consecutive options of one <optgroup> (or of none), in order: rendered as listbox groups
+function runs(options) {
+  const out = [];
+  options.forEach((o, i) => {
+    const last = out[out.length - 1];
+    if (last && last.group === o.group) last.items.push(i); else out.push({ group: o.group, items: [i] });
+  });
+  return out;
+}
+
 const Chevron = () => (
   <svg className="cselect-chev" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
@@ -36,17 +46,18 @@ export default function Select({ value, onChange, children, disabled, className 
   const [place, setPlace] = useState(null);
   const btn = useRef(null), list = useRef(null), typed = useRef({ s: '', t: 0 });
   const uid = useId().replace(/:/g, '');
-  const listId = `cs-${uid}`, optId = i => `cs-${uid}-${i}`;
+  const listId = `cs-${uid}`, optId = i => `cs-${uid}-${i}`, btnId = id || `cs-${uid}-btn`;
   const autoWidth = style?.width === 'auto';
 
   const enabled = i => options[i] && !options[i].disabled;
   const step = (from, dir) => { for (let i = from + dir; i >= 0 && i < options.length; i += dir) if (enabled(i)) return i; return from; };
+  const isDisabled = () => disabled || !!btn.current?.disabled;
   const choose = i => {
-    if (!enabled(i)) return;
+    if (!enabled(i) || isDisabled()) { setOpen(false); return; }
     setOpen(false);
     if (options[i].value !== current) onChange?.({ target: { value: options[i].value }, currentTarget: { value: options[i].value } });
   };
-  const show = () => { if (!disabled && options.length) { setActive(enabled(selIndex) ? selIndex : step(-1, 1)); setOpen(true); } };
+  const show = () => { if (!isDisabled() && options.length) { setActive(enabled(selIndex) ? selIndex : step(-1, 1)); setOpen(true); } };
   // typing letters finds the next option that starts with them (as a select does)
   const find = key => {
     const now = Date.now(), t = typed.current;
@@ -86,7 +97,7 @@ export default function Select({ value, onChange, children, disabled, className 
       const natural = list.current ? list.current.scrollHeight : 0;
       const below = vh - r.bottom - gap - edge, above = r.top - gap - edge;
       const up = natural > below && above > below;
-      const maxHeight = Math.max(120, Math.min(natural || 320, 320, up ? above : below));
+      const maxHeight = Math.max(0, Math.min(natural || 320, 320, up ? above : below));
       const minWidth = Math.min(r.width, vw - 2 * edge);
       const width = list.current ? Math.min(Math.max(list.current.scrollWidth, minWidth), vw - 2 * edge) : minWidth;
       const left = Math.max(edge, Math.min(r.left, vw - edge - width));
@@ -104,8 +115,9 @@ export default function Select({ value, onChange, children, disabled, className 
       window.removeEventListener('scroll', onScroll, true); window.removeEventListener('resize', measure);
       document.removeEventListener('pointerdown', onDown); window.removeEventListener('keydown', onKey, true);
     };
-  }, [open]);
+  }, [open, options.length]);
   useEffect(() => { if (!open) setPlace(null); }, [open]);
+  useEffect(() => { if (disabled) setOpen(false); }, [disabled]);
   // keep the highlighted option in view by scrolling the list only (scrollIntoView could move the page under it)
   useEffect(() => {
     const ul = list.current, el = open && document.getElementById(optId(active));
@@ -114,13 +126,12 @@ export default function Select({ value, onChange, children, disabled, className 
     else if (el.offsetTop + el.offsetHeight > ul.scrollTop + ul.clientHeight) ul.scrollTop = el.offsetTop + el.offsetHeight - ul.clientHeight + 4;
   }, [open, active, place]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  let lastGroup = null;
   return (
     <>
-      <button ref={btn} type="button" id={id} className={'input cselect ' + className} style={style} disabled={disabled}
+      <button ref={btn} type="button" id={btnId} className={'input cselect ' + className} style={style} disabled={disabled}
         role="combobox" aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? listId : undefined}
         aria-activedescendant={open ? optId(active) : undefined} {...aria}
-        onClick={() => (open ? setOpen(false) : show())} onKeyDown={onKeyDown}>
+        onClick={() => (open ? setOpen(false) : show())} onKeyDown={onKeyDown} onBlur={() => setOpen(false)}>
         <span className="cselect-val">
           {/* width:auto sizes to the longest option, as a select does: every label sits in one cell, only the chosen one shows */}
           {autoWidth ? options.map((o, i) => <span key={i} aria-hidden={i !== selIndex} className={i === selIndex ? '' : 'cselect-sizer'}>{o.label}</span>) : <span>{selected?.label ?? ''}</span>}
@@ -128,23 +139,28 @@ export default function Select({ value, onChange, children, disabled, className 
         <Chevron />
       </button>
       {open && createPortal(
-        <ul ref={list} id={listId} role="listbox" className="cselect-list" aria-label={aria['aria-label']} tabIndex={-1}
+        <ul ref={list} id={listId} role="listbox" className="cselect-list" aria-labelledby={btnId} tabIndex={-1}
           style={place ? place : { visibility: 'hidden', top: 0, left: 0 }}
-          onMouseDown={e => e.preventDefault() /* the button keeps focus */}>
-          {options.map((o, i) => {
-            const head = o.group && o.group !== lastGroup ? <li key={'g' + i} role="presentation" className="cselect-group">{o.group}</li> : null;
-            lastGroup = o.group;
-            return (
-              <React.Fragment key={i}>
-                {head}
-                <li id={optId(i)} role="option" aria-selected={i === selIndex} aria-disabled={o.disabled || undefined}
-                  className={'cselect-opt' + (i === active ? ' is-active' : '') + (o.group ? ' in-group' : '')}
+          onMouseDown={e => e.preventDefault() /* the button keeps focus */}
+          onClick={e => e.stopPropagation() /* a click here is not a click on whatever holds the control */}>
+          {runs(options).map(({ group, items }, gi) => {
+            const opts = items.map(i => {
+              const o = options[i];
+              return (
+                <li key={i} id={optId(i)} role="option" aria-selected={i === selIndex} aria-disabled={o.disabled || undefined}
+                  className={'cselect-opt' + (i === active ? ' is-active' : '') + (group ? ' in-group' : '')}
                   onMouseMove={() => { if (!o.disabled && i !== active) setActive(i); }} onClick={() => choose(i)}>
                   <span className="cselect-opt-label">{o.label}</span>
                   {i === selIndex && <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5 6 10.5l5-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>}
                 </li>
-              </React.Fragment>
-            );
+              );
+            });
+            return group ? (
+              <li key={'g' + gi} role="presentation">
+                <div id={`${listId}-g${gi}`} className="cselect-group" aria-hidden="true">{group}</div>
+                <ul role="group" aria-labelledby={`${listId}-g${gi}`} className="cselect-sub">{opts}</ul>
+              </li>
+            ) : <React.Fragment key={'n' + gi}>{opts}</React.Fragment>;
           })}
         </ul>, document.body)}
     </>

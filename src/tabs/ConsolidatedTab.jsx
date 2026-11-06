@@ -20,7 +20,7 @@ const money = (v, cur) => (v == null ? '—' : sym(cur) + fmt(v));
 const alertBox = { ...cap, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 12px' };
 
 // `focus`: opened from a fund or an entity ({ engagementId } or { entityName }); its group is chosen if it has one.
-export default function ConsolidatedTab({ focus, canRun, onOpenPoint, onOpenFund }) {
+export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, onOpenFund }) {
   const [groupsData, groupsError] = useLive(() => reviewStore.consolidatedGroups(), null);
   const groups = groupsData?.groups || null;
   const [key, setKey] = useState('');
@@ -49,6 +49,16 @@ export default function ConsolidatedTab({ focus, canRun, onOpenPoint, onOpenFund
   const fundOf = id => funds.find(f => f.engagementId === id);
   const nameOf = id => fundOf(id)?.fundName || 'another fund';
 
+  // link one recurring matter's points into one shared point (one thread; each fund still clears its own)
+  const [linking, setLinking] = useState(''), [linkError, setLinkError] = useState({});
+  const lockedFund = id => !!funds.find(f => f.engagementId === id)?.locked;
+  const linkable = g => g.points.filter(p => p.pointId && !lockedFund(p.engagementId));
+  const link = async g => {
+    setLinking(g.key); setLinkError(e => ({ ...e, [g.key]: '' }));
+    try { await reviewStore.linkShared(linkable(g).map(p => p.pointId)); reload(); }
+    catch (e) { setLinkError(x => ({ ...x, [g.key]: e.message })); }
+    finally { setLinking(''); }
+  };
   const run = async () => {
     setStarting(true); setStartError('');
     try { await reviewStore.startConsolidated(group.groupKey, group.yearEnd); reload(); }
@@ -164,18 +174,30 @@ export default function ConsolidatedTab({ focus, canRun, onOpenPoint, onOpenFund
           </Card>)}
 
         <Card>
-          <CardHead title="Shared points" info="Review points that are the same matter in two or more funds: the same check, the same title, or (with AI) the same issue worded differently. Each fund’s point is still cleared in that fund." />
+          <CardHead title="Shared points" info="Review points that are the same matter in two or more funds: the same check, the same title, or (with AI) the same issue worded differently. Link them as one shared point to read their comments in one thread; each fund still responds to and clears its own point. Statuses are as they are now." />
           {!common.length ? <div style={{ ...body, ...muted, marginTop: 8 }}>No open matter recurs across these funds.</div> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
               {common.map(g => (
                 <div key={g.key} style={{ borderTop: '1px solid var(--snow-ink-5)', paddingTop: 10 }}>
-                  <div style={{ ...body, fontWeight: 600 }}>{g.title}{g.matchedBy === 'ai' && <span style={{ ...cap, ...muted, fontWeight: 400 }}> · grouped by AI</span>}</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ ...body, fontWeight: 600 }}>{g.title}{g.matchedBy === 'ai' && <span style={{ ...cap, ...muted, fontWeight: 400 }}> · grouped by AI</span>}</div>
+                    {(() => {
+                      const live = g.points.filter(p => p.pointId), open = linkable(g);
+                      const ids = new Set(live.map(p => p.sharedGroupId));
+                      if (live.length >= 2 && ids.size === 1 && !ids.has(null)) return <Pill bg="var(--snow-primary-purple)">Shared point</Pill>;
+                      return canLink && open.length >= 2 && new Set(open.map(p => p.engagementId)).size === open.length
+                        ? <Button size="sm" kind="secondary" disabled={linking === g.key} onClick={() => link(g)}>{linking === g.key ? 'Linking…' : 'Link as one shared point'}</Button> : null;
+                    })()}
+                  </div>
+                  {canLink && g.points.some(p => p.pointId && lockedFund(p.engagementId)) && linkable(g).length >= 2 && !g.points.every(p => p.sharedGroupId && p.sharedGroupId === g.points[0].sharedGroupId) && (
+                    <div style={{ ...cap, ...muted, marginTop: 4 }}>Signed off, so not linked: {[...new Set(g.points.filter(p => lockedFund(p.engagementId)).map(p => p.fundName))].join(', ')}.</div>)}
+                  {linkError[g.key] && <div role="alert" style={{ ...alertBox, marginTop: 6 }}>{linkError[g.key]}</div>}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
                     {g.points.map(p => (
-                      <button key={p.engagementId + p.ref} type="button" className="link" onClick={() => onOpenPoint(p.engagementId, p.ref)} title={p.title}
+                      <button key={p.engagementId + p.ref} type="button" className="link" disabled={p.status === 'removed'} onClick={() => onOpenPoint(p.engagementId, p.ref)} title={p.title}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <span style={cap}>{p.fundName} · {p.ref}</span>
-                        <Pill>{STATUS_LABEL[p.status] || p.status}</Pill>
+                        <Pill>{p.status === 'removed' ? 'No longer in the fund' : STATUS_LABEL[p.status] || ({ responded: 'Responded', reopened: 'Reopened' })[p.status] || p.status}</Pill>
                       </button>))}
                   </div>
                 </div>))}
