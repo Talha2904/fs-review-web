@@ -3,6 +3,7 @@ import Modal from './Modal';
 import { Button, InfoTip, cap, body, muted } from './ui';
 import { tbAccounts, statementLines, suggestMapping, checkTbMapping } from '../lib/tbMapping';
 import { fmt } from '../lib/format';
+import Select from './Select';
 
 const bal = a => (a.bal >= 0 ? `${fmt(a.bal)} Dr` : `${fmt(-a.bal)} Cr`);
 
@@ -43,10 +44,10 @@ export default function TbMapModal({ docs, map, tol = 1, canEdit, onSave, onClos
                 <span data-label="Account" style={body}>{a.name}</span>
                 <span data-label="Balance" className="num" style={cap}>{bal(a)}</span>
                 <span className="dt-main">
-                  <select className="input" aria-label={`Statement line for ${a.code} ${a.name}`} disabled={!canEdit} value={line ? k : ''} onChange={e => set(a.code, e.target.value)} style={{ height: 32, fontSize: 13 }}>
+                  <Select className="input" aria-label={`Statement line for ${a.code} ${a.name}`} disabled={!canEdit} value={line ? k : ''} onChange={e => set(a.code, e.target.value)} style={{ height: 32, fontSize: 13 }}>
                     <option value="">Not mapped</option>
                     {statements.map(st => <optgroup key={st} label={st}>{lines.filter(l => l.statement === st).map(l => <option key={l.key} value={l.key}>{l.label}</option>)}</optgroup>)}
-                  </select>
+                  </Select>
                   {wrongSide && <span style={{ ...cap, color: '#8A5A00', display: 'block', marginTop: 2 }}>This account is a {a.bal > 0 ? 'debit' : 'credit'}; the line is usually a {line.side === 'dr' ? 'debit' : 'credit'}.</span>}
                 </span>
                 <span data-label="Line result" style={{ ...cap, color: !r ? 'var(--snow-black-40)' : r.ok ? '#2E6B12' : 'var(--pa-red)' }}>{!r ? '—' : r.ok ? '✓ Agrees' : `✕ Differs by ${fmt(Math.abs(r.diff))}`}</span>

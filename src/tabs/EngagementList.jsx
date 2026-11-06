@@ -14,11 +14,21 @@ const has = (text, q) => String(text || '').toLowerCase().includes(q);
 
 // Funds (engagements) listed under the entity they belong to. Funds whose entity is not set, or
 // no longer exists, are kept in a final group so they can be linked.
-export default function EngagementList({ rulesOf = e => e.rules || {}, people = [], engagements, entities, activeId, mode, loadError, notice, locked, canWrite, onAdd, onOpen, onActivate, onAddEntity, onEditEntity }) {
+export default function EngagementList({ rulesOf = e => e.rules || {}, people = [], engagements, entities, activeId, mode, loadError, notice, locked, canWrite, onAdd, onOpen, onActivate, onAddEntity, onEditEntity, onConsolidated }) {
   const LIBRARY = useLibrary();
   const [q, setQ] = useState('');
   const where = mode === 'shared' ? 'Saved engagements are shared with everyone who can open this app.' : 'Saved engagements are shared with everyone who signs in.';
 
+  // entities in a Consolidated Review group: as on the api, entities with the same Client name (else name) whose
+  // funds include two or more with the same year end
+  const inGroup = useMemo(() => {
+    const keyOf = ent => (String(ent.client || '').trim() || String(ent.name || '')).toLowerCase().replace(/\s+/g, ' ').trim();
+    const entKey = new Map((entities || []).map(ent => [ent.id, keyOf(ent)]));
+    const n = new Map();
+    (engagements || []).forEach(g => { const k = entKey.get(g.entityId); if (k != null) { const kk = `${k}|${g.fund?.yearEnd || ''}`; n.set(kk, (n.get(kk) || 0) + 1); } });
+    const grouped = new Set([...n].filter(([, c]) => c >= 2).map(([kk]) => kk.slice(0, kk.lastIndexOf('|'))));
+    return ent => grouped.has(entKey.get(ent.id));
+  }, [entities, engagements]);
   const groups = useMemo(() => {
     const byEntity = new Map((entities || []).map(e => [e.id, []]));
     const unlinked = [];
@@ -89,10 +99,11 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
                       : canWrite ? 'Open each fund and choose the entity it belongs to.' : 'A Manager links these funds to their entity.'}
                   </div>
                 </div>
-                {ent && canWrite && (
+                {ent && (canWrite || (onConsolidated && inGroup(ent))) && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    <Button size="sm" kind="secondary" onClick={() => onEditEntity(ent)}>Edit Entity</Button>
-                    <Button size="sm" onClick={() => onAdd(ent.id)}>Add Fund</Button>
+                    {onConsolidated && inGroup(ent) && <Button size="sm" kind="secondary" onClick={() => onConsolidated(ent)}>Consolidated Review</Button>}
+                    {canWrite && <Button size="sm" kind="secondary" onClick={() => onEditEntity(ent)}>Edit Entity</Button>}
+                    {canWrite && <Button size="sm" onClick={() => onAdd(ent.id)}>Add Fund</Button>}
                   </div>
                 )}
               </div>

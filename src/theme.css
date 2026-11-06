@@ -471,3 +471,27 @@
 .infotip-pop::before { content: ''; position: absolute; left: 0; right: 0; top: -8px; height: 8px; }
 .infotip-pop[hidden] { display: none; }
 .infotip-pop:focus { outline: none; }
+
+/* The app's dropdown (components/Select.jsx): looks like the other inputs; its list is the app's own, not the browser's */
+.cselect { display: inline-flex; align-items: center; gap: 8px; text-align: left; cursor: pointer; line-height: 20px; }
+.cselect:disabled { cursor: default; color: var(--snow-black-40); }
+.cselect-val { flex: 1 1 auto; min-width: 0; display: grid; }
+.cselect-val > span { grid-area: 1 / 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cselect-val > .cselect-sizer { visibility: hidden; height: 0; }
+.cselect-chev { flex: 0 0 auto; color: var(--snow-black-40); transition: transform var(--ease, 160ms ease); }
+.cselect[aria-expanded="true"] .cselect-chev { transform: rotate(180deg); }
+.cselect-list { position: fixed; z-index: 90; margin: 0; padding: 4px; list-style: none; overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box;
+  background: #fff; border-radius: 10px; box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 12px 32px rgba(16,24,40,0.18); font-size: 14px; line-height: 20px; color: var(--snow-black-100); animation: cselect-in 120ms ease-out; }
+@keyframes cselect-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.cselect-opt { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.cselect-opt-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.cselect-opt.in-group { padding-left: 18px; }
+.cselect-opt.is-active { background: rgba(62,124,196,0.1); }
+.cselect-opt[aria-selected="true"] { font-weight: 600; color: var(--pa-blue, #3E7CC4); }
+.cselect-opt[aria-disabled="true"] { color: var(--snow-black-40); cursor: default; background: none; }
+.cselect-group { padding: 8px 10px 4px; font-size: 12px; line-height: 18px; font-weight: 600; color: var(--snow-black-40); text-transform: none; }
+@media (max-width: 1023px) {
+  .cselect-list { font-size: 16px; }
+  .cselect-opt { min-height: 44px; white-space: normal; } /* finger-sized; long labels wrap on a phone instead of being cut */
+}
+@media (prefers-reduced-motion: reduce) { .cselect-list { animation: none; } .cselect-chev { transition: none; } }

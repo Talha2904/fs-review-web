@@ -8,6 +8,7 @@ import { totals, invoiceStatus, daysOverdue, recovery, unbilledUsage, aiSummary,
 import { MODELS } from '../lib/aiOptions';
 import { saveFile } from '../lib/download';
 import { invoicePdf, toBase64 } from '../lib/invoicePdf';
+import Select from '../components/Select';
 
 const CRUMB = { ready: 'Ready to Invoice', invoices: 'Invoices', recovery: 'Recovery', settings: 'Billing Settings' };
 const STATUS_BG = { Draft: 'var(--snow-ink-5)', Issued: 'var(--snow-primary-blue)', 'Part paid': 'var(--snow-primary-blue)', Paid: 'var(--snow-status-complete-bg)',
@@ -111,9 +112,9 @@ function Invoices({ st, onOpen }) {
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', alignItems: 'flex-end' }}>
       <div style={h2}>Invoices</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-        <select className="input" style={{ width: 180, maxWidth: '100%' }} aria-label="Show" value={f} onChange={e => setF(e.target.value)}>
+        <Select className="input" style={{ width: 180, maxWidth: '100%' }} aria-label="Show" value={f} onChange={e => setF(e.target.value)}>
           <option value="all">All invoices</option><option value="draft">Drafts</option><option value="open">Unpaid</option><option value="overdue">Overdue</option><option value="cancelled">Cancelled</option>
-        </select>
+        </Select>
         <Button kind="secondary" onClick={exportList}>Export (.xlsx)</Button>
         <Button kind="secondary" onClick={() => xeroCsv(st)}>Export for Xero (.csv)</Button>
       </div>

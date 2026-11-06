@@ -13,6 +13,7 @@ import { effectiveRules, overridesOf, withOverrides } from './lib/ruleTemplate';
 import { LibraryContext } from './lib/library';
 import { connectStore, newId } from './lib/engagements';
 import FundDashboard from './components/FundDashboard';
+import ConsolidatedTab from './tabs/ConsolidatedTab';
 import EntityModal from './components/EntityModal';
 import NotificationBell from './components/NotificationBell';
 import { useLive } from './lib/useLive';
@@ -52,7 +53,7 @@ import { Pill, cap, body, muted, STATUS_LABEL } from './components/ui';
 // Fund details, thresholds and the checks to run live in each engagement (src/data/checkLibrary.js).
 const CONFIG = { showFlags: true, showAgentPass: true };
 const REQUIRED = ['cy', 'py', 'tb', 'is'];
-const CRUMB = { portfolio: 'Portfolio', users: 'Users', engagement: 'Engagement', docs: 'Documents', analysis: 'Analysis', var: 'Variance Analysis', sched: 'Review Points', vers: 'Version Comparison', disc: 'Disclosures', signoff: 'Sign-off', activity: 'Activity Log' };
+const CRUMB = { portfolio: 'Portfolio', consolidated: 'Consolidated Review', users: 'Users', engagement: 'Engagement', docs: 'Documents', analysis: 'Analysis', var: 'Variance Analysis', sched: 'Review Points', vers: 'Version Comparison', disc: 'Disclosures', signoff: 'Sign-off', activity: 'Activity Log' };
 
 function Workspace({ user, auth, onSignOut }) {
   const { log: logRaw } = useActivity();
@@ -101,6 +102,9 @@ function Workspace({ user, auth, onSignOut }) {
   const [ranWith, setRanWith] = useState('');
   const th = setup.threshold;
   const [tab, setTab] = useState('engagement');
+  // the Consolidated Review opens on the group of the fund or entity it was opened from (a new object each time)
+  const [consFocus, setConsFocus] = useState(null);
+  const openConsolidated = (focus = null) => { setConsFocus(focus); setDraft(null); setTab('consolidated'); };
 
   const startRules = () => ({ ...ruleTemplate });
   // A new fund can be started from an entity's Add Fund button, which links it and fills its year end.
@@ -592,6 +596,7 @@ function Workspace({ user, auth, onSignOut }) {
   };
   const tabs = [
     { id: 'portfolio', label: 'Portfolio', count: '' },
+    { id: 'consolidated', label: 'Consolidated Review', count: '' },
     { id: 'engagement', label: 'Engagement', count: engagements?.length || '' },
     { id: 'docs', label: 'Documents', count: `${Object.keys(review.current).length}/${slotDefs.length}` },
     { id: 'analysis', label: 'Analysis', count: done ? fails : '' },
@@ -601,7 +606,7 @@ function Workspace({ user, auth, onSignOut }) {
     ...(clOn ? [{ id: 'disc', label: 'Disclosures', count: done && clSum.unanswered ? clSum.unanswered : '' }] : []),
     { id: 'signoff', label: 'Sign-off', count: signoffBadge },
     { id: 'activity', label: 'Activity Log', count: '' }
-  ].map(t => ({ ...t, step: ['docs', 'analysis', 'var', 'sched', 'vers', 'disc', 'signoff'].includes(t.id), locked: ['engagement', 'portfolio'].includes(t.id) ? false : !active ? true : ['docs', 'activity'].includes(t.id) || (t.id === 'sched' && points.length) ? false : !done }))
+  ].map(t => ({ ...t, step: ['docs', 'analysis', 'var', 'sched', 'vers', 'disc', 'signoff'].includes(t.id), locked: ['engagement', 'portfolio', 'consolidated'].includes(t.id) ? false : !active ? true : ['docs', 'activity'].includes(t.id) || (t.id === 'sched' && points.length) ? false : !done }))
 ;
 
   // Links into the review: a flagged line, or an activity log entry, opens what it is about when that
@@ -621,23 +626,24 @@ function Workspace({ user, auth, onSignOut }) {
   return (
     <LibraryContext.Provider value={library}>
     <AppShell root={BRAND.name} crumb={CRUMB[tab]} accent={STEP_COLOR[tab]}
-      sidebar={{ tabs, tab, onTab: setTab, user, onSignOut, meta: tab === 'portfolio' ? [] : active ? [
+      sidebar={{ tabs, tab, onTab: t => { if (t === 'consolidated') setConsFocus(null); setTab(t); }, user, onSignOut, meta: ['portfolio', 'consolidated'].includes(tab) ? [] : active ? [
         { k: 'Entity', v: activeEntity?.name || '—' }, { k: 'Fund', v: active.fund.name || '—' }, { k: 'Year End', v: fmtDate(active.fund.yearEnd) },
         { k: 'Preparer', v: personName(active.fund, 'preparer', people) || '—' }, { k: 'Reviewer', v: personName(active.fund, 'reviewer', people) || '—' },
         { k: 'Manager', v: personName(active.fund, 'manager', people) || '—' }, { k: 'Threshold', v: sym() + fmt(active.threshold) }
       ] : [] }}
       actions={<>
-        {finalSigned && tab !== 'portfolio' && <Pill bg="var(--snow-status-complete-bg)">Signed off</Pill>}
-        {review.signoff?.state === 'manager-signed' && tab !== 'portfolio' && <Pill bg="var(--snow-primary-blue)">Awaiting partner</Pill>}
+        {finalSigned && !['portfolio', 'consolidated'].includes(tab) && <Pill bg="var(--snow-status-complete-bg)">Signed off</Pill>}
+        {review.signoff?.state === 'manager-signed' && !['portfolio', 'consolidated'].includes(tab) && <Pill bg="var(--snow-primary-blue)">Awaiting partner</Pill>}
         <NotificationBell actions={notes.actions} actionCount={notes.actionCount ?? notes.actions.length} updates={notes.updates} seenAt={seenAt} onSeen={markSeen} onGo={goToNotice} />
       </>}>
 
-        {active && !['engagement', 'users', 'portfolio'].includes(tab) && <FundDashboard aiLabel={aiOn ? 'Enabled' : 'Off'} aiWhy={aiOn ? `AI assistance is enabled (${aiStatus?.model || 'Claude'}).` : !clientAllowsAi ? AI_REASON[fundAiState] : !aiStatus?.serverKey ? 'Off: no API key on the server.' : 'Off: AI is turned off under AI Settings.'} engagement={setup} entity={activeEntity} people={people} docsAttached={Object.keys(files).length} openPoints={openPoints.length} done={done}
-          locked={phase === 'running'} onChange={() => { setDraft(null); setTab('engagement'); }} />}
+        {active && !['engagement', 'users', 'portfolio', 'consolidated'].includes(tab) && <FundDashboard aiLabel={aiOn ? 'Enabled' : 'Off'} aiWhy={aiOn ? `AI assistance is enabled (${aiStatus?.model || 'Claude'}).` : !clientAllowsAi ? AI_REASON[fundAiState] : !aiStatus?.serverKey ? 'Off: no API key on the server.' : 'Off: AI is turned off under AI Settings.'} engagement={setup} entity={activeEntity} people={people} docsAttached={Object.keys(files).length} openPoints={openPoints.length} done={done}
+          locked={phase === 'running'} onChange={() => { setDraft(null); setTab('engagement'); }}
+          onConsolidated={() => openConsolidated({ engagementId: active.id, label: active.fund.name || 'This fund' })} />}
 
         <p className="assist-note">Review assistance only. It supports the reviewer's judgement; it is not an opinion and does not establish that the financial statements are complete or correct.</p>
 
-        {stale && canRun && !['engagement', 'users'].includes(tab) && (
+        {stale && canRun && !['engagement', 'users', 'consolidated'].includes(tab) && (
           <div style={{ padding: '12px var(--gutter) 0' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', background: 'var(--snow-primary-blue)', borderRadius: 8, padding: '10px 14px' }}>
               <span style={cap}>Settings changed since this analysis. Checks already reflect them; review points refresh when a document next changes.</span>
@@ -652,9 +658,12 @@ function Workspace({ user, auth, onSignOut }) {
             </div>
           </div>
         )}
-        {tab === 'portfolio' && <PortfolioTab engagements={engagements || []} user={user}
+        {tab === 'portfolio' && <PortfolioTab engagements={engagements || []} user={user} onConsolidated={client => openConsolidated(client ? { entityName: client, label: client } : null)}
           onOpen={(e, t) => { if (e.id !== activeId) activate(e.id); setDraft(null); setTab(t); }} />}
-        {tab === 'engagement' && !draft && <EngagementList rulesOf={rulesOf} engagements={engagements} activeId={activeId} mode={store?.mode} loadError={loadError} notice={notice} locked={phase === 'running'} canWrite={canWrite && canEditEng} entities={entities} people={people} onAdd={entityId => openEngagement(null, entityId)} onOpen={e => openEngagement(e)} onActivate={activate}
+        {tab === 'consolidated' && <ConsolidatedTab focus={consFocus} canRun={canRun}
+          onOpenFund={id => { if (id !== activeId) activate(id); else setTab('docs'); }}
+          onOpenPoint={(id, ref) => { if (id !== activeId) activate(id); setDraft(null); setSel(ref); setFocusPoint(ref); setTab('sched'); }} />}
+        {tab === 'engagement' && !draft && <EngagementList onConsolidated={ent => openConsolidated({ entityName: ent.name, label: ent.name })} rulesOf={rulesOf} engagements={engagements} activeId={activeId} mode={store?.mode} loadError={loadError} notice={notice} locked={phase === 'running'} canWrite={canWrite && canEditEng} entities={entities} people={people} onAdd={entityId => openEngagement(null, entityId)} onOpen={e => openEngagement(e)} onActivate={activate}
           onAddEntity={() => setEntityModal({ entity: null })} onEditEntity={ent => setEntityModal({ entity: ent })} />}
         {entityModal && <EntityModal me={user} entity={entityModal.entity} entities={entities || []} onSave={saveEntity} onClose={() => setEntityModal(null)}
           fundCount={entityModal.entity ? (engagements || []).filter(x => x.entityId === entityModal.entity.id).length : 0} />}

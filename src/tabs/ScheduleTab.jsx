@@ -13,6 +13,7 @@ import { slotDefs } from '../data/sampleFund';
 import { SLOT_RULES, ACCEPT } from '../lib/fileRules';
 import { reviewStore } from '../lib/reviewStore';
 import { saveFile } from '../lib/download';
+import Select from '../components/Select';
 
 const ST = { open: ['Open', 'var(--snow-status-approved-bg)'], responded: ['Responded', 'var(--snow-primary-blue)'], reopened: ['Reopened', 'var(--snow-status-rejected-bg)'], cleared: ['Cleared', 'var(--snow-status-complete-bg)'] };
 export const PointStatus = ({ status }) => <Pill bg={(ST[status] || ST.open)[1]}>{(ST[status] || ST.open)[0]}</Pill>;
@@ -130,7 +131,7 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
         <label style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
           <span style={muted}>Type</span>
           {canRaise && p.status !== 'cleared' && !locked
-            ? <select className="input" style={{ height: 30, width: 'auto', fontSize: 12 }} value={p.type} onChange={e => actions.meta(p, { type: e.target.value })}>{Object.entries(TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+            ? <Select className="input" style={{ height: 30, width: 'auto', fontSize: 12 }} value={p.type} onChange={e => actions.meta(p, { type: e.target.value })}>{Object.entries(TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select>
             : <b>{TYPES[p.type]}</b>}
         </label>
         <label style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
@@ -142,11 +143,11 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
         <label style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
           <span style={muted}>Assigned to</span>
           {canRaise && p.status !== 'cleared'
-            ? <select className="input" style={{ height: 30, width: 'auto', fontSize: 12 }} value={p.assignedTo?.id || ''} onChange={e => actions.assign(p, e.target.value)}>
+            ? <Select className="input" style={{ height: 30, width: 'auto', fontSize: 12 }} value={p.assignedTo?.id || ''} onChange={e => actions.assign(p, e.target.value)}>
                 <option value="">Not assigned</option>
                 {p.assignedTo && !assignable.some(x => x.id === p.assignedTo.id) && <option value={p.assignedTo.id}>{p.assignedTo.name}</option>}
                 {assignable.map(x => <option key={x.id} value={x.id}>{x.name} ({x.role})</option>)}
-              </select>
+              </Select>
             : <b>{p.assignedTo?.name || 'Not assigned'}</b>}
         </label>
       </div>
@@ -183,9 +184,9 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, padding: 12, borderRadius: 10, background: 'var(--snow-primary-light)' }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', ...cap }}>
                 <span style={{ fontWeight: 600 }}>Revised document<InfoTip label="About revised documents">A revised document becomes the next version of that document and is checked like any upload.</InfoTip></span>
-                <select className="input" aria-label="Document being revised" value={revSlot} onChange={e => { setRevSlot(e.target.value); setRevised(null); }} style={{ height: 32, width: 'auto', fontSize: 12 }}>
+                <Select className="input" aria-label="Document being revised" value={revSlot} onChange={e => { setRevSlot(e.target.value); setRevised(null); }} style={{ height: 32, width: 'auto', fontSize: 12 }}>
                   <option value="">None</option>{slotDefs.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                </select>
+                </Select>
                 {revSlot && (revised ? <span>{revised.name} <button type="button" className="link" aria-label="Remove revised file" onClick={() => setRevised(null)}>×</button></span>
                   : <FileButton label="Choose File" accept={ACCEPT[SLOT_RULES[revSlot]?.type]} onFile={f => setRevised(f)} />)}
               </div>

@@ -6,6 +6,7 @@ import { entityAi } from '../lib/aiDecision';
 import { sameRule } from '../lib/ruleTemplate';
 import { fmt, fmtDate, sym, CURRENCIES } from '../lib/format';
 import { Button, Card, CardHead, Pill, Segmented, InfoTip, cap, body, h2, muted, page, Field, LOCKED_NOTE } from '../components/ui';
+import Select from '../components/Select';
 
 const STATUS = {
   active: ['Active · pilot', 'var(--snow-status-complete-bg)'],
@@ -55,11 +56,11 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
             <CardHead title="Fund" aside={entity ? [entity.legalForm, entity.jurisdiction].filter(Boolean).join(' · ') : ''} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 16 }}>
               <Field label="Entity" hint={entity ? (entity.client ? `Client: ${entity.client}` : 'The legal entity this fund belongs to') : 'Choose the legal entity this fund belongs to'}>
-                <select className="input" value={entity ? setup.entityId : ''} onChange={e => chooseEntity(e.target.value)} aria-required="true">
+                <Select className="input" value={entity ? setup.entityId : ''} onChange={e => chooseEntity(e.target.value)} aria-required="true">
                   <option value="" disabled>Choose an entity…</option>
                   {entities.slice().sort((a, b) => a.name.localeCompare(b.name)).map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
                   {onAddEntity && <option value="__new">+ Add a new entity…</option>}
-                </select>
+                </Select>
               </Field>
               <FundAi entity={entity} setup={setup} onChange={onChange} />
               <Field label="Fund name"><input className="input" value={setup.fund.name} placeholder="Name of the fund" onChange={e => setFund({ name: e.target.value })} /></Field>
@@ -68,9 +69,9 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
               </Field>
               <FundOptions entity={entity} setup={setup} onChange={onChange} />
               <Field label="Presentation currency" tip="All amounts in this review are shown in it, and CHK-14 checks the draft against it.">
-                <select className="input" value={setup.fund.currency || 'GBP'} onChange={e => setFund({ currency: e.target.value })}>
+                <Select className="input" value={setup.fund.currency || 'GBP'} onChange={e => setFund({ currency: e.target.value })}>
                   {Object.entries(CURRENCIES).map(([c, x]) => <option key={c} value={c}>{c} · {x.name}</option>)}
-                </select>
+                </Select>
               </Field>
               {ASSIGNEES.map(a => <PersonSelect key={a.key} {...a} fund={setup.fund} people={people} onChange={patch => setFund(patch)} />)}
             </div>
@@ -215,9 +216,9 @@ function Tolerance({ r, s, setup, setRule, editable }) {
       {s.tolKind === 'abs' && <span style={cap}>{sym(setup.fund?.currency).trim()}</span>}
       <Num value={s.tol} min={0} step={s.tolKind === 'pct' ? 0.1 : 1} style={{ width: 72 }} aria-label={`${r.id} tolerance`} onChange={v => setRule(r.id, { tol: v ?? 0 })} />
       {r.id === 'CHK-10' || r.engine === 'custom-tieout'
-        ? <select className="input" style={{ width: 48, padding: '0 4px' }} value={s.tolKind} onChange={e => setRule(r.id, { tolKind: e.target.value })} aria-label="Tolerance unit">
+        ? <Select className="input" style={{ width: 48, padding: '0 4px' }} value={s.tolKind} onChange={e => setRule(r.id, { tolKind: e.target.value })} aria-label="Tolerance unit">
             <option value="abs">{sym(setup.fund?.currency).trim()}</option><option value="pct">%</option>
-          </select>
+          </Select>
         : null}
     </div>
   );
@@ -229,9 +230,9 @@ function FundOptions({ entity, setup, onChange }) {
   const sel = (key, label, onText, offText, clientOn) => (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <span style={{ ...cap, ...muted }}>{label}</span>
-      <select className="input" aria-label={label} value={setup[key] || ''} onChange={e => onChange({ ...setup, [key]: e.target.value })}>
+      <Select className="input" aria-label={label} value={setup[key] || ''} onChange={e => onChange({ ...setup, [key]: e.target.value })}>
         <option value="">Follow the client ({clientOn ? onText : offText})</option><option value="on">{onText}</option><option value="off">{offText}</option>
-      </select>
+      </Select>
     </label>);
   const umb = setup.umbrella === 'on' || (setup.umbrella !== 'off' && entity.umbrella);
   return (
@@ -282,13 +283,13 @@ function PersonSelect({ key: _k, role, label, fund, people, onChange }) {
     : none.trim();
   return (
     <Field label={label} hint={hint}>
-      <select className="input" value={value} aria-label={label}
+      <Select className="input" value={value} aria-label={label}
         onChange={e => { const p = people.find(x => x.id === e.target.value); onChange({ [`${field}Id`]: p?.id || '', [field]: p?.name || '' }); }}>
         <option value="">{options.length ? `Choose a ${role}…` : `No ${role}s available`}</option>
         {legacy && <option value="__legacy" disabled>{legacy} (typed earlier)</option>}
         {current && (!current.active || current.role !== role) && <option value={current.id}>{current.name} ({!current.active ? 'deactivated' : current.role})</option>}
         {options.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-      </select>
+      </Select>
     </Field>
   );
 }

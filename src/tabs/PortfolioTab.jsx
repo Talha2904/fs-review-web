@@ -5,6 +5,7 @@ import { fmtDate } from '../lib/format';
 import { saveFile } from '../lib/download';
 import { reviewStore } from '../lib/reviewStore';
 import { useLive } from '../lib/useLive';
+import Select from '../components/Select';
 
 // The stage a fund's review has reached, who it is waiting for, and the screen to open.
 const STAGES = [
@@ -21,7 +22,7 @@ const STAGES = [
 const STAGE = Object.fromEntries(STAGES.map(([n, bg, owner, tab, ink], i) => [n, { bg, owner, tab, ink, order: i }]));
 const ago = iso => { if (!iso) return '—'; const d = Math.floor((Date.now() - new Date(iso)) / 864e5); return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`; };
 
-export default function PortfolioTab({ engagements, user, onOpen }) {
+export default function PortfolioTab({ engagements, user, onOpen, onConsolidated }) {
   const [view, setView] = useState('all'), [stageF, setStageF] = useState(''), [clientF, setClientF] = useState(''), [q, setQ] = useState('');
   // worked out on the api (GET /api/portfolio): stages, who each fund waits for, open and overdue points
   const [data, loadError] = useLive(() => reviewStore.portfolio(), null);
@@ -56,7 +57,11 @@ export default function PortfolioTab({ engagements, user, onOpen }) {
           <div style={{ ...body, ...muted, marginTop: 6 }}>Click a fund to open it.</div>
           {loadError && <div role="alert" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 12px' }}>The portfolio could not be loaded: {loadError}</div>}
         </div>
-        <Button kind="secondary" onClick={exportX}>Export (.xlsx)</Button>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {/* opens on the client chosen in the filter below, when there is one */}
+          <Button kind="secondary" onClick={() => onConsolidated(clientF === 'No client' ? '' : clientF)}>Consolidated Review</Button>
+          <Button kind="secondary" onClick={exportX}>Export (.xlsx)</Button>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: 12 }}>
@@ -83,9 +88,9 @@ export default function PortfolioTab({ engagements, user, onOpen }) {
 
       <Card>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-          <select className="input" style={{ width: 'auto' }} aria-label="Which funds" value={view} onChange={e => setView(e.target.value)}><option value="all">All funds</option><option value="mine">My funds</option></select>
-          <select className="input" style={{ width: 'auto' }} aria-label="Stage" value={stageF} onChange={e => setStageF(e.target.value)}><option value="">All stages</option>{STAGES.map(([n]) => <option key={n} value={n}>{n}</option>)}</select>
-          <select className="input" style={{ width: 'auto' }} aria-label="Client" value={clientF} onChange={e => setClientF(e.target.value)}><option value="">All clients</option>{clients.map(c => <option key={c} value={c}>{c}</option>)}</select>
+          <Select className="input" style={{ width: 'auto' }} aria-label="Which funds" value={view} onChange={e => setView(e.target.value)}><option value="all">All funds</option><option value="mine">My funds</option></Select>
+          <Select className="input" style={{ width: 'auto' }} aria-label="Stage" value={stageF} onChange={e => setStageF(e.target.value)}><option value="">All stages</option>{STAGES.map(([n]) => <option key={n} value={n}>{n}</option>)}</Select>
+          <Select className="input" style={{ width: 'auto' }} aria-label="Client" value={clientF} onChange={e => setClientF(e.target.value)}><option value="">All clients</option>{clients.map(c => <option key={c} value={c}>{c}</option>)}</Select>
           <input className="input" style={{ width: 220, maxWidth: '100%' }} aria-label="Search funds" placeholder="Search client or fund" value={q} onChange={e => setQ(e.target.value)} />
           <span style={{ ...cap, ...muted, marginLeft: 'auto' }}>{shown.length} of {rows.length} funds</span>
         </div>

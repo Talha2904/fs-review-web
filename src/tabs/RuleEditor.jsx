@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FIGURES, formulaText } from '../data/checkLibrary';
 import { Button, Card, CardHead, Segmented, cap, body, muted, Field } from '../components/ui';
+import Select from '../components/Select';
 
 const STATUSES = [['active', 'Active · pilot'], ['draft', 'Draft / Pending'], ['proposed', 'Proposed']];
 const ENGINES = [['custom-tieout', 'Tie-out of figures'], ['custom-narrative', 'Claude narrative check'], ['none', 'Not automated']];
@@ -51,7 +52,7 @@ export default function RuleEditor({ rule, isNew, busy, error, onSave, onCancel,
         <Field label="Rule name"><input className="input" value={r.name || ''} onChange={e => set({ name: e.target.value })} placeholder="For example, Note 4 agrees to the balance sheet" /></Field>
         <Field label="Version"><input className="input" value={r.version || ''} onChange={e => set({ version: e.target.value })} placeholder="v1.0" /></Field>
         <Field label="Status">
-          <select className="input" value={r.status} onChange={e => set({ status: e.target.value })}>{STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+          <Select className="input" value={r.status} onChange={e => set({ status: e.target.value })}>{STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select>
         </Field>
       </div>
       <div style={{ marginTop: 14 }}>
@@ -70,10 +71,10 @@ export default function RuleEditor({ rule, isNew, busy, error, onSave, onCancel,
                 <span style={{ ...cap, ...muted }}>Calculation</span>
                 {terms.map((t, i) => (
                   <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <select className="input" style={{ width: 64 }} aria-label={`Sign of line ${i + 1}`} value={t.sign}
+                    <Select className="input" style={{ width: 64 }} aria-label={`Sign of line ${i + 1}`} value={t.sign}
                       onChange={e => setDef({ terms: terms.map((x, j) => (j === i ? { ...x, sign: +e.target.value } : x)) })}>
                       <option value={1}>+</option><option value={-1}>−</option>
-                    </select>
+                    </Select>
                     <FigureSelect inRow value={t.key} label={`Figure on line ${i + 1}`} onChange={key => setDef({ terms: terms.map((x, j) => (j === i ? { ...x, key } : x)) })} />
                     {terms.length > 1 && <button type="button" className="link" style={{ ...cap, ...muted }} onClick={() => setDef({ terms: terms.filter((_, j) => j !== i) })}>Remove</button>}
                   </div>
@@ -106,7 +107,7 @@ export default function RuleEditor({ rule, isNew, busy, error, onSave, onCancel,
               <span style={cap}>±</span>
               <input className="input" type="number" min={0} step={r.tolKind === 'pct' ? 0.1 : 1} style={{ width: 110 }} value={r.tol ?? ''} onChange={e => set({ tol: e.target.value === '' ? null : Number(e.target.value) })} />
               {(r.engine === 'custom-tieout' || r.id === 'CHK-10')
-                ? <select className="input" style={{ width: 96 }} aria-label="Tolerance unit" value={r.tolKind} onChange={e => set({ tolKind: e.target.value })}><option value="abs">Amount</option><option value="pct">%</option></select>
+                ? <Select className="input" style={{ width: 96 }} aria-label="Tolerance unit" value={r.tolKind} onChange={e => set({ tolKind: e.target.value })}><option value="abs">Amount</option><option value="pct">%</option></Select>
                 : <span style={cap}>Amount</span>}
             </div>
           </Field>
@@ -132,9 +133,9 @@ export default function RuleEditor({ rule, isNew, busy, error, onSave, onCancel,
 }
 
 const FigureSelect = ({ value, onChange, label, inRow }) => (
-  <select className="input" style={inRow ? { flex: '1 1 320px', maxWidth: 460 } : { width: '100%', maxWidth: 460 }} aria-label={label} value={value} onChange={e => onChange(e.target.value)}>
+  <Select className="input" style={inRow ? { flex: '1 1 320px', maxWidth: 460 } : { width: '100%', maxWidth: 460 }} aria-label={label} value={value} onChange={e => onChange(e.target.value)}>
     <option value="">Choose a figure</option>
     {FIGURES.map(f => <option key={f.key} value={f.key}>{f.list ? `${f.label} (sum)` : f.label}</option>)}
-  </select>
+  </Select>
 );
 

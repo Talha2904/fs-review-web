@@ -3,6 +3,7 @@ import { ROLES, STAFF_ROLES, EDITABLE_PERMS, DEFAULT_MATRIX, MIN_PASSWORD, norma
 import { describeMatrixChange } from '../lib/activityText';
 import { Button, Card, CardHead, Pill, InfoTip, cap, body, h2, muted, page, Field } from '../components/ui';
 import Modal from '../components/Modal';
+import Select from '../components/Select';
 
 const GRID = 'minmax(220px,1.8fr) 120px 96px 120px 316px';
 const EMPTY = { name: '', username: '', role: 'Reviewer', password: '' };
@@ -52,7 +53,7 @@ export default function UsersTab({ auth, me }) {
             <Field label="Full name"><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></Field>
             <Field label="Username"><input className="input" autoCapitalize="none" spellCheck={false} value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} /></Field>
             <Field label="Role" hint={describeRole(form.role, matrix)}>
-              <select className="input" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>{ROLES.map(r => <option key={r}>{r}</option>)}</select>
+              <Select className="input" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>{ROLES.map(r => <option key={r}>{r}</option>)}</Select>
             </Field>
             <Field label="Email" hint="For self-service password reset. Optional."><input className="input" type="email" autoComplete="off" value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} /></Field>
             <Field label="Temporary password" hint={`At least ${MIN_PASSWORD} characters.`}>
@@ -143,7 +144,7 @@ function EditUserModal({ user, self, auth, onClose, onDone, matrix }) {
           <input className="input" value={user.username} disabled readOnly />
         </Field>
         <Field label="Role" hint={self ? 'You cannot change your own role. Another Administrator can.' : describeRole(role, matrix)}>
-          <select className="input" value={role} disabled={self} onChange={e => { setRole(e.target.value); setError(''); }}>{ROLES.map(r => <option key={r}>{r}</option>)}</select>
+          <Select className="input" value={role} disabled={self} onChange={e => { setRole(e.target.value); setError(''); }}>{ROLES.map(r => <option key={r}>{r}</option>)}</Select>
         </Field>
         {error && <div role="alert" style={{ ...cap, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 12px' }}>{error}</div>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>

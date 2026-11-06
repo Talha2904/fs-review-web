@@ -7,7 +7,7 @@ import { slotDefs } from '../data/sampleFund';
 import { personName } from '../lib/people';
 
 // Summary of the engagement under review, shown at the top of every tab.
-export default function FundDashboard({ aiLabel = '', aiWhy = '', engagement, entity, people = [], docsAttached, openPoints, done, onChange, locked }) {
+export default function FundDashboard({ aiLabel = '', aiWhy = '', engagement, entity, people = [], docsAttached, openPoints, done, onChange, onConsolidated, locked }) {
   const LIBRARY = useLibrary();
   const [open, setOpen] = useState(false);
   const f = engagement.fund;
@@ -40,7 +40,10 @@ export default function FundDashboard({ aiLabel = '', aiWhy = '', engagement, en
             </div>
           ))}
         </dl>
-        <Button size="sm" kind="secondary" disabled={locked} onClick={onChange}>Change<span className="hide-sm">&nbsp;Engagement</span></Button>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {onConsolidated && <Button size="sm" kind="secondary" onClick={onConsolidated}>Consolidated<span className="hide-sm">&nbsp;Review</span></Button>}
+          <Button size="sm" kind="secondary" disabled={locked} onClick={onChange}>Change<span className="hide-sm">&nbsp;Engagement</span></Button>
+        </div>
       </section>
     </div>
   );

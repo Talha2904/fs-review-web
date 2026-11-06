@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import { useActivity } from '../lib/activity';
 import { saveFile } from '../lib/download';
 import { Button, Card, CardHead, Pill, cap, body, h2, muted, page, Field } from '../components/ui';
+import Select from '../components/Select';
 
 const CATEGORIES = ['Sign-in', 'Users', 'Check rules', 'Engagements', 'Documents', 'Analysis', 'Review points', 'Sign-off', 'AI', 'Activity log'];
 const TINT = { 'Sign-in': 'var(--snow-ink-5)', Users: 'var(--snow-primary-purple)', 'Check rules': 'var(--snow-primary-blue)', Engagements: 'var(--snow-status-complete-bg)',
@@ -102,18 +103,18 @@ export default function ActivityLogTab({ fund = null, link = null }) {
       <Card>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 12 }}>
           <Field label="Activity">
-            <select className="input" value={cat} onChange={e => setCat(e.target.value)}><option value="">All activity</option>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select>
+            <Select className="input" value={cat} onChange={e => setCat(e.target.value)}><option value="">All activity</option>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</Select>
           </Field>
           <Field label="Person">
-            <select className="input" value={who} onChange={e => setWho(e.target.value)}>
+            <Select className="input" value={who} onChange={e => setWho(e.target.value)}>
               <option value="">Everyone</option>{people.map(([u, n]) => <option key={u} value={u}>{n} ({u})</option>)}<option value="_none">Not signed in</option>
-            </select>
+            </Select>
           </Field>
           {!scoped && (
             <Field label="Fund">
-              <select className="input" value={fundFilter} onChange={e => setFundFilter(e.target.value)}>
+              <Select className="input" value={fundFilter} onChange={e => setFundFilter(e.target.value)}>
                 <option value="">All funds</option>{funds.map(([id, n]) => <option key={id} value={id}>{n}</option>)}<option value="_none">Not about a fund</option>
-              </select>
+              </Select>
             </Field>
           )}
           <Field label="Search"><input className="input" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Fund, rule, review point…" /></Field>

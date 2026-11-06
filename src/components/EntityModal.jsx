@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import { Button, cap, muted, Field } from './ui';
 import { ENTITY_FIELDS } from '../lib/engagements';
+import Select from './Select';
 
 const LEGAL_FORMS = ['ICAV', 'SICAV', 'Unit trust', 'Investment company', 'Limited partnership', 'Common contractual fund', 'Private limited company', 'Public limited company', 'LLC', 'Other'];
 const JURISDICTIONS = ['Ireland', 'Luxembourg', 'United Kingdom', 'Cayman Islands', 'Jersey', 'Guernsey', 'United States', 'Pakistan', 'United Arab Emirates', 'Singapore'];
@@ -44,9 +45,9 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 14 }}>
           <Field label="Client name" hint="The firm you report to, if different"><input className="input" value={e.client} onChange={set('client')} placeholder="For example, Meridian Asset Management" /></Field>
           <Field label="Legal form">
-            <select className="input" value={e.legalForm} onChange={set('legalForm')}>
+            <Select className="input" value={e.legalForm} onChange={set('legalForm')}>
               <option value="">Choose…</option>{LEGAL_FORMS.map(f => <option key={f}>{f}</option>)}
-            </select>
+            </Select>
           </Field>
           <Field label="Jurisdiction">
             <input className="input" list="jurisdictions" value={e.jurisdiction} onChange={set('jurisdiction')} placeholder="For example, Ireland" />
@@ -66,38 +67,38 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
           <legend style={{ ...cap, fontWeight: 600, padding: 0, float: 'left', marginBottom: 6 }}>Review settings for this client</legend>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4, clear: 'both' }}>
             <span style={{ ...cap, ...muted }}>Accounting framework</span>
-            <select className="input" aria-label="Accounting framework" value={e.framework || ''} onChange={ev => setE(x => ({ ...x, framework: ev.target.value }))}>
+            <Select className="input" aria-label="Accounting framework" value={e.framework || ''} onChange={ev => setE(x => ({ ...x, framework: ev.target.value }))}>
               <option value="">Not set</option><option value="FRS 102">FRS 102</option><option value="IFRS">IFRS</option><option value="US GAAP">US GAAP</option><option value="Other">Other</option>
-            </select>
+            </Select>
             <span style={{ ...cap, ...muted }}>Sets the disclosure checklist (CHK-13) and the standards the AI review applies.</span>
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ ...cap, ...muted }}>Entity type</span>
-            <select className="input" aria-label="Entity type" value={e.entityType || ''} onChange={set('entityType')}>
+            <Select className="input" aria-label="Entity type" value={e.entityType || ''} onChange={set('entityType')}>
               <option value="">Open-ended fund (default)</option>{ENTITY_TYPES.slice(1).map(t => <option key={t}>{t}</option>)}
-            </select>
+            </Select>
             <span style={{ ...cap, ...muted }}>Tells the review what kind of entity it is reading.</span>
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ ...cap, ...muted }}>Disclosure checklist (CHK-13)</span>
-            <select className="input" aria-label="Disclosure checklist setting for this client" value={e.ruleOverrides?.['CHK-13'] ? (e.ruleOverrides['CHK-13'].on ? 'on' : 'off') : ''}
+            <Select className="input" aria-label="Disclosure checklist setting for this client" value={e.ruleOverrides?.['CHK-13'] ? (e.ruleOverrides['CHK-13'].on ? 'on' : 'off') : ''}
               onChange={ev => setE(x => { const o = { ...(x.ruleOverrides || {}) }; if (ev.target.value) o['CHK-13'] = { on: ev.target.value === 'on' }; else delete o['CHK-13']; return { ...x, ruleOverrides: o }; })}>
               <option value="">Follow the firm’s template</option><option value="on">Always on for this client</option><option value="off">Always off for this client</option>
-            </select>
+            </Select>
             <span style={{ ...cap, ...muted }}>A fund can override this.</span>
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ ...cap, ...muted }}>Partner sign-off</span>
-            <select className="input" aria-label="Partner sign-off for this client" value={e.partnerSignoff ? 'on' : ''} onChange={ev => setE(x => ({ ...x, partnerSignoff: ev.target.value === 'on' }))}>
+            <Select className="input" aria-label="Partner sign-off for this client" value={e.partnerSignoff ? 'on' : ''} onChange={ev => setE(x => ({ ...x, partnerSignoff: ev.target.value === 'on' }))}>
               <option value="">Not required: the Manager signs off last</option><option value="on">Required after the Manager’s sign-off</option>
-            </select>
+            </Select>
             <span style={{ ...cap, ...muted }}>A fund can override this.</span>
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ ...cap, ...muted }}>Financial statements</span>
-            <select className="input" aria-label="How the client's financial statements are prepared" value={e.umbrella ? 'on' : ''} onChange={ev => setE(x => ({ ...x, umbrella: ev.target.value === 'on' }))}>
+            <Select className="input" aria-label="How the client's financial statements are prepared" value={e.umbrella ? 'on' : ''} onChange={ev => setE(x => ({ ...x, umbrella: ev.target.value === 'on' }))}>
               <option value="">Separate accounts for each fund</option><option value="on">Umbrella accounts covering all its funds</option>
-            </select>
+            </Select>
             <span style={{ ...cap, ...muted }}>Umbrella: each fund is read from its own column or section.</span>
           </label>
         </fieldset>

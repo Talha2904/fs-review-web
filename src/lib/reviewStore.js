@@ -87,7 +87,7 @@ function connect() {
           server.set(e.engagementId, { ...snap, analysisJob: { ...(snap.analysisJob?.id === e.data.jobId ? snap.analysisJob : { id: e.data.jobId }), status: e.data.status, step: e.data.step, total: e.data.total } });
           emit(e.engagementId);
         } else if (e.engagementId && listeners.has(e.engagementId)) load(e.engagementId);
-        else if (allListeners.size) loadAll();
+        else if (allListeners.size && e.topic !== 'consolidated_reviews') loadAll(); // a consolidated review changes no fund
       } catch { /* ignore */ }
     });
     stream.onerror = () => { /* the browser reconnects on its own; the timer keeps us fresh meanwhile */ };
@@ -113,6 +113,10 @@ export const reviewStore = {
   // Worked out on the api: every fund's stage and who it waits for, and this person's bell.
   portfolio: () => call('/api/portfolio'),
   notifications: () => call('/api/notifications'),
+  // The Consolidated Review: groups of related funds, one group's latest review, and starting one (in the background)
+  consolidatedGroups: () => call('/api/consolidated'),
+  consolidatedReview: (groupKey, yearEnd) => call(`/api/consolidated/review?groupKey=${encodeURIComponent(groupKey)}&yearEnd=${encodeURIComponent(yearEnd)}`),
+  startConsolidated: (groupKey, yearEnd) => call('/api/consolidated/runs', 'POST', { groupKey, yearEnd }),
   subscribeAll(cb) { allListeners.add(cb); cb(snapshotAll()); connect(); if (!allLoaded) loadAll(); return () => allListeners.delete(cb); },
   fileOf: versionId => fileBlobs.get(versionId) || null,
 
