@@ -17,7 +17,7 @@ export default function AdminConsole({ user, auth, onSignOut }) {
   const tabs = [{ id: 'users', label: 'Users and Roles', count: '' }, { id: 'rules', label: 'Check Rules', count: '' }, { id: 'checklists', label: 'Disclosure Checklists', count: '' }, { id: 'ai', label: 'AI Settings', count: '' }, { id: 'activity', label: 'Activity Log', count: '' }];
 
   return (
-    <AppShell root="Administration" crumb={CRUMB[tab]} sidebar={{ tabs, tab, onTab: setTab, user, onSignOut, meta: [], navTitle: 'Administration', subtitle: 'Administration' }}>
+    <AppShell root="Administration" crumb={CRUMB[tab]} sidebar={{ tabs, tab, onTab: setTab, user, onSignOut, meta: [], navTitle: 'Administration' }}>
         {tab === 'users' && <UsersTab auth={auth} me={user} />}
         {tab === 'rules' && <CheckRulesTab store={store} />}
         {tab === 'checklists' && <ChecklistsTab store={store} />}

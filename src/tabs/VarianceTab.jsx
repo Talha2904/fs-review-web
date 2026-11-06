@@ -17,9 +17,29 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
   );
   const flagged = model.rows.filter(r => r.band !== 'Expected');
   const investigate = model.rows.filter(r => r.band === 'Investigate');
-  const biggest = model.rows.filter(r => !r.sub).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0];
-  const directors = investigate.slice().sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+  const byDelta = (a, b) => Math.abs(b.delta) - Math.abs(a.delta);
+  const directors = investigate.slice().sort(byDelta);
+  // The largest movement the analysis flagged: the first matter for the Directors, else the largest line
+  // outside expectation. Lines within expectation (such as average net assets in a highlights note) are not
+  // movements to report, so the tile always names a line listed on this page.
+  const biggest = directors[0] || flagged.filter(r => !r.sub).sort(byDelta)[0];
   const groups = model.groups.filter(g => filter === 'all' || g.rows.some(r => r.band !== 'Expected'));
+
+  // The tiles and the matters take the reader to the lines they are about. A line's row is found by its label;
+  // it is briefly highlighted so the eye lands on it.
+  const rowId = label => 'var-' + label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  // after React has drawn any filter change (a timer, not an animation frame, so it also runs in a background tab)
+  const goTo = (id, flash = false) => setTimeout(() => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const block = flash ? 'center' : 'start';
+    el.scrollIntoView({ behavior: 'smooth', block });
+    // where smooth scrolling is unavailable or was interrupted, land on the line anyway
+    setTimeout(() => { const r = el.getBoundingClientRect(); if (r.top < 0 || r.top > window.innerHeight - 40) el.scrollIntoView({ block }); }, 900);
+    if (flash) { el.classList.remove('is-flash'); void el.offsetWidth; el.classList.add('is-flash'); setTimeout(() => el.classList.remove('is-flash'), 2000); }
+  }, 50);
+  const showLines = f => { setFilter(f); goTo('var-lines'); };
+  const showLine = r => { if (filter !== 'all' && r.band === 'Expected') setFilter('all'); goTo(rowId(r.label), true); };
 
   return (
     <div style={page}>
@@ -32,13 +52,18 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
-        <Tile flex="1 1 200px" bg="var(--snow-primary-blue)" label="Lines Compared" value={model.rows.length} sub="prior year to draft" />
-        <Tile flex="1 1 200px" bg="var(--snow-primary-purple)" label="Outside Expectation" value={flagged.length} sub="flagged by the analysis" />
-        <Tile flex="1 1 200px" bg="var(--snow-status-rejected-bg)" label="For Investigation" value={investigate.length} sub="director attention" />
-        <Tile flex="1 1 200px" bg="var(--snow-primary-light)" label="Largest Movement" value={biggest ? pctLabel(biggest.pct) : '—'} sub={biggest?.label} />
+        <Tile flex="1 1 200px" bg="var(--snow-primary-blue)" label="Lines Compared" value={model.rows.length} sub="prior year to draft"
+          onClick={model.rows.length ? () => showLines('all') : undefined} title="Show every line compared" />
+        <Tile flex="1 1 200px" bg="var(--snow-primary-purple)" label="Outside Expectation" value={flagged.length} sub="flagged by the analysis"
+          onClick={flagged.length ? () => showLines('flagged') : undefined} title="Show only the lines outside expectation" />
+        <Tile flex="1 1 200px" bg="var(--snow-status-rejected-bg)" label="For Investigation" value={investigate.length} sub="director attention"
+          onClick={directors.length ? () => goTo('var-matters') : undefined} title="Go to the matters for the Directors" />
+        <Tile flex="1 1 200px" bg="var(--snow-primary-light)" label="Largest Movement" value={biggest ? (biggest.pct != null ? pctLabel(biggest.pct) : signedGbp(biggest.delta)) : '—'}
+          sub={biggest ? (biggest.pct != null ? `${biggest.label} · ${signedGbp(biggest.delta)}` : biggest.label) : 'no lines outside expectation'}
+          onClick={biggest ? () => showLine(biggest) : undefined} title={biggest ? `Go to ${biggest.label}` : undefined} />
       </div>
 
-      <Card>
+      <div id="var-matters" className="var-anchor"><Card>
         <CardHead title="Matters for the Directors" aside={`${directors.length} matter${directors.length === 1 ? '' : 's'} for the Board`} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
           {directors.map(d => (
@@ -49,11 +74,18 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
               </div>
               <div style={{ ...cap, marginTop: 6, maxWidth: 900 }}>{d.note}</div>
               <div style={{ ...cap, marginTop: 6, maxWidth: 900 }}><span style={muted}>Suggested work — </span>{d.action}</div>
+              <button type="button" className="link" style={{ ...cap, marginTop: 8 }} onClick={() => showLine(d)}>Show the line ↓</button>
             </div>
           ))}
         </div>
-      </Card>
+      </Card></div>
 
+      <div id="var-lines" className="var-anchor" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* what the table below shows, so a tile that changed the filter is visibly different where it lands */}
+      <div role="status" style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={body}>{filter === 'all' ? <>Showing <b>all {model.rows.length} lines</b> compared</> : <>Showing the <b>{flagged.length} lines outside expectation</b> · {model.rows.length - flagged.length} lines within expectation are hidden</>}</div>
+        <Segmented options={[['all', 'All Lines'], ['flagged', 'Outside Expectation']]} value={filter} onChange={setFilter} />
+      </div>
       {groups.map(g => (
         <Card key={g.title}>
           <CardHead title={g.title} aside={filter === 'all' ? `${g.rows.length} lines` : `${g.rows.filter(r => r.band !== 'Expected').length} of ${g.rows.length} lines`} />
@@ -66,7 +98,7 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
               const num = { ...body, fontWeight: r.sub ? 600 : 400 };
               const dl = { ...body, fontWeight: r.band === 'Investigate' ? 600 : 400 };
               return (
-                <div key={r.label} className={'var-row is-' + r.band.toLowerCase()}>
+                <div key={r.label} id={rowId(r.label)} className={'var-row is-' + r.band.toLowerCase()}>
                   <div className="dt-row" style={{ alignItems: 'baseline', boxShadow: 'none' }}>
                     <div className="dt-main">
                       <div style={{ ...body, fontWeight: r.sub ? 600 : 400 }}>{r.label}</div>
@@ -91,6 +123,7 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
           </div>
         </Card>
       ))}
+      </div>
 
       <div style={{ ...cap, ...muted, maxWidth: 900 }}>
         {investigate.length} of {model.rows.length} lines require investigation · threshold {sym()}{fmt(threshold)} · net assets {pctLabel(growth * 100)}{avgGrowth != null ? ` · average net assets ${pctLabel(avgGrowth * 100)}` : ''}

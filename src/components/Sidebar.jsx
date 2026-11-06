@@ -1,4 +1,5 @@
 import React from 'react';
+import { BRAND } from '../lib/brand';
 
 // The review steps take the colours of the login page's review cycle, so the workspace continues it.
 export const STEP_COLOR = { docs: '#E9B949', analysis: '#8DBB3A', var: '#3FB8C9', sched: '#4F86D3', vers: '#3FB8C9', disc: '#8DBB3A', signoff: '#A9B6C8' };
@@ -6,7 +7,7 @@ export const STEP_COLOR = { docs: '#E9B949', analysis: '#8DBB3A', var: '#3FB8C9'
 // Fixed to the window height. The header and the signed-in user are pinned; the navigation and
 // fund details sit between them and scroll only if a window is too short to show everything.
 // Tabs marked `step` are drawn as the review rail: a connected sequence, hollow while locked.
-export default function Sidebar({ tabs, tab, onTab, meta, user, onSignOut, navTitle = 'Review', subtitle = 'Fund reporting', open = false }) {
+export default function Sidebar({ tabs, tab, onTab, meta, user, onSignOut, navTitle = 'Review', subtitle = BRAND.by, open = false }) {
   const wide = new Set(['Entity', 'Fund', 'Engagement', 'Year End', 'Preparer', 'Reviewer', 'Manager']); // values that need the full width
   const item = (t, i, list) => {
     if (t.section) return <div key={t.id} className="side-section">{t.section}</div>;
@@ -26,7 +27,7 @@ export default function Sidebar({ tabs, tab, onTab, meta, user, onSignOut, navTi
       <div className="side-brand">
         <img src="/pa-mark.png" alt="Project Accountants" width="30" height="30" />
         <div>
-          <div className="side-brand-name">FS Review</div>
+          <div className="side-brand-name">{BRAND.word}<span className="brand-iq">{BRAND.mark}</span></div>
           <div className="side-brand-sub">{subtitle}</div>
         </div>
       </div>

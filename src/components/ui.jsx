@@ -41,15 +41,20 @@ export const FileButton = ({ label, onFile, accept = '.pdf,.xlsx,.xls,.csv,.png,
   </label>
 );
 
-export const Tile = ({ bg, label, value, sub, flex = '1 1 140px' }) => (
-  <div className="tile" style={{ flex, minWidth: 140, background: bg, padding: 'var(--card-pad)' }}>
+// A figure tile. With `onClick` it is a button that takes the reader to what it counts; `title` says where.
+export const Tile = ({ bg, label, value, sub, flex = '1 1 140px', onClick, title }) => {
+  const inner = <>
     <div style={{ ...body, fontWeight: 600 }}>{label}</div>
     <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginTop: 12, flexWrap: 'wrap' }}>
       <span className="tile-value" style={h2}><CountUp value={value} /></span>
       {sub && <span style={{ ...cap, ...muted }}>{sub}</span>}
     </div>
-  </div>
-);
+  </>;
+  const style = { flex, minWidth: 140, background: bg, padding: 'var(--card-pad)' };
+  return onClick
+    ? <button type="button" className="tile is-link" title={title} onClick={onClick} style={{ ...style, border: 0, font: 'inherit', color: 'inherit', textAlign: 'left' }}>{inner}</button>
+    : <div className="tile" style={style}>{inner}</div>;
+};
 
 export const Segmented = ({ options, value, onChange, children }) => (
   <div className="segmented" style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', borderRadius: 12, padding: 4 }}>

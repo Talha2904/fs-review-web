@@ -42,7 +42,7 @@ export async function connectAuth() {
   let r;
   try { r = await fetch('/api/auth/status', { credentials: 'same-origin' }); } catch { r = null; }
   const j = r && r.ok ? await r.json().catch(() => null) : null;
-  if (!j || typeof j.setupRequired !== 'boolean') throw new Error('The FS Review server cannot be reached. Check your connection, or ask an Administrator whether the server is running.');
+  if (!j || typeof j.setupRequired !== 'boolean') throw new Error('The StatementIQ server cannot be reached. Check your connection, or ask an Administrator whether the server is running.');
   serverAuth.resetAvailable = !!j.resetAvailable;
   return serverAuth;
 }

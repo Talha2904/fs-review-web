@@ -24,9 +24,16 @@ const KIND = { raise: 'Raised', assign: 'Assigned', comment: 'Comment', response
 const when = iso => iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
 const initials = n => String(n || 'App').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
-export default function ScheduleTab({ points, messages, user, people, sel, setSel, actions, waitingForMe, canRaise, canRespond, locked = false, threshold, version }) {
+export default function ScheduleTab({ points, messages, user, people, sel, setSel, focus = null, onFocused, actions, waitingForMe, canRaise, canRespond, locked = false, threshold, version }) {
   const mine = points.filter(waitingForMe);
-  const [view, setView] = useState(mine.length ? 'mine' : 'all');
+  // Opened on a particular point (`focus`, from a flagged line or the activity log): start on a view that
+  // lists it and bring it into view.
+  const [view, setView] = useState(() => (mine.length && (!focus || mine.some(p => p.ref === focus)) ? 'mine' : 'all'));
+  useEffect(() => {
+    if (!focus) return;
+    requestAnimationFrame(() => document.querySelector('.point-row[aria-current="true"]')?.scrollIntoView({ block: 'nearest' }));
+    onFocused?.();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [copied, setCopied] = useState(false);
   const rows = points.filter(p => view === 'all' ? true : view === 'mine' ? waitingForMe(p) : view === 'overdue' ? isOverdue(p) : view === 'preparer' ? ['open', 'reopened'].includes(p.status) : p.status === view);
   const overdueCount = points.filter(isOverdue).length;
@@ -153,7 +160,7 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
             <div aria-hidden="true" className="msg-avatar" style={{
               background: m.kind === 'note' ? 'var(--snow-ink-5)' : m.author?.role === 'Preparer' ? 'var(--snow-status-approved-bg)' : 'var(--snow-primary-purple)' }}>{m.kind === 'note' ? <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M3 8.5 L6.5 12 L13 4.5" /></svg> : initials(m.author?.name)}</div>
             <div className="msg-body">
-              <div style={{ ...cap }}><b>{m.author?.name || 'FS Review'}</b>{m.author && <span style={muted}> · {m.author.role}</span>} <span style={muted}>· {when(m.at)}</span> <Pill bg={m.kind === 'reopen' ? 'var(--snow-status-rejected-bg)' : m.kind === 'clear' ? 'var(--snow-status-complete-bg)' : m.kind === 'response' ? 'var(--snow-primary-blue)' : 'var(--snow-ink-5)'}>{KIND[m.kind]}</Pill></div>
+              <div style={{ ...cap }}><b>{m.author?.name || 'StatementIQ'}</b>{m.author && <span style={muted}> · {m.author.role}</span>} <span style={muted}>· {when(m.at)}</span> <Pill bg={m.kind === 'reopen' ? 'var(--snow-status-rejected-bg)' : m.kind === 'clear' ? 'var(--snow-status-complete-bg)' : m.kind === 'response' ? 'var(--snow-primary-blue)' : 'var(--snow-ink-5)'}>{KIND[m.kind]}</Pill></div>
               {m.text && <div style={{ ...body, marginTop: 4, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{m.text}</div>}
               {(m.attachments || []).length > 0 && (
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>

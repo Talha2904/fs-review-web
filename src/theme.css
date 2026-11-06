@@ -59,6 +59,10 @@
 .side-brand { display: flex; gap: 10px; align-items: center; padding: 0 6px; flex: 0 0 auto; }
 .side-brand img { border-radius: 8px; background: #fff; padding: 3px; }
 .side-brand-name { font-size: 15px; line-height: 20px; font-weight: 600; letter-spacing: -0.01em; }
+/* The "IQ" of StatementIQ: the brand blues and greens moving through the letters, as on the sign-in page */
+.brand-iq { background-image: linear-gradient(90deg, #73CEEA, #A9CF37, #6D9FD5, #73CEEA); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: brand-iq-shift 6s linear infinite; }
+@keyframes brand-iq-shift { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+@media (prefers-reduced-motion: reduce) { .brand-iq { animation: none; } }
 .side-brand-sub { font-size: 12px; line-height: 16px; color: rgba(255,255,255,0.56); }
 .side-nav { display: flex; flex-direction: column; gap: 2px; }
 .side-section { padding: 6px 10px; font-size: 12px; line-height: 16px; color: rgba(255,255,255,0.5); }
@@ -286,6 +290,17 @@
 .chk-chip[aria-pressed="true"] { background: var(--c); color: #fff; box-shadow: 0 4px 10px color-mix(in srgb, var(--c) 30%, transparent); }
 .chk-chip[aria-pressed="true"] span { background: rgba(255,255,255,0.25); }
 .chk-chip:focus-visible { outline: 2px solid var(--pa-blue); outline-offset: 2px; }
+/* An activity log entry that opens what it is about (a review point, or the screen it happened on) */
+.log-row.is-link { cursor: pointer; border-radius: 6px; transition: background var(--ease); }
+.log-row.is-link:hover { background: var(--snow-primary-light, #F3F6FA); }
+.log-row.is-link:focus-visible { outline: 2px solid var(--pa-blue); outline-offset: -2px; }
+.log-open { margin-left: 10px; font-size: 12px; white-space: nowrap; color: var(--pa-blue); opacity: 0; transition: opacity var(--ease); }
+.log-row.is-link:hover .log-open, .log-row.is-link:focus-visible .log-open { opacity: 1; }
+@media (hover: none) { .log-open { opacity: 1; } }
+/* The RP-xx chip on a flagged line of a document: opens that review point */
+.flag-chip { display: inline-flex; align-items: center; padding: 1px 10px; border: 0; border-radius: 18px; font: inherit; font-size: 12px; line-height: 18px; color: var(--ink); background: #fff; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); cursor: pointer; transition: box-shadow var(--ease), color var(--ease); }
+.flag-chip:hover { box-shadow: inset 0 0 0 1px var(--pa-blue); color: var(--pa-blue); }
+.flag-chip:focus-visible { outline: 2px solid var(--pa-blue); outline-offset: 2px; }
 .chk-row.is-difference { background: linear-gradient(90deg, rgba(200,55,75,0.06), transparent 40%); box-shadow: inset 3px 0 0 var(--pa-red), inset 0 -1px 0 rgba(0,0,0,0.05) !important; }
 .res-dot { width: 6px; height: 6px; border-radius: 50%; background: #9AA6B6; }
 .chk-row.is-agrees .res-dot { background: var(--pa-green); }
@@ -359,35 +374,19 @@
 @media (max-width: 520px) { .seal { flex-direction: column; align-items: flex-start; } }
 @media (prefers-reduced-motion: reduce) { .stamp.is-on, .seal.is-ready .stamp { animation: none; } .stamp-tick { animation: none; stroke-dashoffset: 0; } .stamp-arc { transition: none; } }
 
-/* ---- Sign-in, setup, password reset, loading and server-down screens ------------------------------
-   The brand panel and its review cycle keep their look; the form side and the start-up screens take the
-   signed-in theme: IBM Plex, ledger ink, PA blue actions, the brand ring, the same messages. */
-.login, .app-state { font-family: 'IBM Plex Sans', Inter, system-ui, sans-serif; }
-.login-form, .app-state {
+/* ---- Loading and server-down screens ------------------------------------------------------------------
+   They take the signed-in theme: IBM Plex, ledger ink, PA blue actions, the brand ring. (Sign-in: login.css.) */
+.app-state { font-family: 'IBM Plex Sans', Inter, system-ui, sans-serif;
   --ink: #14213D; --canvas: #F2F5F9; --line: rgba(20,33,61,0.10); --line-strong: rgba(20,33,61,0.16); --pa-blue: #3E7CC4; --pa-red: #C8374B;
   --snow-black-100: #14213D; --snow-black-80: rgba(20,33,61,0.82); --snow-black-40: rgba(20,33,61,0.68); --snow-black-20: rgba(20,33,61,0.40); --snow-ink-5: rgba(20,33,61,0.06);
   --snow-status-complete-bg: #E6F2DB; --snow-status-approved-bg: #FCF1D4; --snow-status-rejected-bg: #FBE4E7;
   --ease: 160ms cubic-bezier(0.2,0.7,0.2,1); color: var(--ink);
 }
-.login-form { position: relative; overflow: hidden; background: var(--canvas); }
-.login-ring { position: absolute; right: -140px; top: -140px; width: 420px; height: 420px; border-radius: 50%; pointer-events: none; opacity: 0.28;
-  background: conic-gradient(from 210deg, #E9B949, #8DBB3A, #3FB8C9, #4F86D3, #E9B949); -webkit-mask: radial-gradient(circle, transparent 60%, #000 61%); mask: radial-gradient(circle, transparent 60%, #000 61%);
-  animation: spin 40s linear infinite; }
-.login-card { position: relative; z-index: 1; overflow: hidden; border-radius: 16px; box-shadow: 0 0 0 1px var(--line), 0 16px 40px rgba(20,33,61,0.12); animation: pop-in 260ms cubic-bezier(0.2,0.7,0.2,1); }
-/* the four review colours across the top of the card, as in the sidebar's rail */
-.login-card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, #E9B949 0 25%, #8DBB3A 25% 50%, #3FB8C9 50% 75%, #4F86D3 75%); }
-.login-h1 { color: var(--ink); letter-spacing: -0.015em; }
-.login-form .input { box-shadow: inset 0 0 0 1px var(--line-strong); transition: box-shadow var(--ease); }
-.login-form .input:hover { box-shadow: inset 0 0 0 1px rgba(20,33,61,0.32); }
-.login-form .input:focus, .login-form .input:focus-visible { outline: none; box-shadow: inset 0 0 0 1.5px var(--pa-blue), 0 0 0 4px rgba(62,124,196,0.16); }
-.login-form .btn, .app-state .btn { position: relative; overflow: hidden; font-weight: 500; gap: 8px; transition: background var(--ease), box-shadow var(--ease), transform 90ms ease; }
-.login-form .btn-primary, .app-state .btn-primary { background: #2F6DB5; color: #fff; box-shadow: 0 1px 2px rgba(20,33,61,0.2), 0 4px 12px rgba(47,109,181,0.28); }
-.login-form .btn-primary:hover:not(:disabled), .app-state .btn-primary:hover:not(:disabled) { background: #275EA0; box-shadow: 0 2px 4px rgba(20,33,61,0.2), 0 8px 20px rgba(47,109,181,0.36); transform: translateY(-1px); }
-.login-form .btn:active:not(:disabled), .app-state .btn:active:not(:disabled) { transform: scale(0.98); }
-.login-form :is(.btn, .link, .pw-toggle):focus-visible, .app-state .btn:focus-visible { outline: 2px solid var(--pa-blue); outline-offset: 2px; }
-.login-form .link { color: #2D639F; }
-.login-form .link:hover { color: var(--ink); }
-.login-form .pw-toggle { color: #2D639F; font-weight: 500; }
+.app-state .btn { position: relative; overflow: hidden; font-weight: 500; gap: 8px; transition: background var(--ease), box-shadow var(--ease), transform 90ms ease; }
+.app-state .btn-primary { background: #2F6DB5; color: #fff; box-shadow: 0 1px 2px rgba(20,33,61,0.2), 0 4px 12px rgba(47,109,181,0.28); }
+.app-state .btn-primary:hover:not(:disabled) { background: #275EA0; box-shadow: 0 2px 4px rgba(20,33,61,0.2), 0 8px 20px rgba(47,109,181,0.36); transform: translateY(-1px); }
+.app-state .btn:active:not(:disabled) { transform: scale(0.98); }
+.app-state .btn:focus-visible { outline: 2px solid var(--pa-blue); outline-offset: 2px; }
 .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; animation: spin 700ms linear infinite; }
 
 /* Loading and server-down */
@@ -404,43 +403,8 @@
 .app-state-card p { margin: 8px 0 20px; font-size: 14px; line-height: 21px; color: var(--snow-black-80); }
 .app-state-card .btn { height: 40px; padding: 0 20px; }
 @media (prefers-reduced-motion: reduce) {
-  .login-ring, .app-loader-ring, .spin, .login-card { animation: none; }
-  .login-form .btn-primary:hover:not(:disabled), .app-state .btn-primary:hover:not(:disabled), .login-form .btn:active:not(:disabled) { transform: none; }
-}
-@media (max-width: 900px) { .login-ring { width: 260px; height: 260px; right: -130px; top: auto; bottom: -130px; opacity: 0.22; } }
-
-/* ---- Sign-in brand panel in ledger ink, like the sidebar ------------------------------------------
-   Same layout and review cycle; the colours flip to light-on-ink so the sign-in page and the app read
-   as one product (dark panel on the left, light working area on the right). */
-.login-brand { position: relative; overflow: hidden; background: #14213D; color: #fff;
-  background-image: radial-gradient(70% 50% at 20% 0%, rgba(79,134,211,0.22), transparent 70%), radial-gradient(60% 45% at 90% 100%, rgba(141,187,58,0.12), transparent 70%); }
-.login-brand > * { position: relative; }
-.login-title { color: #fff; }
-.login-title img { background: #fff; border-radius: 10px; padding: 4px; }
-.login-lede { color: rgba(255,255,255,0.74); }
-.cycle-node { fill: #14213D; }
-.cycle-center-title { color: #fff; }
-.cycle-center-text { color: rgba(255,255,255,0.68); }
-.cycle-label { color: #fff; }
-.cycle-label:hover, .cycle-label[aria-pressed="true"] { background: rgba(255,255,255,0.08); }
-.cycle-label:focus-visible { outline-color: #8DB8EA; }
-.login-brand .by-ai { background: rgba(79,134,211,0.2); color: #CFE0F7; }
-.login-brand .by-code { background: rgba(141,187,58,0.2); color: #D3EAB0; }
-.login-brand .by-reviewer { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.82); }
-.login-brand .ai-mark { box-shadow: 0 0 0 1px rgba(20,33,61,0.6); }
-.login-roles dt { color: #fff; }
-.login-roles dd { color: rgba(255,255,255,0.6); }
-/* the full logo has dark lettering, so it sits on a white plate */
-.login-logo { background: #fff; border-radius: 10px; padding: 8px 12px; box-sizing: content-box; width: 160px; }
-
-/* Phones and small tablets: one ink screen with the sign-in card on it, instead of a thin dark strip over grey */
-@media (max-width: 900px) {
-  .login { background: #14213D radial-gradient(90% 40% at 10% 0%, rgba(79,134,211,0.28), transparent 70%); }
-  .login-brand { background: transparent; padding: 28px 20px 4px; gap: 10px; }
-  .login-form { background: transparent; padding: 16px 16px 32px; }
-  .login-ring { display: none; }
-  .login-card { margin: 0 auto; box-shadow: 0 24px 56px rgba(0,0,0,0.38); }
-  .login-lede { color: rgba(255,255,255,0.7); }
+  .app-loader-ring, .spin { animation: none; }
+  .app-state .btn-primary:hover:not(:disabled), .app-state .btn:active:not(:disabled) { transform: none; }
 }
 
 /* ---- Phones and touch screens -----------------------------------------------------------------------
@@ -482,13 +446,17 @@
   .shell .segmented { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
 }
 
-/* Phone sign-in: the brand and the card sit together in the middle of the screen */
-@media (max-width: 900px) {
-  .login { justify-content: center; align-items: center; padding: 24px 0; }
-  .login-brand { width: 100%; max-width: 472px; align-items: center; text-align: center; padding: 0 16px 4px; }
-  .login-title { justify-content: center; }
-  .login-lede { max-width: 36ch; margin: 0 auto; }
-  .login-form { flex: 0 0 auto !important; width: 100%; max-width: 472px; align-items: center; justify-content: center; padding: 18px 16px 0; }
-}
 @media (min-width: 640px) and (max-width: 1099px) { .fund-band .fd-facts { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 520px) { .seal { flex-direction: row; align-items: flex-start; } .stamp, .stamp svg { width: 56px; height: 56px; } .stamp-n { font-size: 16px; } }
+
+/* Variance Analysis: tiles and matters that take the reader to their lines */
+.shell .tile.is-link { cursor: pointer; transition: box-shadow var(--ease), transform var(--ease); }
+.shell .tile.is-link:hover { box-shadow: inset 0 0 0 1px rgba(20,33,61,0.05), 0 0 0 1px var(--pa-blue), 0 6px 16px rgba(20,33,61,0.08); transform: translateY(-1px); }
+.shell .tile.is-link:focus-visible { outline: 2px solid var(--pa-blue); outline-offset: 2px; }
+.var-anchor, .var-row { scroll-margin-top: 76px; }
+.var-row.is-flash { animation: var-flash 1.8s ease-out; border-radius: 8px; }
+@keyframes var-flash { 0%, 35% { box-shadow: 0 0 0 2px var(--pa-blue); background: rgba(62,124,196,0.10); } 100% { box-shadow: 0 0 0 2px transparent; background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .shell .tile.is-link:hover { transform: none; } .var-row.is-flash { animation-duration: 0.01s; } }
+/* a flag whose review point no longer exists: shown, not a link */
+.flag-chip.is-static { cursor: default; color: var(--snow-black-40); }
+.flag-chip.is-static:hover { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); color: var(--snow-black-40); }

@@ -50,7 +50,7 @@ export default function FinanceConsole({ user, auth, onSignOut }) {
 
   return (
     <AppShell root="Billing" crumb={open ? 'Invoice' : CRUMB[tab]}
-      sidebar={{ tabs, tab: open ? 'invoices' : tab, onTab: t => { setOpen(null); setTab(t); setMsg({ kind: '', text: '' }); }, user, onSignOut, meta: [], navTitle: 'Billing', subtitle: 'Finance' }}
+      sidebar={{ tabs, tab: open ? 'invoices' : tab, onTab: t => { setOpen(null); setTab(t); setMsg({ kind: '', text: '' }); }, user, onSignOut, meta: [], navTitle: 'Billing' }}
       actions={<NotificationBell actions={notes.actions} updates={notes.updates} seenAt="" onSeen={() => {}} onGo={n => { setTab(n.go); setOpen(n.inv || null); }} />}>
         <div style={page}>
           {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'var(--snow-status-rejected-bg)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}

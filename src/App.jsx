@@ -32,6 +32,7 @@ import { extOf } from './lib/fileRules';
 import LoginPage from './tabs/LoginPage';
 import AdminConsole from './tabs/AdminConsole';
 import ActivityLogTab from './tabs/ActivityLogTab';
+import { BRAND } from './lib/brand';
 import SignoffTab, { signoffSummary } from './tabs/SignoffTab';
 import DisclosuresTab from './tabs/DisclosuresTab';
 import PortfolioTab from './tabs/PortfolioTab';
@@ -40,7 +41,7 @@ import { saveFile } from './lib/download';
 import { checklistFor, checklistSummary } from './lib/disclosures';
 import { connectAuth } from './lib/auth';
 import { ActivityContext, makeActivity, useActivity } from './lib/activity';
-import { can, canClearPoint, isAdminArea, isFinanceArea, setPermissions, getPermissions } from './lib/roles';
+import { can, canClearPoint, isAdminArea, isFinanceArea, setPermissions } from './lib/roles';
 import FinanceConsole from './tabs/FinanceConsole';
 import { slotDefs } from './data/sampleFund';
 import { withSetup, varianceOpts } from './lib/pipeline';
@@ -200,6 +201,7 @@ function Workspace({ user, auth, onSignOut }) {
   const [docSel, setDocSel] = useState('cy');
   const [tray, setTray] = useState([]);
   const [sel, setSel] = useState(null);
+  const [focusPoint, setFocusPoint] = useState(null); // a point opened from a link, which Review Points brings into view
   const [filter, setFilter] = useState('all');
   const [varFilter, setVarFilter] = useState('all');
 
@@ -587,6 +589,14 @@ function Workspace({ user, auth, onSignOut }) {
   ].map(t => ({ ...t, step: ['docs', 'analysis', 'var', 'sched', 'vers', 'disc', 'signoff'].includes(t.id), locked: ['engagement', 'portfolio'].includes(t.id) ? false : !active ? true : ['docs', 'activity'].includes(t.id) || (t.id === 'sched' && points.length) ? false : !done }))
 ;
 
+  // Links into the review: a flagged line, or an activity log entry, opens what it is about when that
+  // screen is open to this person now (a point that still exists, a tab that is not locked).
+  const openPoint = ref => { setSel(ref); setFocusPoint(ref); setTab('sched'); };
+  const reviewLink = {
+    can: l => (l.point ? points.some(p => p.ref === l.point) : !!tabs.find(t => t.id === l.tab && !t.locked)),
+    open: l => (l.point ? openPoint(l.point) : setTab(l.tab))
+  };
+
   const missing = REQUIRED.filter(k => !files[k]).length;
   const reads = result?.aiReads;
   const analysisSub = done ? `The file was analysed on ${analysedAt}. ${openPoints.length} review points are open and ${fails} of ${checks.length} checks show a difference.`
@@ -595,7 +605,7 @@ function Workspace({ user, auth, onSignOut }) {
 
   return (
     <LibraryContext.Provider value={library}>
-    <AppShell root="Financial Statement Review" crumb={CRUMB[tab]} accent={STEP_COLOR[tab]}
+    <AppShell root={BRAND.name} crumb={CRUMB[tab]} accent={STEP_COLOR[tab]}
       sidebar={{ tabs, tab, onTab: setTab, user, onSignOut, meta: tab === 'portfolio' ? [] : active ? [
         { k: 'Entity', v: activeEntity?.name || '—' }, { k: 'Fund', v: active.fund.name || '—' }, { k: 'Year End', v: fmtDate(active.fund.yearEnd) },
         { k: 'Preparer', v: personName(active.fund, 'preparer', people) || '—' }, { k: 'Reviewer', v: personName(active.fund, 'reviewer', people) || '—' },
@@ -637,14 +647,14 @@ function Workspace({ user, auth, onSignOut }) {
           onReset={() => setDraft(d => ({ ...DEFAULT_SETUP, rules: startRules(), fund: d.fund, id: d.id, createdAt: d.createdAt, savedAt: d.savedAt }))} />}
         {tab === 'docs' && active && <DocumentsTab aiForReading={aiFlags.extract} aiWhyNot={readBlock} onReadWithAi={readWithAi} umbrella={isUmbrella ? { name: umbName, entity: activeEntity?.name, sources: umbSources } : null} onCopyUmbrella={copyUmbrellaDocs} files={files} review={review} editable={editable} canConfirm={(canAttach || canRun) && !signed} signed={signed} canSendBack={canRun && !signed} onConfirm={confirmDoc} onMarkReady={markReady} onSendBack={sendBack} attach={attach} detach={detach} attachAll={attachAll} ready={ready} phase={phase} step={step} error={error} analysisSub={analysisSub} onAnalyse={() => analyse()} rerun={{ blocked: rerunBlocked, changes: docChanges, at: whenOf(lastRun?.analysedAt) }} blockedReason={blockedReason} canRun={canRun && !signed} canAttach={canAttach} role={user.role}
           onRejected={(d, file, why) => log('Documents', `Refused a file for ${d.name}: ${file.name}`, why)} />}
-        {tab === 'analysis' && done && <AnalysisTab result={result} checks={checks} openPoints={openPoints} files={files} docSel={docSel} setDocSel={setDocSel} tray={tray} pick={pick} clearTray={() => setTray([])} addFromTray={addFromTray} sel={sel} setSel={setSel} goto={setTab} showFlags={CONFIG.showFlags} analysedAt={analysedAt} canRaise={canRaise}
+        {tab === 'analysis' && done && <AnalysisTab result={result} checks={checks} openPoints={openPoints} files={files} docSel={docSel} setDocSel={setDocSel} tray={tray} pick={pick} clearTray={() => setTray([])} addFromTray={addFromTray} sel={sel} setSel={setSel} goto={setTab} openPoint={openPoint} hasPoint={ref => points.some(p => p.ref === ref)} showFlags={CONFIG.showFlags} analysedAt={analysedAt} canRaise={canRaise}
           tbOn={ruleOn(setup, 'CHK-02')} tbMap={active?.tbMap || {}} tbTol={setup.rules?.['CHK-02']?.tol ?? 1} canMap={(canAttach || canRun) && !signed} onSaveMap={saveTbMap} />}
         {tab === 'var' && done && <VarianceTab aiNotes={Object.values(result.varNotes || {}).some(n => n?.aiDrafted)} canEditPoints={canRaise} enabled={varianceOn} mode={setup.varianceMode} goSetup={() => { setDraft(null); setTab('engagement'); }} model={vm} filter={varFilter} setFilter={setVarFilter} raised={raised} onRaise={raiseVariance} threshold={th} growth={growth} avgGrowth={avgGrowth} />}
-        {tab === 'sched' && points.length > 0 && <ScheduleTab points={points} messages={review.messages} user={user} people={people} sel={sel} setSel={setSel} actions={pointActions} waitingForMe={waitingForMe}
+        {tab === 'sched' && points.length > 0 && <ScheduleTab points={points} messages={review.messages} user={user} people={people} sel={sel} setSel={setSel} focus={focusPoint} onFocused={() => setFocusPoint(null)} actions={pointActions} waitingForMe={waitingForMe}
           canRaise={canRaise} canRespond={canRespond} locked={signed} threshold={th} version={result?.version} />}
         {tab === 'disc' && done && clOn && <DisclosuresTab framework={clFramework} list={clList} state={clState} cy={result.docs?.cy} signed={signed} canAnswer={canRaise} onAnswer={answerDisclosure} />}
         {tab === 'signoff' && done && <SignoffTab reports={review.reports || []} reportActions={reportActions} review={review} summary={summary} partnerRequired={partnerReq} canPartner={canPartner} canSignoff={canSignoff} canResubmit={canResubmit} actions={signoffActions} />}
-        {tab === 'activity' && active && <ActivityLogTab key={active.id} fund={{ id: active.id, name: active.fund.name }} />}
+        {tab === 'activity' && active && <ActivityLogTab key={active.id} fund={{ id: active.id, name: active.fund.name }} link={reviewLink} />}
         {tab === 'vers' && done && <VersionsTab result={result} points={points} running={phase === 'running'} onNextDraft={analyse} onAttachNextDraft={attachNextDraft} nextDraftBlock="" canRun={canRun && !signed}
           onRejected={(d, file, why) => log('Documents', `Refused a file for ${d.name}: ${file.name}`, why)} />}
     </AppShell>
@@ -681,7 +691,7 @@ export default function App() {
     <div role="alert" className="app-state">
       <div className="app-state-card">
         <img src="/pa-mark.png" alt="" width="44" height="44" />
-        <h1 className="app-state-title">Can’t reach FS Review</h1>
+        <h1 className="app-state-title">Can’t reach StatementIQ</h1>
         <p>{startError}</p>
         <button type="button" className="btn btn-primary" onClick={() => setAttempt(n => n + 1)}>Try Again</button>
       </div>
@@ -690,10 +700,10 @@ export default function App() {
   if (!auth || user === undefined) return (
     <div className="app-state" role="status">
       <div className="app-loader"><span className="app-loader-ring" aria-hidden="true" /><img src="/pa-mark.png" alt="" width="40" height="40" /></div>
-      <span className="app-state-text">Loading FS Review…</span>
+      <span className="app-state-text">Loading StatementIQ…</span>
     </div>
   );
-  if (!user) return <LoginPage matrix={getPermissions()} auth={auth} setupRequired={setupRequired} onSignedIn={u => { setSetupRequired(false); setUser(u); }} />;
+  if (!user) return <LoginPage auth={auth} setupRequired={setupRequired} onSignedIn={u => { setSetupRequired(false); setUser(u); }} />;
   return (
     <ActivityContext.Provider value={activity}>
       {isAdminArea(user) ? <AdminConsole key={user.id} user={user} auth={auth} onSignOut={signOut} />

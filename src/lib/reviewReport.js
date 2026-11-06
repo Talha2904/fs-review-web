@@ -141,7 +141,7 @@ export async function reviewReport({ eng, entity, snap, checks, slotName, checkl
   h2(`${checklist ? 7 : 6}. Use of AI and OCR`);
   para(ai.summary);
   if (ai.ocr.length) para(`Read from scanned pages with OCR (Tesseract, on the firm’s server, no AI): ${ai.ocr.join(', ')}.`);
-  para('This report records the review carried out with the FS Review application. The application supports the reviewer’s judgement; it does not establish that the financial statements are complete or correct.', { size: 8, color: GREY });
+  para('This report records the review carried out with the StatementIQ application by Project Accountants. The application supports the reviewer’s judgement; it does not establish that the financial statements are complete or correct.', { size: 8, color: GREY });
 
   // ---- footer and watermark on every page ----------------------------------------------------
   const pages = pdf.getPages();

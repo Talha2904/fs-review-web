@@ -12,6 +12,10 @@ const flagBox = on => ({ background: on ? 'var(--snow-status-approved-bg)' : 'tr
 export default function AnalysisTab(p) {
   const { result, checks, openPoints, files, docSel, setDocSel, tray, pick, clearTray, addFromTray, sel, setSel, goto, showFlags, analysedAt, canRaise = true, tbMap = {}, tbOn = false, canMap = false, onSaveMap, tbTol = 1 } = p;
   const [mapping, setMapping] = React.useState(false);
+  // A flagged line or paragraph opens its review point on the Review Points tab, whatever its status.
+  const openPoint = p.openPoint || (ref => { setSel(ref); goto('sched'); });
+  // a flag links only when the fund has a point with that reference (a sample flag can outlive its point)
+  const hasPoint = p.hasPoint || (() => true);
   const tbRes = React.useMemo(() => (tbOn && result?.docs?.tb && result?.docs?.cy ? checkTbMapping(result.docs, tbMap, tbTol) : null), [tbOn, result, tbMap, tbTol]);
   const fails = checks.filter(c => c.result === 'Difference').length;
   const count = pri => openPoints.filter(x => x.pri === pri).length;
@@ -129,10 +133,10 @@ export default function AnalysisTab(p) {
               {b.k === 'para' && (() => { const on = showFlags && b.flag; return (
                 <div style={{ ...flagBox(on), padding: on ? 16 : '4px 0', maxWidth: 780 }}>
                   <div style={body}>{b.text}</div>
-                  {on && <div onClick={() => setSel(b.flag)} style={{ ...cap, marginTop: 10, display: 'inline-flex', cursor: 'pointer', background: '#fff', boxShadow: RING, padding: '2px 10px', borderRadius: 18 }}>{b.flag} — flagged for review</div>}
+                  {on && <FlagChip flag={b.flag} text={`${b.flag} — flagged for review`} hasPoint={hasPoint} openPoint={openPoint} style={{ marginTop: 10 }} />}
                 </div>
               ); })()}
-              {b.k === 'table' && <DocTable b={b} bi={bi} cur={cur} doc={doc} tray={tray} pick={pick} setSel={setSel} showFlags={showFlags} />}
+              {b.k === 'table' && <DocTable b={b} bi={bi} cur={cur} doc={doc} tray={tray} pick={pick} openPoint={openPoint} hasPoint={hasPoint} showFlags={showFlags} />}
             </div>
           ))}
         </Card>
@@ -178,7 +182,7 @@ export default function AnalysisTab(p) {
                       <div style={{ marginTop: 12, paddingTop: 12, boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.1)', ...cap }}>
                         <div>{x.basis}</div>
                         <div style={{ marginTop: 8 }}><span style={muted}>Follow-up — </span>{x.follow}</div>
-                        <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><PointStatus status={x.status} /><Button size="sm" kind="secondary" onClick={() => { setSel(x.ref); goto('sched'); }}>Open Point</Button></div>
+                        <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><PointStatus status={x.status} /><Button size="sm" kind="secondary" onClick={() => openPoint(x.ref)}>Open Point</Button></div>
                       </div>
                     )}
                   </div>
@@ -198,7 +202,7 @@ const Res = ({ k, v, big }) => (
   </div>
 );
 
-function DocTable({ b, bi, cur, doc, tray, pick, setSel, showFlags }) {
+function DocTable({ b, bi, cur, doc, tray, pick, openPoint, hasPoint, showFlags }) {
   const nc = b.cols.length;
   const grid = `minmax(140px,1fr) repeat(${nc},minmax(84px,120px))`;
   const minWidth = 140 + nc * 96 + 24;
@@ -215,7 +219,7 @@ function DocTable({ b, bi, cur, doc, tray, pick, setSel, showFlags }) {
             <div style={{ fontSize: r.h ? 12 : 14, lineHeight: r.h ? '18px' : '20px', fontWeight: r.b || r.h ? 600 : 400, color: r.h ? 'var(--snow-black-40)' : 'inherit', paddingTop: r.h ? 8 : 0 }}>
               <span>{r.l}</span>
               {r.ref && <span style={{ marginLeft: 8, fontSize: 12, ...muted }}>{r.ref}</span>}
-              {on && <span onClick={() => setSel(r.flag)} style={{ ...cap, marginLeft: 8, background: '#fff', boxShadow: RING, padding: '1px 8px', borderRadius: 18, cursor: 'pointer' }}>{r.flag}</span>}
+              {on && <FlagChip flag={r.flag} text={r.flag} hasPoint={hasPoint} openPoint={openPoint} style={{ marginLeft: 8 }} />}
             </div>
             {(r.v || []).map((v, ci) => {
               const dp = ci === 1 && r.dp2 ? 2 : (r.dp || 0);
@@ -257,3 +261,8 @@ function CheckDonut({ tally, onPick }) {
     </div>
   );
 }
+
+// The RP-xx chip on a flagged line or paragraph: a button to that review point when the fund has it.
+const FlagChip = ({ flag, text, hasPoint, openPoint, style }) => hasPoint(flag)
+  ? <button type="button" className="flag-chip" title={`Open ${flag} in Review Points`} onClick={() => openPoint(flag)} style={style}>{text}</button>
+  : <span className="flag-chip is-static" style={style}>{text}</span>;
