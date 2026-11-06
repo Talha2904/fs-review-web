@@ -5,7 +5,7 @@ import { ASSIGNEES } from '../lib/people';
 import { entityAi } from '../lib/aiDecision';
 import { sameRule } from '../lib/ruleTemplate';
 import { fmt, fmtDate, sym, CURRENCIES } from '../lib/format';
-import { Button, Card, CardHead, Pill, Segmented, cap, body, h2, muted, page } from '../components/ui';
+import { Button, Card, CardHead, Pill, Segmented, InfoTip, cap, body, h2, muted, page, Field, LOCKED_NOTE } from '../components/ui';
 
 const STATUS = {
   active: ['Active · pilot', 'var(--snow-status-complete-bg)'],
@@ -42,7 +42,7 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
         <div style={{ maxWidth: 680 }}>
           <button type="button" onClick={onCancel} className="link" style={{ ...cap, ...muted, marginBottom: 6 }}>‹ Engagements</button>
           <div style={h2}>{isNew ? 'New Engagement' : setup.fund.name || 'Engagement'}</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>Set the fund details and review parameters, and choose which rules from the check library the analysis runs. Save the engagement to add it to the engagement listing.</div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>Set the fund details, review parameters and checks; saving adds it to the listing.</div>
         </div>
         {canWrite && <Button kind="secondary" disabled={locked} onClick={onReset}>Reset Checks to Firm Defaults</Button>}
       </div>
@@ -67,7 +67,7 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
                 <input className="input" type="date" value={setup.fund.yearEnd || ''} onChange={e => setFund({ yearEnd: e.target.value })} />
               </Field>
               <FundOptions entity={entity} setup={setup} onChange={onChange} />
-              <Field label="Presentation currency" hint="All amounts in this review are shown in it, and CHK-14 checks the draft against it">
+              <Field label="Presentation currency" tip="All amounts in this review are shown in it, and CHK-14 checks the draft against it.">
                 <select className="input" value={setup.fund.currency || 'GBP'} onChange={e => setFund({ currency: e.target.value })}>
                   {Object.entries(CURRENCIES).map(([c, x]) => <option key={c} value={c}>{c} · {x.name}</option>)}
                 </select>
@@ -85,7 +85,7 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
               <Field label="High priority at" hint={`× threshold, currently ${sym(setup.fund.currency)}${fmt(setup.threshold * setup.highMultiple)}`}>
                 <Num value={setup.highMultiple} min={1} step={0.5} onChange={v => set({ highMultiple: v ?? 1 })} />
               </Field>
-              <Field label="Management fee rate (% a year)" hint="Leave blank to use the prospectus rate from supporting information">
+              <Field label="Management fee rate (% a year)" hint="Blank = the prospectus rate from supporting information">
                 <Num value={setup.feeRatePct} min={0} step={0.01} placeholder="From prospectus" onChange={v => set({ feeRatePct: v })} />
               </Field>
               <Field label="Fee period (months)" hint="Period factor in CHK-10">
@@ -101,8 +101,8 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
               </div>
               <div style={{ ...cap, ...muted, marginTop: 8, maxWidth: 640 }}>
                 {setup.varianceMode === 'library'
-                  ? 'As approved: every line moving by the threshold or more is listed. Lines far from the net-asset expectation are still marked for investigation.'
-                  : 'Stricter than the approved rule: a material line is listed only when it is also outside the expectation bands below.'}
+                  ? 'As approved: every movement at or above the threshold is listed; lines far from the net-asset expectation are still marked for investigation.'
+                  : 'Stricter than the approved rule: a material line is listed only when also outside the expectation bands below.'}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))', gap: 14, marginTop: 14 }}>
                 <Field label="Investigate when off expectation by (%)"><Num value={setup.investigatePct} min={0} onChange={v => set({ investigatePct: v ?? 0 })} /></Field>
@@ -114,7 +114,7 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
               <Toggle on={setup.narrative} onChange={on => set({ narrative: on })} label="Narrative review" />
               <div>
                 <div style={{ ...body, fontWeight: 600 }}>Narrative review by Claude</div>
-                <div style={{ ...cap, ...muted, marginTop: 2, maxWidth: 560 }}>Reads the draft against the prior year and supporting information for stale text, directors, subsequent events and currency labels. Covers CHK-12 and CHK-14 as judgement, not as an exact-match test.</div>
+                <div style={{ ...cap, ...muted, marginTop: 2, maxWidth: 560 }}>Covers CHK-12 and CHK-14 as judgement, not as an exact-match test.<InfoTip label="What the narrative review reads">Reads the draft against the prior year and supporting information for stale text, directors, subsequent events and currency labels.</InfoTip></div>
               </div>
             </div>
           </Card>
@@ -127,7 +127,7 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
             {narrativeCover ? `, ${narrativeCover} more are covered by the narrative review` : ''}, and {notBuilt} {notBuilt === 1 ? 'is' : 'are'} not built in the app yet.
             {changed > 0 && <span> {changed} tolerance{changed === 1 ? ' differs' : 's differ'} from the approved version.</span>}
           </div>
-          {template && <div style={{ ...cap, ...muted, marginTop: 6 }}>Rules follow the firm’s template, so changes the Administrator makes apply here too. A rule you change here is marked <b>Overridden</b> and keeps your setting; <b>Reset</b> returns it to the template. {Object.keys(setup.rules || {}).filter(id => !sameRule(setup.rules[id], template[id])).length} overridden.</div>}
+          {template && <div style={{ ...cap, ...muted, marginTop: 6 }}>{Object.keys(setup.rules || {}).filter(id => !sameRule(setup.rules[id], template[id])).length} overridden.<InfoTip label="How rules follow the firm’s template">Rules follow the firm’s template, so changes the Administrator makes apply here too. A rule you change here is marked Overridden and keeps your setting; Reset returns it to the template.</InfoTip></div>}
           <RulesTable setup={setup} setRule={setRule} template={template} firmTemplate={firmTemplate} />
         </Card>
       </fieldset>
@@ -135,7 +135,7 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between', background: 'var(--snow-primary-light)', borderRadius: 16, padding: '16px 24px' }}>
         <div style={{ ...cap, ...muted, maxWidth: 620 }}>
           {error ? <span style={{ color: 'var(--snow-black-100)' }}>The engagement was not saved: {error}</span>
-            : signedOff ? 'This engagement is signed off and locked. A Manager can unlock it on the Sign-off tab.'
+            : signedOff ? LOCKED_NOTE
             : !canWrite ? 'Your role can view this engagement but not change it.'
             : missing.length ? `Add the ${missing.join(' and ')} to save this engagement.`
             : isNew ? 'Saving adds this engagement to the listing. Click In Review there to start reviewing it.'
@@ -241,7 +241,7 @@ function FundOptions({ entity, setup, onChange }) {
       {umb && <label style={{ display: 'flex', flexDirection: 'column', gap: 4, gridColumn: '1 / -1' }}>
         <span style={{ ...cap, ...muted }}>Name of this fund in the umbrella accounts</span>
         <input className="input" aria-label="Name in the umbrella accounts" placeholder={setup.fund?.name || 'As it appears as a column or section heading'} value={setup.umbrellaName || ''} onChange={e => onChange({ ...setup, umbrellaName: e.target.value })} />
-        <span style={{ ...cap, ...muted }}>The column or section heading used for this fund. Leave blank to use the fund name.</span>
+        <span style={{ ...cap, ...muted }}>Its column or section heading; leave blank to use the fund name.</span>
       </label>}
     </div>);
 }
@@ -293,13 +293,6 @@ function PersonSelect({ key: _k, role, label, fund, people, onChange }) {
   );
 }
 
-const Field = ({ label, hint, children }) => (
-  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-    <span style={{ ...cap, ...muted }}>{label}</span>
-    {children}
-    {hint && <span style={{ ...cap, ...muted }}>{hint}</span>}
-  </label>
-);
 
 const Num = ({ value, onChange, style, ...rest }) => (
   <input className="input" type="number" inputMode="decimal" value={value ?? ''} style={style} {...rest}

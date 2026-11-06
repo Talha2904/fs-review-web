@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { Button, cap, muted } from './ui';
+import { Button, cap, muted, Field } from './ui';
 import { ENTITY_FIELDS } from '../lib/engagements';
 
 const LEGAL_FORMS = ['ICAV', 'SICAV', 'Unit trust', 'Investment company', 'Limited partnership', 'Common contractual fund', 'Private limited company', 'Public limited company', 'LLC', 'Other'];
@@ -38,7 +38,7 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
   return (
     <Modal title={isNew ? 'Add Entity' : `Edit ${entity.name}`} onClose={onClose} width={560}>
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <div style={{ ...cap, ...muted }}>The legal entity the funds belong to, such as an ICAV umbrella. Its funds are listed under it.
+        <div style={{ ...cap, ...muted }}>The legal entity the funds belong to, such as an ICAV umbrella.
           {!isNew && fundCount > 0 && (fundCount === 1 ? ' Changes apply to its fund.' : ` Changes apply to all ${fundCount} of its funds.`)}</div>
         <Field label="Entity name"><input className="input" value={e.name} onChange={set('name')} placeholder="For example, Meridian Funds ICAV" autoFocus /></Field>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 14 }}>
@@ -69,14 +69,14 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
             <select className="input" aria-label="Accounting framework" value={e.framework || ''} onChange={ev => setE(x => ({ ...x, framework: ev.target.value }))}>
               <option value="">Not set</option><option value="FRS 102">FRS 102</option><option value="IFRS">IFRS</option><option value="US GAAP">US GAAP</option><option value="Other">Other</option>
             </select>
-            <span style={{ ...cap, ...muted }}>Chooses the disclosure checklist (CHK-13) and the standards the AI review applies.</span>
+            <span style={{ ...cap, ...muted }}>Sets the disclosure checklist (CHK-13) and the standards the AI review applies.</span>
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ ...cap, ...muted }}>Entity type</span>
             <select className="input" aria-label="Entity type" value={e.entityType || ''} onChange={set('entityType')}>
               <option value="">Open-ended fund (default)</option>{ENTITY_TYPES.slice(1).map(t => <option key={t}>{t}</option>)}
             </select>
-            <span style={{ ...cap, ...muted }}>Tells the review whether it is reading a fund, a partnership or a company.</span>
+            <span style={{ ...cap, ...muted }}>Tells the review what kind of entity it is reading.</span>
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ ...cap, ...muted }}>Disclosure checklist (CHK-13)</span>
@@ -84,7 +84,7 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
               onChange={ev => setE(x => { const o = { ...(x.ruleOverrides || {}) }; if (ev.target.value) o['CHK-13'] = { on: ev.target.value === 'on' }; else delete o['CHK-13']; return { ...x, ruleOverrides: o }; })}>
               <option value="">Follow the firm’s template</option><option value="on">Always on for this client</option><option value="off">Always off for this client</option>
             </select>
-            <span style={{ ...cap, ...muted }}>A fund can still override this in its own settings.</span>
+            <span style={{ ...cap, ...muted }}>A fund can override this.</span>
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ ...cap, ...muted }}>Partner sign-off</span>
@@ -98,7 +98,7 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
             <select className="input" aria-label="How the client's financial statements are prepared" value={e.umbrella ? 'on' : ''} onChange={ev => setE(x => ({ ...x, umbrella: ev.target.value === 'on' }))}>
               <option value="">Separate accounts for each fund</option><option value="on">Umbrella accounts covering all its funds</option>
             </select>
-            <span style={{ ...cap, ...muted }}>With umbrella accounts, each fund’s figures are read from its own column or section.</span>
+            <span style={{ ...cap, ...muted }}>Umbrella: each fund is read from its own column or section.</span>
           </label>
         </fieldset>
         <fieldset style={{ border: 0, margin: 0, padding: '12px 14px', background: 'var(--snow-primary-light)', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -111,8 +111,8 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
             <input type="radio" name="ai" checked={choice === 'no'} onChange={() => { setChoice('no'); setError(''); }} style={{ marginTop: 2 }} />
             <span><b>AI not permitted.</b> The client’s funds are reviewed without AI: documents can be checked, but real documents can’t be analysed automatically.</span>
           </label>
-          <Field label="Basis for the decision (required)" hint="For example: engagement letter dated 1 March 2026, clause 9.">
-            <input className="input" value={e.aiBasis || ''} onChange={set('aiBasis')} placeholder="Engagement letter, client email, board minute…" />
+          <Field label="Basis for the decision (required)">
+            <input className="input" value={e.aiBasis || ''} onChange={set('aiBasis')} placeholder="E.g. engagement letter dated 1 March 2026, clause 9" />
           </Field>
           {entity?.aiDecidedAt && <span style={{ ...cap, ...muted }}>Last recorded by {entity.aiDecidedBy?.name || '—'} on {new Date(entity.aiDecidedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}.</span>}
           {entity && !entity.aiDecidedAt && <span style={{ ...cap }}>No decision has been recorded for this client yet, so its funds are currently reviewed without AI.</span>}
@@ -127,10 +127,3 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
   );
 }
 
-const Field = ({ label, hint, children }) => (
-  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-    <span style={{ ...cap, ...muted }}>{label}</span>
-    {children}
-    {hint && <span style={{ ...cap, ...muted }}>{hint}</span>}
-  </label>
-);

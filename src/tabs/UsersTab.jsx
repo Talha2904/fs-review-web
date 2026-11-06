@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ROLES, STAFF_ROLES, EDITABLE_PERMS, DEFAULT_MATRIX, MIN_PASSWORD, normalizeMatrix, describeRole, getPermissions, setPermissions } from '../lib/roles';
 import { describeMatrixChange } from '../lib/activityText';
-import { Button, Card, CardHead, Pill, cap, body, h2, muted, page } from '../components/ui';
+import { Button, Card, CardHead, Pill, InfoTip, cap, body, h2, muted, page, Field } from '../components/ui';
 import Modal from '../components/Modal';
 
 const GRID = 'minmax(220px,1.8fr) 120px 96px 120px 316px';
@@ -139,7 +139,7 @@ function EditUserModal({ user, self, auth, onClose, onDone, matrix }) {
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <Field label="Full name"><input className="input" autoComplete="off" value={name} onChange={e => { setName(e.target.value); setError(''); }} /></Field>
         <Field label="Email" hint="Used for self-service password reset links."><input className="input" type="email" autoComplete="off" value={email} onChange={e => { setEmail(e.target.value); setError(''); }} /></Field>
-        <Field label="Username" hint="People sign in with their username and the activity log refers to it, so it cannot be changed.">
+        <Field label="Username" hint="Can’t be changed." tip="People sign in with their username and the activity log refers to it, so it cannot be changed.">
           <input className="input" value={user.username} disabled readOnly />
         </Field>
         <Field label="Role" hint={self ? 'You cannot change your own role. Another Administrator can.' : describeRole(role, matrix)}>
@@ -217,7 +217,7 @@ function PermissionMatrix({ auth, saved, onSaved }) {
   return (
     <Card>
       <CardHead title="Who can do what" aside="Every role can view engagements, the analysis and review points" />
-      <div style={{ ...cap, ...muted, marginTop: 6, maxWidth: 720 }}>Tick the roles that hold each permission, then save. Administrators always have full access, and only they manage users, permissions and check rules.</div>
+      <div style={{ ...cap, ...muted, marginTop: 6, maxWidth: 720 }}>Tick the roles that hold each permission, then save.<InfoTip label="About Administrators">Administrators always have full access, and only they manage users, permissions and check rules.</InfoTip></div>
       <div className="dt dt-3" style={{ '--cols': grid, '--min': '700px' }}>
         <div className="dt-head">
           <div style={{ ...cap, ...muted }}>Permission</div>
@@ -274,10 +274,3 @@ function lastSeen(iso) {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + t;
 }
 
-const Field = ({ label, hint, children }) => (
-  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-    <span style={{ ...cap, ...muted }}>{label}</span>
-    {children}
-    {hint && <span style={{ ...cap, ...muted }}>{hint}</span>}
-  </label>
-);

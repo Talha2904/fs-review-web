@@ -8,7 +8,7 @@ export function fundAi(eng, ent) {
 }
 export const AI_LABEL = { permitted: 'AI permitted', 'not-permitted': 'AI not permitted', undecided: 'AI not decided', 'off-for-fund': 'AI off for this fund' };
 export const AI_REASON = {
-  undecided: 'The client’s decision on AI has not been recorded, so this fund is reviewed without AI. A Manager records the decision on the client’s entity (Engagement › Edit Entity).',
+  undecided: 'No AI decision is recorded for this client, so this fund is reviewed without AI. A Manager records it on the client’s entity (Engagement › Edit Entity).',
   'not-permitted': 'The client does not permit AI, so this fund is reviewed without AI.',
   'off-for-fund': 'AI is turned off for this fund, so it is reviewed without AI.'
 };

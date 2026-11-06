@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { useActivity } from '../lib/activity';
 import { saveFile } from '../lib/download';
-import { Button, Card, CardHead, Pill, cap, body, h2, muted, page } from '../components/ui';
+import { Button, Card, CardHead, Pill, cap, body, h2, muted, page, Field } from '../components/ui';
 
 const CATEGORIES = ['Sign-in', 'Users', 'Check rules', 'Engagements', 'Documents', 'Analysis', 'Review points', 'Sign-off', 'AI', 'Activity log'];
 const TINT = { 'Sign-in': 'var(--snow-ink-5)', Users: 'var(--snow-primary-purple)', 'Check rules': 'var(--snow-primary-blue)', Engagements: 'var(--snow-status-complete-bg)',
@@ -90,7 +90,7 @@ export default function ActivityLogTab({ fund = null, link = null }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 680 }}>
           <div style={h2}>Activity Log</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>{scoped ? <>Everything recorded for <b style={{ color: 'var(--snow-black-100)' }}>{fund.name}</b>: engagement changes, documents, analyses and review points, newest first.</> : 'Every sign-in, user change, check rule change, engagement, document, analysis and review point action across all funds, newest first.'} Entries cannot be edited or deleted.
+          <div style={{ ...body, ...muted, marginTop: 6 }}>{scoped ? <>Everything recorded for <b style={{ color: 'var(--snow-black-100)' }}>{fund.name}</b>: engagement changes, documents, analyses and review points, newest first.</> : 'All activity across all funds, newest first.'} Entries cannot be edited or deleted.
 </div>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -154,6 +154,3 @@ export default function ActivityLogTab({ fund = null, link = null }) {
   );
 }
 
-const Field = ({ label, children }) => (
-  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}><span style={{ ...cap, ...muted }}>{label}</span>{children}</label>
-);

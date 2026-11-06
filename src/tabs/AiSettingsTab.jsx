@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AI_STEPS, MODELS, normalizeAi } from '../lib/aiOptions';
-import { Button, Card, CardHead, Pill, cap, body, h2, muted, page } from '../components/ui';
+import { Button, Card, CardHead, Pill, InfoTip, cap, body, h2, muted, page } from '../components/ui';
 
 const when = iso => iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
 
@@ -38,7 +38,7 @@ export default function AiSettingsTab({ auth, me }) {
     <div style={page}>
       <div style={{ maxWidth: 760 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}><div style={h2}>AI Settings</div><Pill bg={status[1]}>{status[0]}</Pill></div>
-        <div style={{ ...body, ...muted, marginTop: 6 }}>Control where the app uses AI (Claude). Every number is still recalculated by the app’s own code, and every point is cleared by a person; AI reads documents and drafts text. Every AI call is recorded in the Activity Log.</div>
+        <div style={{ ...body, ...muted, marginTop: 6 }}>AI (Claude) reads documents and drafts text. The app recalculates every figure, a person clears every point, and every AI call is recorded in the Activity Log.</div>
       </div>
       {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'var(--snow-status-rejected-bg)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}
 
@@ -47,7 +47,7 @@ export default function AiSettingsTab({ auth, me }) {
         <div style={{ ...body, marginTop: 10 }}>
           API key: {key?.configured ? <><b>configured on the server</b> <span style={muted}>(ending …{key.last4})</span></> : <b>not configured</b>}
         </div>
-        <div style={{ ...cap, ...muted, marginTop: 6, maxWidth: 720 }}>The key is never entered or shown in the app. It is set on the server as <code>ANTHROPIC_API_KEY</code> (in <code>.env</code> or your hosting provider’s secret settings), and only its last four characters are displayed here.</div>
+        <div style={{ ...cap, ...muted, marginTop: 6, maxWidth: 720 }}>Set on the server as <code>ANTHROPIC_API_KEY</code>; only its last four characters are shown.<InfoTip label="Where the key is set">The key is never entered or shown in the app. It is set in .env or in your hosting provider’s secret settings.</InfoTip></div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginTop: 14 }}>
           <Button kind="secondary" disabled={test?.state === 'running'} onClick={runTest}>{test?.state === 'running' ? 'Testing…' : 'Test Connection'}</Button>
           {test && test.state !== 'running' && <span role={test.state === 'err' ? 'alert' : 'status'} style={{ ...cap, color: test.state === 'err' ? 'var(--pa-red)' : '#2E6B12' }}>{test.text}</span>}

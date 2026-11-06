@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import Modal from './Modal';
-import { Button, cap, body, muted } from './ui';
+import { Button, InfoTip, cap, body, muted } from './ui';
 import { tbAccounts, statementLines, suggestMapping, checkTbMapping } from '../lib/tbMapping';
 import { fmt } from '../lib/format';
 
@@ -24,7 +24,7 @@ export default function TbMapModal({ docs, map, tol = 1, canEdit, onSave, onClos
   return (
     <Modal title="Map the Trial Balance (CHK-02)" onClose={onClose} width={1000}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ ...cap, ...muted, maxWidth: 820 }}>Choose the statement line each account belongs to. The app adds up each line’s accounts (debits minus credits) and compares the total with the draft. <b>Suggest Mapping</b> fills unmapped accounts by matching names on the same side of the ledger; check each suggestion. No AI is used.</div>
+        <div style={{ ...cap, ...muted, maxWidth: 820 }}>Choose the statement line each account belongs to. No AI is used.<InfoTip label="How the mapping is used">The app adds up each line’s accounts (debits minus credits) and compares the total with the draft. Suggest Mapping fills unmapped accounts by matching names on the same side of the ledger; check each suggestion.</InfoTip></div>
         <div role="status" style={{ ...cap, display: 'flex', gap: 16, flexWrap: 'wrap', background: 'var(--snow-primary-light)', borderRadius: 8, padding: '8px 12px' }}>
           <span><b>{res.mappedCount}</b> of {accounts.length} accounts mapped</span>
           <span><b>{agree}</b> of {res.results.length} lines agree</span>
@@ -53,7 +53,7 @@ export default function TbMapModal({ docs, map, tol = 1, canEdit, onSave, onClos
               </div>);
           })}
         </div>
-        {res.notCovered.length > 0 && <div style={{ ...cap, ...muted }}>Statement lines with no accounts: {res.notCovered.map(l => l.label).join('; ')}. Calculated results (such as the increase in net assets) are checked by casting and the net asset movement.</div>}
+        {res.notCovered.length > 0 && <div style={{ ...cap, ...muted }}>Statement lines with no accounts: {res.notCovered.map(l => l.label).join('; ')}.<InfoTip label="About lines with no accounts">Calculated results (such as the increase in net assets) are checked by casting and the net asset movement.</InfoTip></div>}
         {error && <div role="alert" style={{ ...cap, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 12px' }}>{error}</div>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>

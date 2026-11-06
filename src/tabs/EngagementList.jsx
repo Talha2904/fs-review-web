@@ -44,7 +44,7 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 680 }}>
           <div style={h2}>Engagements</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>Funds are listed under the entity they belong to. Click In Review on a fund to open its documents and analysis. {mode && where}</div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>Click In Review on a fund to open its documents and analysis. {mode && where}</div>
         </div>
         {canWrite && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -61,7 +61,7 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
         <Card>
           <div style={{ padding: '24px 0', maxWidth: 560 }}>
             <div style={h3}>No entities or engagements yet</div>
-            <div style={{ ...body, ...muted, marginTop: 6 }}>Start by adding the entity, such as the ICAV umbrella, then add each of its funds. Each fund records its year end, who prepares, reviews and manages it, and which checks its review runs.</div>
+            <div style={{ ...body, ...muted, marginTop: 6 }}>Start by adding the entity, such as the ICAV umbrella, then add each of its funds.</div>
             {canWrite ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}><Button onClick={onAddEntity}>Add Entity</Button></div>
               : <div style={{ ...cap, ...muted, marginTop: 12 }}>Your role cannot add entities or engagements.</div>}
           </div>

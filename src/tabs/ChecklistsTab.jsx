@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
-import { Button, Card, Pill, FileButton, Segmented, cap, body, h2, muted, page, RING } from '../components/ui';
+import { Button, Card, Pill, FileButton, Segmented, InfoTip, cap, body, h2, muted, page, RING } from '../components/ui';
 import { FRAMEWORKS, STARTER } from '../data/disclosureChecklists';
 import { useActivity } from '../lib/activity';
 
@@ -48,7 +48,7 @@ export default function ChecklistsTab({ store }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 760 }}>
           <div style={h2}>Disclosure Checklists</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>The checklist reviewers complete for CHK-13, one per accounting framework. Each client’s framework is set on its entity. Keywords are used to suggest where each item may be disclosed in the draft.</div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>The CHK-13 checklist, one per accounting framework; each client’s framework is set on its entity.<InfoTip label="About keywords">Keywords are used to suggest where each item may be disclosed in the draft.</InfoTip></div>
         </div>
         <Segmented value={fw} onChange={v => { if (!dirty || window.confirm('Discard unsaved changes?')) setFw(v); }} options={FRAMEWORKS.map(f => [f, f])} />
       </div>

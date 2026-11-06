@@ -2,7 +2,7 @@ import React from 'react';
 import { gbp, plural } from '../lib/format';
 import { ACCEPT } from '../lib/fileRules';
 import { validateFile } from '../lib/validateFile';
-import { Button, Card, FileButton, PriPill, Dot, Tile, RED, REDBG, cap, body, h2, muted, page } from '../components/ui';
+import { Button, Card, FileButton, PriPill, Dot, Tile, InfoTip, RED, REDBG, cap, body, h2, muted, page } from '../components/ui';
 
 export default function VersionsTab({ result, points, onNextDraft, onAttachNextDraft, running, canRun = true, nextDraftBlock = '', onRejected }) {
   const [problem, setProblem] = React.useState('');
@@ -29,7 +29,7 @@ export default function VersionsTab({ result, points, onNextDraft, onAttachNextD
         <div style={{ flex: '2 1 380px', minWidth: 'min(280px, 100%)', background: 'var(--snow-primary-purple)', borderRadius: 16, padding: 'var(--card-pad)' }}>
           <div style={{ ...cap, ...muted }}>Version Pass</div>
           <div style={{ ...h2, marginTop: 6 }}>{v > 1 ? `Draft v${v - 1} → Draft v${v}` : 'Draft v1 — first pass'}</div>
-          <div style={{ ...body, marginTop: 8, maxWidth: 620 }}>Every point raised on the earlier draft is re-tested against the new one, and the new draft is read for matters not previously present. Resolution is assessed against the evidence on file; where no evidence was provided the point stays outstanding.</div>
+          <div style={{ ...body, marginTop: 8, maxWidth: 620 }}>A point stays outstanding unless the new draft fixes it and the fix agrees to the evidence on file.<InfoTip label="How the version pass works">Every point raised on the earlier draft is re-tested against the new one, and the new draft is read for matters not previously present. Resolution is assessed against the evidence on file; where no evidence was provided the point stays outstanding.</InfoTip></div>
         </div>
         <Tile bg="var(--snow-status-complete-bg)" label="Resolved" value={resolved.length} />
         <Tile bg="var(--snow-status-approved-bg)" label="Outstanding" value={outstanding.length} />
@@ -39,7 +39,7 @@ export default function VersionsTab({ result, points, onNextDraft, onAttachNextD
       <Card style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 560 }}>
           <div style={{ ...body, fontWeight: 600 }}>Review the next version</div>
-          <div style={{ ...cap, ...muted, marginTop: 4 }}>Attach the next draft and the analysis runs again, separating points that have been resolved from those still outstanding and any newly introduced.</div>
+          <div style={{ ...cap, ...muted, marginTop: 4 }}>Attach the next draft to run the version pass.</div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {canRun ? <>
@@ -55,9 +55,8 @@ export default function VersionsTab({ result, points, onNextDraft, onAttachNextD
         {cols.map(([title, c, note, items]) => (
           <div key={title} style={{ flex: '1 1 300px', minWidth: 'min(270px, 100%)', display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '0 4px' }}>
-              <Dot c={c} size={8} /><span style={{ ...body, fontWeight: 600 }}>{title}</span><span style={{ ...cap, ...muted }}>{plural(items.length, 'point')}</span>
+              <Dot c={c} size={8} /><span style={{ ...body, fontWeight: 600 }}>{title}<InfoTip label={`What ${title} means`}>{note}</InfoTip></span><span style={{ ...cap, ...muted }}>{plural(items.length, 'point')}</span>
             </div>
-            <div style={{ ...cap, ...muted, padding: '0 4px 4px' }}>{note}</div>
             {items.map(i => (
               <Card key={i.ref}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}><span style={{ ...cap, ...muted }}>{i.ref}</span><PriPill pri={i.pri} /></div>

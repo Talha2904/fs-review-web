@@ -460,3 +460,14 @@
 /* a flag whose review point no longer exists: shown, not a link */
 .flag-chip.is-static { cursor: default; color: var(--snow-black-40); }
 .flag-chip.is-static:hover { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); color: var(--snow-black-40); }
+
+/* InfoTip: an explanation behind an ⓘ (hover, keyboard focus or tap) */
+.infotip { position: relative; display: inline-flex; vertical-align: middle; margin-left: 6px; }
+.infotip-btn { display: inline-block; width: 16px; height: 16px; padding: 0; border: 0; border-radius: 50%; text-align: center; user-select: none; font: 600 11px/16px Georgia, 'Times New Roman', serif; font-style: italic; color: #fff; background: var(--snow-black-40, #6b7385); cursor: help; }
+.infotip-btn:hover, .infotip-btn[aria-expanded="true"] { background: var(--pa-blue, #3E7CC4); }
+.infotip-btn:focus-visible { outline: 2px solid var(--pa-blue, #3E7CC4); outline-offset: 2px; }
+.infotip-pop { position: absolute; z-index: 60; top: calc(100% + 6px); left: -8px; width: max-content; max-width: min(320px, calc(100vw - 16px)); padding: 8px 10px; border-radius: 8px; font-size: 12px; line-height: 18px; font-weight: 400; font-style: normal; text-align: left; white-space: normal; color: #fff; background: #14213D; box-shadow: 0 8px 24px rgba(20,33,61,0.24); }
+/* fills the gap between the ⓘ and the box, so the pointer can move onto the text without it closing */
+.infotip-pop::before { content: ''; position: absolute; left: 0; right: 0; top: -8px; height: 8px; }
+.infotip-pop[hidden] { display: none; }
+.infotip-pop:focus { outline: none; }

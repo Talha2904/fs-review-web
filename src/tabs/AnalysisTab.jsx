@@ -60,12 +60,12 @@ export default function AnalysisTab(p) {
               <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{result.review.blockers.map((b, i) => <li key={i}>{b}</li>)}</ul>
             </div>
           )}
-          <div style={{ ...cap, ...muted, marginTop: 12 }}>Drafted by AI to support your judgement. It is not a conclusion that the statements are complete or correct.</div>
+          <div style={{ ...cap, ...muted, marginTop: 12 }}>Drafted by AI to support your judgement; not a conclusion that the statements are complete or correct.</div>
         </Card>
       )}
 
       <Card>
-        <CardHead title="Recalculations and Cross-references" aside={`${fails} of ${checks.length} show a difference · checks set in the engagement`} />
+        <CardHead title="Recalculations and Cross-references" aside={`${fails} of ${checks.length} differ · set in the engagement`} />
         <div className="chk-filter" role="group" aria-label="Show checks">
           {[['all', 'All', checks.length], ['Difference', 'Differences', tally.Difference], ['Agrees', 'Agrees', tally.Agrees], ['Not tested', 'Not tested', tally['Not tested']]].map(([v, l, n]) => (
             <button key={v} type="button" className={'chk-chip is-' + v.replace(' ', '-').toLowerCase()} aria-pressed={chkF === v} onClick={() => setChkF(v)}>{l}<span>{n}</span></button>))}
@@ -94,7 +94,7 @@ export default function AnalysisTab(p) {
               <div style={h3}>Trial Balance Mapping <span style={{ ...cap, ...muted, fontWeight: 400 }}>CHK-02</span></div>
               <div style={{ ...cap, ...muted, marginTop: 4 }}>
                 {tbRes.mappedCount ? `${tbRes.mappedCount} of ${tbRes.accounts.length} accounts mapped · ${tbRes.results.filter(r => r.ok).length} of ${tbRes.results.length} statement lines agree${tbRes.unmapped.length ? ` · ${tbRes.unmapped.length} with a balance not mapped` : ''}`
-                  : `None of the ${tbRes.accounts.length} trial balance accounts is mapped yet, so CHK-02 can’t run. Map them once; the mapping is saved with this fund.`}
+                  : `None of the ${tbRes.accounts.length} trial balance accounts is mapped yet, so CHK-02 can’t run. The mapping is saved with this fund.`}
               </div>
             </div>
             <Button kind={tbRes.mappedCount ? 'secondary' : 'primary'} onClick={() => setMapping(true)}>{canMap ? (tbRes.mappedCount ? 'Edit Mapping' : 'Map Trial Balance') : 'View Mapping'}</Button>

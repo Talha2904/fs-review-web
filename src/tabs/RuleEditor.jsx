@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FIGURES, formulaText } from '../data/checkLibrary';
-import { Button, Card, CardHead, Segmented, cap, body, muted } from '../components/ui';
+import { Button, Card, CardHead, Segmented, cap, body, muted, Field } from '../components/ui';
 
 const STATUSES = [['active', 'Active · pilot'], ['draft', 'Draft / Pending'], ['proposed', 'Proposed']];
 const ENGINES = [['custom-tieout', 'Tie-out of figures'], ['custom-narrative', 'Claude narrative check'], ['none', 'Not automated']];
@@ -138,10 +138,3 @@ const FigureSelect = ({ value, onChange, label, inRow }) => (
   </select>
 );
 
-const Field = ({ label, hint, children }) => (
-  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-    <span style={{ ...cap, ...muted }}>{label}</span>
-    {children}
-    {hint && <span style={{ ...cap, ...muted }}>{hint}</span>}
-  </label>
-);

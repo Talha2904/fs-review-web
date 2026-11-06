@@ -229,9 +229,9 @@ function Workspace({ user, auth, onSignOut }) {
   const aiOn = !!aiStatus?.serverKey && !!aiStatus?.enabled && clientAllowsAi;
   const aiFlags = Object.fromEntries(['extract', 'narrative', 'explain', 'version'].map(k => [k, aiOn && aiStatus?.steps?.[k] !== false]));
   useEffect(() => { setAiContext({ engagementId: active?.id || null, fundName: active?.fund?.name || null, aiAllowed: clientAllowsAi, currency: active?.fund?.currency || 'GBP', umbrella: umbrella ? umbName : null }); }, [active?.id, clientAllowsAi, active?.fund?.currency, umbName]); // eslint-disable-line react-hooks/exhaustive-deps // eslint-disable-line react-hooks/exhaustive-deps
-  const readBlock = !clientAllowsAi ? `${AI_REASON[fundAiState]} Real documents can be attached and checked but not analysed; the built-in sample documents can still be analysed.`
-    : !aiStatus?.serverKey ? 'No Claude API key is configured on the server, so real documents can’t be analysed. An Administrator can check this under AI Settings.'
-    : !aiStatus?.enabled ? 'AI is turned off, so real documents can be attached and checked but not analysed. An Administrator can turn it on under AI Settings.'
+  const readBlock = !clientAllowsAi ? `${AI_REASON[fundAiState]} Real documents can be checked, not analysed; the built-in samples still can be.`
+    : !aiStatus?.serverKey ? 'No Claude API key is set on the server, so real documents can’t be analysed. An Administrator can check AI Settings.'
+    : !aiStatus?.enabled ? 'AI is turned off, so real documents can be checked but not analysed. An Administrator can turn it on in AI Settings.'
     : !aiFlags.extract ? 'Reading real documents is turned off under AI Settings, so real documents can be checked but not analysed.' : '';
   const blockedReason = realDocs ? readBlock : '';
   const needsServer = !!blockedReason;
@@ -251,7 +251,7 @@ function Workspace({ user, auth, onSignOut }) {
             content = await ocrPdf(file, { sha256: rec.sha256, post: apiPost });
             const c = content.ocr.confidence;
             ocrNote = c >= 70 ? { result: 'ok', label: 'Scanned', detail: `Scanned PDF read with OCR on the app’s server (${content.ocr.pages} pages, ${c}% confidence). No AI.` }
-              : { result: 'warn', label: 'Scanned', detail: `Scanned PDF read with OCR, but the confidence is low (${c}%), so some figures may be misread. Choose whether to read it with AI, keep the OCR reading, or use a clearer scan.`, ocrLow: c };
+              : { result: 'warn', label: 'Scanned', detail: `Scanned PDF read with OCR at low confidence (${c}%); some figures may be misread.`, ocrLow: c };
           } catch (e) { ocrNote = { result: 'warn', label: 'Scanned', detail: `This PDF is scanned and OCR didn’t work (${e.message}).` }; }
         }
       }
@@ -304,7 +304,7 @@ function Workspace({ user, auth, onSignOut }) {
     const key = f.sample ? 'sample:' + f.name : hash, cur = review.current[id];
     if (cur && contentKey(cur) === key) {
       log('Documents', `No new version of ${slotName(id)}: ${f.name} has the same content as v${cur.version}`);
-      return `“${f.name}” has the same content as v${cur.version}${cur.fileName !== f.name ? ` (${cur.fileName})` : ''}, so nothing changed and no new version was made.`;
+      return `“${f.name}” is the same as v${cur.version}${cur.fileName !== f.name ? ` (${cur.fileName})` : ''}; no new version was made.`;
     }
     const earlier = review.versions.filter(v => v.slot === id && contentKey(v) === key).pop();
     const rec = await reviewStore.addVersion({ engagementId: active.id, slot: id, fileName: f.name, size: f.file?.size || 0, sha256: hash, sample: !!f.sample, file: f.file || null, user, sameAs: earlier?.version || null });
@@ -406,7 +406,7 @@ function Workspace({ user, auth, onSignOut }) {
     const out = runChecks(withSetup(result.K, setup), setup, result.docs, library);
     if (clOn) out.push({ id: 'disc', rule: 'CHK-13', name: 'Disclosure checklist complete', area: 'Disclosures', refs: `${clFramework || 'No framework'} checklist`, anchor: '', count: true,
       follow: 'Add the missing disclosures, or explain why they are not required.', comp: null, stated: null,
-      ...(!clList ? { diff: null, result: 'Not tested', detail: 'Set the client’s accounting framework to FRS 102 or IFRS on its entity' }
+      ...(!clList ? { diff: null, result: 'Not tested', detail: 'Set the client’s accounting framework (FRS 102, IFRS or US GAAP) on its entity' }
         : clSum.unanswered ? { diff: null, result: 'Not tested', detail: `${clSum.answered} of ${clSum.total} items answered on the Disclosures tab` }
         : clSum.no ? { diff: clSum.no, result: 'Difference', detail: `${clSum.no} disclosure${clSum.no === 1 ? '' : 's'} answered “No”: ${clSum.noItems.slice(0, 2).map(i => i.text).join('; ')}${clSum.no > 2 ? '…' : ''}` }
         : { diff: 0, result: 'Agrees', detail: `All ${clSum.total} items answered; no missing disclosures` }) });
@@ -614,9 +614,9 @@ function Workspace({ user, auth, onSignOut }) {
 
   const missing = REQUIRED.filter(k => !files[k]).length;
   const reads = result?.aiReads;
-  const analysisSub = done ? `The file was analysed on ${analysedAt}. ${openPoints.length} review points are open and ${fails} of ${checks.length} checks show a difference.`
-    + (reads && (reads.read.length || reads.reused.length) ? ` AI read ${reads.read.length} document${reads.read.length === 1 ? '' : 's'}; ${reads.reused.length} unchanged document${reads.reused.length === 1 ? ' was' : 's were'} reused without AI.` : '')
-    + (reads?.local?.length ? ` Read by the app without AI: ${reads.local.map(s => ({ cy: 'draft statements', py: 'signed statements', tb: 'trial balance', is: 'investment schedule', sup: 'supporting information', ag: 'agreements and correspondence' })[s]).join(', ')}.` : '') : '';
+  const analysisSub = done ? `Analysed ${analysedAt} · ${openPoints.length} review point${openPoints.length === 1 ? '' : 's'} open · ${fails} of ${checks.length} checks differ.`
+    + (reads && (reads.read.length || reads.reused.length) ? ` AI read ${reads.read.length} document${reads.read.length === 1 ? '' : 's'}; ${reads.reused.length} unchanged document${reads.reused.length === 1 ? '' : 's'} reused without AI.` : '')
+    + (reads?.local?.length ? ` Read without AI: ${reads.local.map(s => ({ cy: 'draft statements', py: 'signed statements', tb: 'trial balance', is: 'investment schedule', sup: 'supporting information', ag: 'agreements and correspondence' })[s]).join(', ')}.` : '') : '';
 
   return (
     <LibraryContext.Provider value={library}>
@@ -635,12 +635,12 @@ function Workspace({ user, auth, onSignOut }) {
         {active && !['engagement', 'users', 'portfolio'].includes(tab) && <FundDashboard aiLabel={aiOn ? 'Enabled' : 'Off'} aiWhy={aiOn ? `AI assistance is enabled (${aiStatus?.model || 'Claude'}).` : !clientAllowsAi ? AI_REASON[fundAiState] : !aiStatus?.serverKey ? 'Off: no API key on the server.' : 'Off: AI is turned off under AI Settings.'} engagement={setup} entity={activeEntity} people={people} docsAttached={Object.keys(files).length} openPoints={openPoints.length} done={done}
           locked={phase === 'running'} onChange={() => { setDraft(null); setTab('engagement'); }} />}
 
-        <p className="assist-note">Review assistance only. This tool supports the reviewer's judgement; it does not establish that the financial statements are complete or correct.</p>
+        <p className="assist-note">Review assistance only. It supports the reviewer's judgement; it is not an opinion and does not establish that the financial statements are complete or correct.</p>
 
         {stale && canRun && !['engagement', 'users'].includes(tab) && (
           <div style={{ padding: '12px var(--gutter) 0' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', background: 'var(--snow-primary-blue)', borderRadius: 8, padding: '10px 14px' }}>
-              <span style={cap}>The engagement settings have changed since this analysis ran. The checks table already reflects them; review points come from the last analysis and are refreshed the next time a document changes.</span>
+              <span style={cap}>Settings changed since this analysis. Checks already reflect them; review points refresh when a document next changes.</span>
             </div>
           </div>
         )}
@@ -648,7 +648,7 @@ function Workspace({ user, auth, onSignOut }) {
         {result?.aiSkipped?.length > 0 && ['analysis', 'var', 'sched', 'vers'].includes(tab) && (
           <div style={{ padding: '12px var(--gutter) 0' }}>
             <div role="status" style={{ ...cap, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '10px 14px' }}>
-              This analysis ran without AI for: {result.aiSkipped.join(', ')}. The recalculation checks and variance arithmetic ran as normal.
+              Ran without AI for: {result.aiSkipped.join(', ')}. Recalculation checks and variance arithmetic were unaffected.
             </div>
           </div>
         )}

@@ -42,7 +42,7 @@ export default function CheckRulesTab({ store }) {
   async function saveAll() {
     setBusy(true);
     try {
-      await store.saveConfig({ ...cfg, rules }); setDirty(false); setMsg({ kind: 'ok', text: 'Check rules saved. New engagements start from these rules.' });
+      await store.saveConfig({ ...cfg, rules }); setDirty(false); setMsg({ kind: 'ok', text: 'Check rules saved. They apply to every engagement that follows the firm template, unless the engagement or its client overrides a rule.' });
       const before = { ...defaultRulesFor(buildLibrary(saved)), ...(saved?.rules || {}) };
       const changes = library.flatMap(r => {
         const a = before[r.id] || {}, b = rules[r.id] || {}, out = [];
@@ -100,7 +100,7 @@ export default function CheckRulesTab({ store }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 680 }}>
           <div style={h2}>Check Rules</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>The firm’s check library. Add rules, edit existing ones, and set which run by default. New engagements start from these rules; Managers can still adjust them for a single engagement.</div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>The firm’s check library and its defaults. Changes apply to every engagement that follows the firm template, unless the engagement or its client overrides the rule.</div>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <Button kind="secondary" disabled={busy || !!editing} onClick={reset}>Reset Defaults</Button>

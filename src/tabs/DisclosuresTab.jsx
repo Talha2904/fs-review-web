@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Card, Pill, Segmented, cap, body, h2, muted, page, RING } from '../components/ui';
+import { Button, Card, Pill, Segmented, InfoTip, cap, body, h2, muted, page, RING } from '../components/ui';
 import { suggestLocation, checklistSummary } from '../lib/disclosures';
 
 const A = { yes: ['Yes', 'var(--snow-status-complete-bg)'], no: ['No', 'var(--snow-status-rejected-bg)'], na: ['N/A', 'var(--snow-ink-5)'] };
@@ -25,7 +25,7 @@ export default function DisclosuresTab({ framework, list, state, cy, canAnswer, 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}><div style={h2}>Disclosures</div><Pill bg="var(--snow-primary-purple)">{framework}</Pill>{(state?.version || list.version) === 'starter' && <Pill bg="var(--snow-status-approved-bg)">Starter checklist</Pill>}</div>
-          <div style={{ ...cap, ...muted, marginTop: 4 }}>{sum.answered} of {sum.total} answered · {sum.no} “No” · checklist version {state?.version || list.version}{(state?.version || list.version) === 'starter' ? ' · a short generic list: the Administrator should replace it with the firm’s checklist' : ''}</div>
+          <div style={{ ...cap, ...muted, marginTop: 4 }}>{sum.answered} of {sum.total} answered · {sum.no} “No” · checklist version {state?.version || list.version}{(state?.version || list.version) === 'starter' ? <InfoTip label="About the starter checklist">A short generic list: the Administrator should replace it with the firm’s checklist.</InfoTip> : ''}</div>
         </div>
         <Segmented value={view} onChange={setView} options={[['open', `To Answer (${sum.unanswered})`], ['no', `No (${sum.no})`], ['done', 'Answered'], ['all', 'All']]} />
       </div>
@@ -41,7 +41,7 @@ export default function DisclosuresTab({ framework, list, state, cy, canAnswer, 
                 <div key={i.id} className="dt-row dt-1" style={{ '--cols': 'minmax(260px,1.6fr) minmax(220px,1.2fr) auto', gap: 14, alignItems: 'start', padding: '12px 0' }}>
                   <div>
                     <div style={body}><span style={{ ...cap, ...muted, marginRight: 6 }}>{i.ref}</span>{i.text}</div>
-                    <div style={{ ...cap, marginTop: 4, color: h ? '#2E6B12' : 'var(--snow-black-40)' }}>{h ? <>Possibly in <b>{h.where}</b>: “{h.snippet}”</> : 'Nothing found in the draft for this item’s keywords.'}</div>
+                    <div style={{ ...cap, marginTop: 4, color: h ? '#2E6B12' : 'var(--snow-black-40)' }}>{h ? <>Possibly in <b>{h.where}</b>: “{h.snippet}”</> : 'No keyword match in the draft.'}</div>
                     {a && <div style={{ ...cap, ...muted, marginTop: 4 }}>{A[a.answer][0]} · {a.by?.name} · {new Date(a.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}{a.ref ? ` · ${a.ref}` : ''}</div>}
                   </div>
                   <input className="input" aria-label={`Reference for ${i.ref}`} placeholder="Where disclosed (e.g. Note 5), or why N/A" disabled={!canAnswer}

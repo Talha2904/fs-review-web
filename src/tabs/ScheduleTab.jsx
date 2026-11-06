@@ -8,7 +8,7 @@ const effects = p => [
   p.netAssetsEffect != null && `net assets ${p.netAssetsEffect ? signedGbp(p.netAssetsEffect) : 'unchanged'}`
 ].filter(Boolean).join(' · ');
 import { can, canClearPoint } from '../lib/roles';
-import { Button, Card, Pill, PriPill, Segmented, FileButton, cap, body, h2, h3, muted, page, RING } from '../components/ui';
+import { Button, Card, Pill, PriPill, Segmented, FileButton, InfoTip, cap, body, h2, h3, muted, page, RING, LOCKED_NOTE } from '../components/ui';
 import { slotDefs } from '../data/sampleFund';
 import { SLOT_RULES, ACCEPT } from '../lib/fileRules';
 import { reviewStore } from '../lib/reviewStore';
@@ -84,9 +84,6 @@ export default function ScheduleTab({ points, messages, user, people, sel, setSe
           actions={actions} canRaise={canRaise} canRespond={canRespond} locked={locked} threshold={threshold} />}
       </div>
 
-      <div style={{ ...cap, ...muted, maxWidth: 900 }}>
-        Prepared as assistance to the reviewer. The schedule records matters for follow-up; it is not an opinion, and it does not establish that the financial statements are complete or correct.
-      </div>
     </div>
   );
 }
@@ -109,7 +106,7 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
   if (canClear && p.status !== 'cleared') buttons.push(<Button key="c" kind={p.status === 'responded' ? 'primary' : 'secondary'} disabled={busy} onClick={run(t => actions.clear(p, t))}>Clear Point</Button>);
   if (canClear && ['responded', 'cleared'].includes(p.status)) buttons.push(<Button key="o" kind="secondary" disabled={busy || !has} onClick={run(t => actions.reopen(p, t))}>Reopen</Button>);
   if (canRaise || canRespond) buttons.push(<Button key="m" kind="secondary" disabled={busy || !has} onClick={run(t => actions.comment(p, t))}>Add Comment</Button>);
-  const waiting = locked ? 'The review is signed off and locked. A Manager can unlock it on the Sign-off tab.' : p.status === 'cleared' ? `Cleared by ${p.clearedBy?.name} · ${when(p.clearedAt)}.`
+  const waiting = locked ? LOCKED_NOTE : p.status === 'cleared' ? `Cleared by ${p.clearedBy?.name} · ${when(p.clearedAt)}.`
     : ['open', 'reopened'].includes(p.status) ? `Waiting for ${p.assignedTo?.name || 'a preparer'} to respond.`
     : `Waiting for ${p.raisedBy?.name || 'the reviewer'} (who raised it) or a Manager to clear or reopen it.`;
   const hint = ['open', 'reopened'].includes(p.status) && canRespond ? 'Explain what you changed or why no change is needed, then send your response.'
@@ -185,7 +182,7 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
           {responding && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, padding: 12, borderRadius: 10, background: 'var(--snow-primary-light)' }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', ...cap }}>
-                <span style={{ fontWeight: 600 }}>Revised document</span>
+                <span style={{ fontWeight: 600 }}>Revised document<InfoTip label="About revised documents">A revised document becomes the next version of that document and is checked like any upload.</InfoTip></span>
                 <select className="input" aria-label="Document being revised" value={revSlot} onChange={e => { setRevSlot(e.target.value); setRevised(null); }} style={{ height: 32, width: 'auto', fontSize: 12 }}>
                   <option value="">None</option>{slotDefs.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
@@ -193,11 +190,10 @@ function PointDetail({ p, thread, user, people, actions, canRaise, canRespond, l
                   : <FileButton label="Choose File" accept={ACCEPT[SLOT_RULES[revSlot]?.type]} onFile={f => setRevised(f)} />)}
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', ...cap }}>
-                <span style={{ fontWeight: 600 }}>Evidence</span>
+                <span style={{ fontWeight: 600 }}>Evidence<InfoTip label="About evidence">Evidence, such as a reconciliation or a custodian letter, is kept with this point.</InfoTip></span>
                 {evidenceFiles.map((f, i) => <span key={i} style={{ background: '#fff', borderRadius: 6, padding: '2px 8px', boxShadow: RING }}>{f.name} <button type="button" className="link" aria-label={`Remove ${f.name}`} onClick={() => setEvidenceFiles(x => x.filter((_, j) => j !== i))}>×</button></span>)}
                 <FileButton label="Add Evidence" accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.png,.jpg,.jpeg,.msg,.eml,.txt" onFile={f => setEvidenceFiles(x => [...x, f])} />
               </div>
-              <span style={{ ...cap, ...muted }}>A revised document becomes the next version of that document and is checked like any upload. Evidence, such as a reconciliation or a custodian letter, is kept with this point.</span>
             </div>
           )}
           {error && <div role="alert" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 10px' }}>{error}</div>}

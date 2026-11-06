@@ -53,7 +53,8 @@ export default function PortfolioTab({ engagements, user, onOpen }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 760 }}>
           <div style={h2}>Portfolio</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>Every fund’s review: where it has reached, who it is waiting for, and its open and overdue points. Click a fund to open it.{loadError ? ` The portfolio could not be loaded: ${loadError}` : ''}</div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>Click a fund to open it.</div>
+          {loadError && <div role="alert" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 12px' }}>The portfolio could not be loaded: {loadError}</div>}
         </div>
         <Button kind="secondary" onClick={exportX}>Export (.xlsx)</Button>
       </div>

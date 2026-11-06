@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { fmt, sym } from '../lib/format';
 import { slotDefs } from '../data/sampleFund';
-import { Button, Card, CardHead, Pill, PriPill, cap, body, h2, muted, page, RING } from '../components/ui';
+import { Button, Card, CardHead, Pill, PriPill, InfoTip, cap, body, h2, muted, page, RING } from '../components/ui';
 import { PointStatus } from './ScheduleTab';
 import { contentChanges } from '../lib/reviewStore';
 
@@ -61,7 +61,7 @@ export default function SignoffTab({ reports = [], reportActions, review, summar
     <div style={page}>
       <div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}><div style={h2}>Sign-off</div>{st && <Pill bg={st[1]}>{st[0]}</Pill>}</div>
-        <div style={{ ...body, ...muted, marginTop: 6, maxWidth: 760 }}>{partnerRequired ? 'The Manager signs off first, which locks the engagement; the Partner then gives the final sign-off or returns it.' : 'The Manager’s final review: the cleared points, document overrides, the draft that was analysed and anything still showing in the analysis. Signing off locks the engagement.'}</div>
+        <div style={{ ...body, ...muted, marginTop: 6, maxWidth: 760 }}>{partnerRequired ? 'The Manager signs off first, which locks the engagement; the Partner then gives the final sign-off or returns it.' : <>Signing off locks the engagement.<InfoTip label="What the Manager reviews">The Manager’s final review: the cleared points, document overrides, the draft that was analysed and anything still showing in the analysis.</InfoTip></>}</div>
       </div>
 
       <div role="status" className={'seal ' + (signed ? 'is-signed' : ready ? 'is-ready' : 'is-blocked')} style={body}>
@@ -126,21 +126,21 @@ export default function SignoffTab({ reports = [], reportActions, review, summar
 
       <Card>
         <CardHead title="Review Report" />
-        <div style={{ ...cap, ...muted, marginTop: 6 }}>The permanent record of this review: documents and their fingerprints, checks, every point with its thread, the disclosure checklist, the sign-offs and the use of AI. It is made at the final sign-off{partnerRequired ? ' (the Partner’s)' : ''}; a new version is made each time the review is signed off again.</div>
+        <div style={{ ...cap, ...muted, marginTop: 6 }}>Made at the final sign-off{partnerRequired ? ' (the Partner’s)' : ''}; signing off again makes a new version.<InfoTip label="What the report contains">The permanent record of this review: documents and their fingerprints, checks, every point with its thread, the disclosure checklist, the sign-offs and the use of AI.</InfoTip></div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
           {reports.map(r => (
             <div key={r.id} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', ...cap }}>
               <b>Version {r.version}</b><span>signed off by {r.signedBy?.name || '—'} · {when(r.signedAt || r.at)}</span><span style={{ ...muted }}>SHA-256 {r.sha256.slice(0, 12)}…</span>
               <Button size="sm" kind="secondary" onClick={() => reportActions.download(r)}>Download PDF</Button>
             </div>))}
-          {!reports.length && <span style={{ ...cap }}>No report yet: it is made when the review is signed off.</span>}
+          {!reports.length && <span style={{ ...cap }}>No report yet.</span>}
           <span><Button size="sm" kind="secondary" onClick={() => reportActions.draft()}>Download Draft Report</Button></span>
         </div>
       </Card>
       <Card>
         <CardHead title={awaitingPartner && canPartner ? 'Partner Decision' : signed ? 'Unlock' : 'Your Decision'} />
         {awaitingPartner && canPartner ? (
-          <Decision label="Partner conclusion (required to sign off; also used as the reason when returning)" text={text} setText={setText}>
+          <Decision label="Partner conclusion (required to sign off; also the reason if returned)" text={text} setText={setText}>
             <Button disabled={busy || !has} onClick={go(actions.partnerSignOff)}>Partner Sign-off</Button>
             <Button kind="secondary" disabled={busy || !has} onClick={go(actions.returnToReviewer)}>Return to Reviewer</Button>
           </Decision>

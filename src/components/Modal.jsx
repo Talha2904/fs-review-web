@@ -8,7 +8,8 @@ export default function Modal({ title, onClose, children, footer, width = 440 })
   useEffect(() => {
     const opener = document.activeElement;
     const focusables = () => [...box.current.querySelectorAll('input, select, textarea, button, [href], [tabindex]:not([tabindex="-1"])')].filter(el => !el.disabled);
-    (focusables()[0] || box.current).focus();
+    // the first field or button, not an ⓘ hint (it would open over the dialog as soon as it appears)
+    (focusables().find(el => !el.classList.contains('infotip-btn')) || box.current).focus();
     const onKey = e => {
       if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
       if (e.key === 'Tab') {

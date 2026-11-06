@@ -47,7 +47,7 @@ export default function NotificationBell({ actions, actionCount = actions.length
           <Section title={`Needs your action (${actionCount})`} empty="Nothing is waiting for you.">
             {actions.map(a => <Item key={a.id} item={a} onGo={go} strong />)}
             {actionCount > actions.length && (
-              <div style={{ ...cap, ...muted, padding: '6px 16px 10px' }}>The newest {actions.length} are shown. The Portfolio screen lists every fund’s open points.</div>
+              <div style={{ ...cap, ...muted, padding: '6px 16px 10px' }}>Newest {actions.length} shown; Portfolio lists every fund’s open points.</div>
             )}
           </Section>
           <Section title="Updates" empty="No updates yet.">

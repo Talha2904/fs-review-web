@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 export const RING = 'inset 0 0 0 1px rgba(0,0,0,0.1)';
 export const RED = '#C8374B', REDBG = 'var(--snow-status-rejected-bg)';
@@ -12,6 +12,8 @@ export const BAND_BG = { Investigate: 'var(--snow-status-rejected-bg)', Explain:
 export const STATUS_LABEL = { open: 'Open', info: 'Info Requested', cleared: 'Cleared' };
 export const page = { padding: '20px var(--gutter) 40px', display: 'flex', flexDirection: 'column', gap: 20 };
 export const hairBottom = { boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)' };
+// Shown wherever a signed-off review blocks a change (one wording everywhere).
+export const LOCKED_NOTE = 'The review is signed off and locked. A Manager can unlock it on the Sign-off tab.';
 
 export const Pill = ({ bg = 'var(--snow-ink-5)', children, style }) => (
   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...cap, background: bg, padding: '0 10px', height: 18, borderRadius: 18, whiteSpace: 'nowrap', ...style }}>{children}</span>
@@ -22,10 +24,91 @@ export const Card = ({ children, tint, style }) => (
   <div className={'card' + (tint ? ' card-tint' : '')} style={{ background: tint || undefined, padding: 'var(--card-pad)', ...style }}>{children}</div>
 );
 
-export const CardHead = ({ title, aside, small }) => (
+// `info`: an explanation of the card, behind an ⓘ next to the title.
+export const CardHead = ({ title, aside, small, info }) => (
   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'baseline', justifyContent: 'space-between' }}>
-    <div style={small ? { ...body, fontWeight: 600 } : h3}>{title}</div>
+    <div style={small ? { ...body, fontWeight: 600 } : h3}>{title}{info && <InfoTip label={`About ${typeof title === 'string' ? title : 'this'}`}>{info}</InfoTip>}</div>
     {aside != null && <div style={{ ...cap, ...muted }}>{aside}</div>}
+  </div>
+);
+
+// An explanation that is useful but not needed every time: an ⓘ that shows it on mouse hover, keyboard focus or
+// tap, and closes on Escape or a tap elsewhere. The text is always in the page (hidden until shown) and describes
+// the button, so screen readers announce it on focus. It opens below the ⓘ and shifts sideways to stay in view.
+let tipSeq = 0;
+const keyboardFocus = el => { try { return el.matches(':focus-visible'); } catch { return true; } };
+export function InfoTip({ children, label = 'More information', style }) {
+  // How it was opened decides how it closes: by mouse hover (closes when the pointer leaves), by keyboard focus, or
+  // pinned by a click, tap or Enter (stays until toggled again, a tap elsewhere, Escape, or focus moving away). A
+  // click always pins, so a click after hover or focus already opened it never closes it by accident. Touch never
+  // counts as hover, so on a phone the first tap pins it and the next tap closes it.
+  const [shown, setShown] = useState(null); // null | 'hover' | 'focus' | 'pinned'
+  const [id] = useState(() => 'tip-' + (++tipSeq));
+  const ref = useRef(null), pop = useRef(null);
+  const open = shown !== null;
+  const show = how => setShown(s => (s === 'pinned' ? s : how));
+  const hide = how => setShown(s => (s === how ? null : s));
+  const toggle = () => setShown(s => (s === 'pinned' ? null : 'pinned'));
+
+  // Keep the box on screen, or inside the visible area of the dialog it sits in (not under its scrollbar): drawn,
+  // then shifted sideways only as far as needed. Measured again if the window is resized while it is open.
+  useLayoutEffect(() => {
+    const el = pop.current;
+    if (!open || !el) return undefined;
+    const place = () => {
+      el.style.transform = 'none';
+      const r = el.getBoundingClientRect();
+      const modal = ref.current?.closest('.modal');
+      let box = { left: 0, right: document.documentElement.clientWidth };
+      if (modal) { const m = modal.getBoundingClientRect(); box = { left: m.left + modal.clientLeft, right: m.left + modal.clientLeft + modal.clientWidth }; }
+      let dx = 0;
+      if (r.right > box.right - 8) dx = box.right - 8 - r.right;
+      if (r.left + dx < box.left + 8) dx = box.left + 8 - r.left;
+      el.style.transform = dx ? `translateX(${Math.round(dx)}px)` : 'none';
+    };
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    // capture on window, before a dialog's own Escape handler: Escape closes the tip, not the dialog
+    const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); setShown(null); } };
+    const onDown = e => { if (!ref.current?.contains(e.target)) setShown(null); };
+    window.addEventListener('keydown', onKey, true); document.addEventListener('pointerdown', onDown);
+    return () => { window.removeEventListener('keydown', onKey, true); document.removeEventListener('pointerdown', onDown); };
+  }, [open]);
+
+  return (
+    <span ref={ref} className="infotip" style={style}
+      onPointerEnter={e => { if (e.pointerType === 'mouse') show('hover'); }}
+      onPointerLeave={e => { if (e.pointerType === 'mouse') hide('hover'); }}
+      // focus leaving the ⓘ and its box closes it however it was opened, unless the mouse is still resting on it
+      onBlur={e => { if (!ref.current?.contains(e.relatedTarget)) setShown(s => (s === 'hover' ? s : null)); }}>
+      {/* a span with the button role, not a <button>: a disabled form (read-only engagement) must not disable its help */}
+      <span role="button" tabIndex={0} className="infotip-btn" aria-label={label} aria-describedby={id} aria-expanded={open}
+        onClick={e => { e.preventDefault(); e.stopPropagation(); toggle(); }}
+        onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) { e.preventDefault(); toggle(); } else if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
+        // only keyboard focus opens it; focus a dialog moves here by itself does not
+        onFocus={e => { if (keyboardFocus(e.currentTarget)) show('focus'); }}
+        >i</span>
+      {/* focusable by click only, so clicking or selecting its text keeps focus inside and the tip open */}
+      <span ref={pop} role="tooltip" id={id} className="infotip-pop" tabIndex={-1} hidden={!open}>{children}</span>
+    </span>
+  );
+}
+
+// A labelled form field. `hint` stays visible under the input; `tip` is a longer explanation behind an ⓘ,
+// placed outside the label so clicking the label text still focuses the input.
+export const Field = ({ label, hint, tip, children }) => (
+  <div style={{ position: 'relative' }}>
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <span style={{ ...cap, ...muted, paddingRight: tip ? 24 : 0 }}>{label}</span>
+      {children}
+      {hint && <span style={{ ...cap, ...muted }}>{hint}</span>}
+    </label>
+    {tip && <InfoTip label={`About ${label}`} style={{ position: 'absolute', top: 0, right: 0 }}>{tip}</InfoTip>}
   </div>
 );
 

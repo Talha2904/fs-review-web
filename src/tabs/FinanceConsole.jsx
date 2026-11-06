@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import AppShell from '../components/AppShell';
 import Modal from '../components/Modal';
 import NotificationBell from '../components/NotificationBell';
-import { Button, Card, CardHead, Pill, cap, body, h2, h3, muted, page, RING } from '../components/ui';
+import { Button, Card, CardHead, Pill, InfoTip, cap, body, h2, h3, muted, page, RING } from '../components/ui';
 import { totals, invoiceStatus, daysOverdue, recovery, unbilledUsage, aiSummary, money, DEFAULT_BILLING } from '../lib/billing';
 import { MODELS } from '../lib/aiOptions';
 import { saveFile } from '../lib/download';
@@ -68,7 +68,7 @@ export default function FinanceConsole({ user, auth, onSignOut }) {
 // ---- Ready to Invoice ----------------------------------------------------------------------
 function Ready({ queue, unlocked, st, onCreate }) {
   return (<>
-    <div><div style={h2}>Ready to Invoice</div><div style={{ ...body, ...muted, marginTop: 6, maxWidth: 760 }}>Funds appear here when a Manager signs off the review. Each invoice includes the professional fee and the fund’s AI usage as a separate line. AI usage after an invoice was issued appears again here for a supplementary invoice.</div></div>
+    <div><div style={h2}>Ready to Invoice</div><div style={{ ...body, ...muted, marginTop: 6, maxWidth: 760 }}>Funds appear here at the final sign-off (the Partner’s, where partner sign-off is required). Each invoice has the professional fee and the fund’s AI usage as separate lines.<InfoTip label="About later AI usage">AI usage after an invoice was issued appears again here for a supplementary invoice.</InfoTip></div></div>
     {unlocked.length > 0 && <div role="status" style={{ ...cap, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '10px 14px' }}>Unlocked after invoicing: {unlocked.map(e => e.fundName).join(', ')}. If it is signed off again, any new AI usage will appear here for a supplementary invoice.</div>}
     <Card>
       {!queue.length ? <div style={{ ...body, ...muted }}>Nothing is waiting to be invoiced.</div> : (
@@ -340,7 +340,7 @@ function Settings({ st, act, extra, auth, integ, reloadInteg }) {
         <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}><span style={{ ...cap, ...muted }}>Default professional fee (£)</span><input className="input" value={s._fee ?? fromP(s.defaultFee)} onChange={e => set('_fee', e.target.value)} /><span style={{ ...cap, ...muted }}>Suggested on new invoices; can be changed on each one</span></label>
       </div></Card>
     <Card><CardHead title="AI Usage Charges" />
-      <div style={{ ...cap, ...muted, marginTop: 8, maxWidth: 760 }}>Enter each model’s current prices from Anthropic’s pricing page (US dollars per million tokens). AI cost is converted to pounds at your rate, then the markup is added. Until a model has prices and a rate is set, its usage shows on invoices without a charge.</div>
+      <div style={{ ...cap, ...muted, marginTop: 8, maxWidth: 760 }}>Prices from Anthropic’s pricing page, in US dollars per million tokens. Until a model has prices and a rate is set, its usage shows on invoices without a charge.<InfoTip label="How AI cost is charged">AI cost is converted to pounds at your rate, then the markup is added.</InfoTip></div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12, marginTop: 12 }}>
         {F({ k: 'usdToGbp', label: 'USD to GBP rate', placeholder: 'e.g. the rate on your invoice date' })}{F({ k: 'aiMarkupPct', label: 'AI markup (%)', hint: '0 recharges AI at cost' })}
       </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { slotDefs, steps } from '../data/sampleFund';
-import { Button, FileButton, Pill, cap, body, h2, h3, muted, page, RING } from '../components/ui';
+import { Button, FileButton, Pill, InfoTip, cap, body, h2, h3, muted, page, RING, LOCKED_NOTE } from '../components/ui';
 import Modal from '../components/Modal';
 import { SLOT_RULES, ACCEPT } from '../lib/fileRules';
 import { validateFile } from '../lib/validateFile';
@@ -46,17 +46,17 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
 
   const running = phase === 'running', done = phase === 'done';
   const heading = running ? 'Analysing the File' : done ? 'Analysis Complete' : ready ? 'Run the Analysis' : wf.state === 'ready' ? 'Documents Ready' : 'Prepare the Documents to Continue';
-  const sub = running ? 'Casting the statements, agreeing the notes to supporting schedules and comparing narrative with last year.'
+  const sub = running ? 'Casting the statements, tying the notes to the schedules and comparing narrative with last year.'
     : done ? analysisSub
-    : ready ? (current.sup ? 'All documents are checked and marked ready for review.' : 'The four required documents are checked and marked ready. Without supporting information, movement explanations cannot be corroborated.')
-    : 'The analysis runs once the documents are attached, checked and marked ready for review.';
+    : ready ? (current.sup ? 'All documents are checked and ready.' : 'The required documents are ready. Without supporting information, movements can’t be corroborated.')
+    : 'Attach, check and mark the documents ready to run the analysis.';
 
   return (
     <div style={page}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 660 }}>
           <div style={h2}>Documents</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>Attach each document. The app checks that it is the right document for this fund and year end, without using AI. Then mark the documents ready for review.</div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>Attach each document, then mark them ready for review.<InfoTip label="How documents are checked">Each document is checked to be the right one for this fund and year end, without using AI.</InfoTip></div>
         </div>
         {editable ? <Button kind="secondary" onClick={attachAll}>Use All Sample Documents</Button>
           : <span style={{ ...cap, ...muted, maxWidth: 280 }}>{signed ? 'The review is signed off; documents are locked.' : !canAttach ? 'Your role cannot attach documents.' : 'The documents are locked while marked ready for review.'}</span>}
@@ -64,7 +64,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
 
       {umbrella && (
         <div role="status" style={{ ...body, background: 'var(--snow-primary-blue)', borderRadius: 12, padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span><b>Umbrella accounts.</b> {umbrella.entity}’s draft, signed accounts and supporting information cover all its funds; this fund’s figures are read from its own column or section, <b>“{umbrella.name}”</b>. The trial balance and investment schedule are this fund’s own.</span>
+          <span><b>Umbrella accounts:</b> this fund is read from <b>“{umbrella.name}”</b>. Its trial balance and investment schedule are its own.<InfoTip label="About umbrella accounts">{umbrella.entity}’s draft, signed accounts and supporting information cover all its funds; this fund’s figures are read from its own column or section.</InfoTip></span>
           {umbrella.sources.map(s => (
             <span key={s.id} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', ...cap }}>
               <span>{s.name} has {s.versions.join(', ')}{s.versions.length ? ' not attached here' : ''}.</span>
@@ -122,7 +122,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
                       {v.readWith === 'ai'
                         ? <span><b>Will be read by AI</b>, chosen by {v.readWithBy?.name} because the OCR confidence was {v.validation.ocrLow}%.</span>
                         : <>
-                          <span><b>Low OCR confidence ({v.validation.ocrLow}%).</b> {aiForReading ? 'Read it with AI instead, keep the OCR reading (Confirm Anyway), or replace it with a clearer scan.' : `AI can’t be used here: ${(aiWhyNot || 'AI is not available').split('.')[0]}. Keep the OCR reading (Confirm Anyway), or replace it with a clearer scan.`}</span>
+                          <span><b>Low OCR confidence ({v.validation.ocrLow}%).</b> {aiForReading ? 'Read it with AI, keep the OCR reading (Confirm Anyway), or replace it with a clearer scan.' : `AI can’t be used here: ${(aiWhyNot || 'AI is not available').split('.')[0]}. Keep the OCR reading (Confirm Anyway), or replace it with a clearer scan.`}</span>
                           {aiForReading && (editable || canConfirm) && <span><Button size="sm" onClick={() => onReadWithAi(v)}>Read with AI</Button></span>}
                         </>}
                     </div>
@@ -188,11 +188,11 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
           <div style={h3}>{heading}</div>
           <div style={{ ...body, marginTop: 6 }}>{sub}</div>
           {done && !signed && (rerun.blocked
-            ? <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Already analysed on {rerun.at}. No document has changed since, so the analysis can’t be run again. Replace a document to run it again.</div>
+            ? <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Analysed {rerun.at}. No document has changed since; replace one to run it again.</div>
             : <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Documents changed since the last analysis: {rerun.changes.join('; ')}.</div>)}
           {blockedReason && !signed && <div role="status" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-approved-bg)', padding: '8px 12px', borderRadius: 8 }}>{blockedReason}</div>}
-          {signed ? <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>The review is signed off and locked. A Manager can unlock it on the Sign-off tab.</div>
-            : !canRun && <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Your role ({role}) cannot run the analysis. Ask someone whose role can.</div>}
+          {signed ? <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>{LOCKED_NOTE}</div>
+            : !canRun && <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Your role ({role}) can’t run the analysis; ask someone whose role can.</div>}
           {/* dark text of its own: this sits in the dark run panel, whose white text it would otherwise take */}
           {error && <div role="alert" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-rejected-bg)', color: '#14213D', padding: '8px 12px', borderRadius: 8 }}>The analysis stopped: {error}</div>}
         </div>

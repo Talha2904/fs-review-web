@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { gbp, signedGbp, pctLabel, fmt, sym } from '../lib/format';
-import { Button, Card, CardHead, Pill, PriPill, Segmented, Tile, BAND_BG, cap, body, h2, muted, page } from '../components/ui';
+import { Button, Card, CardHead, Pill, PriPill, Segmented, Tile, InfoTip, BAND_BG, cap, body, h2, muted, page } from '../components/ui';
 
 const GRID = 'minmax(180px,2.2fr) minmax(100px,1fr) minmax(100px,1fr) minmax(100px,1fr) 78px 112px';
 const COLS = ['Financial statement line', 'Current year draft', 'Prior year signed', 'Movement', 'Movement %', 'Assessment'];
@@ -15,7 +15,7 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
     <div style={page}>
       <Card>
         <div style={h2}>Variance Analysis</div>
-        <div style={{ ...body, ...muted, marginTop: 8, maxWidth: 620 }}>CHK-11 year-on-year variances is switched off in the engagement under review, so no lines were compared. Switch it on in the engagement and run the analysis again to see the variance review.</div>
+        <div style={{ ...body, ...muted, marginTop: 8, maxWidth: 620 }}>CHK-11 (year-on-year variances) is off for this engagement, so no lines were compared. Turn it on in the engagement to see them; AI explanations of the lines come with the next analysis.</div>
         <Button kind="secondary" style={{ marginTop: 16 }} onClick={goSetup}>Open Engagements</Button>
       </Card>
     </div>
@@ -64,7 +64,7 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 680 }}>
           <div style={h2}>Variance Analysis</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>{mode === 'library' ? 'Every comparative line in the draft is set against the signed prior year. Under CHK-11 every movement at or above the review threshold is listed for explanation, and lines far from the net-asset expectation are put forward for investigation.' : 'Every comparative line in the draft is set against the signed prior year, sized against the review threshold and read against the movement in net assets. Only material lines outside the expectation band are listed.'}</div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>Draft against signed prior year.<InfoTip label="How lines are assessed">{mode === 'library' ? 'Every comparative line in the draft is set against the signed prior year. Under CHK-11 every movement at or above the review threshold is listed for explanation, and lines far from the net-asset expectation are put forward for investigation.' : 'Every comparative line in the draft is set against the signed prior year, sized against the review threshold and read against the movement in net assets. Only material lines outside the expectation band are listed.'}</InfoTip></div>
         </div>
         <Segmented options={[['all', 'All Lines'], ['flagged', 'Outside Expectation']]} value={filter} onChange={setFilter} />
       </div>
@@ -148,7 +148,7 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
       </div>
 
       <div style={{ ...cap, ...muted, maxWidth: 900 }}>
-        {investigate.length} of {model.rows.length} lines require investigation · threshold {sym()}{fmt(threshold)} · net assets {pctLabel(growth * 100)}{avgGrowth != null ? ` · average net assets ${pctLabel(avgGrowth * 100)}` : ''}
+        Threshold {sym()}{fmt(threshold)} · net assets {pctLabel(growth * 100)}{avgGrowth != null ? ` · average net assets ${pctLabel(avgGrowth * 100)}` : ''}
       </div>
     </div>
   );
