@@ -22,12 +22,15 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
   // The largest movement the analysis flagged: the first matter for the Directors, else the largest line
   // outside expectation. Lines within expectation (such as average net assets in a highlights note) are not
   // movements to report, so the tile always names a line listed on this page.
-  const biggest = directors[0] || flagged.filter(r => !r.sub).sort(byDelta)[0];
+  const biggest = directors.find(r => !r.sub) || flagged.filter(r => !r.sub).sort(byDelta)[0];
   const groups = model.groups.filter(g => filter === 'all' || g.rows.some(r => r.band !== 'Expected'));
 
   // The tiles and the matters take the reader to the lines they are about. A line's row is found by its label;
   // it is briefly highlighted so the eye lands on it.
-  const rowId = label => 'var-' + label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  // a row id from the line label, made unique even where two labels differ only in punctuation or accents
+  const rowIds = new Map();
+  model.rows.forEach((r, i) => rowIds.set(r.label, `var-row-${i}`));
+  const rowId = label => rowIds.get(label) || '';
   // after React has drawn any filter change (a timer, not an animation frame, so it also runs in a background tab)
   const goTo = (id, flash = false) => setTimeout(() => {
     const el = document.getElementById(id);
@@ -36,7 +39,8 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
     el.scrollIntoView({ behavior: 'smooth', block });
     // where smooth scrolling is unavailable or was interrupted, land on the line anyway
     setTimeout(() => { const r = el.getBoundingClientRect(); if (r.top < 0 || r.top > window.innerHeight - 40) el.scrollIntoView({ block }); }, 900);
-    if (flash) { el.classList.remove('is-flash'); void el.offsetWidth; el.classList.add('is-flash'); setTimeout(() => el.classList.remove('is-flash'), 2000); }
+    // a repeat click restarts the highlight; only the latest click removes it
+    if (flash) { clearTimeout(el._flash); el.classList.remove('is-flash'); void el.offsetWidth; el.classList.add('is-flash'); el._flash = setTimeout(() => el.classList.remove('is-flash'), 2000); }
   }, 50);
   const showLines = f => { setFilter(f); goTo('var-lines'); };
   const showLine = r => { if (filter !== 'all' && r.band === 'Expected') setFilter('all'); goTo(rowId(r.label), true); };
@@ -82,8 +86,8 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
 
       <div id="var-lines" className="var-anchor" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* what the table below shows, so a tile that changed the filter is visibly different where it lands */}
-      <div role="status" style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={body}>{filter === 'all' ? <>Showing <b>all {model.rows.length} lines</b> compared</> : <>Showing the <b>{flagged.length} lines outside expectation</b> · {model.rows.length - flagged.length} lines within expectation are hidden</>}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+        <div role="status" style={body}>{filter === 'all' ? <>Showing <b>all {model.rows.length} lines</b> compared</> : <>Showing the <b>{flagged.length} lines outside expectation</b> · {model.rows.length - flagged.length} lines within expectation are hidden</>}</div>
         <Segmented options={[['all', 'All Lines'], ['flagged', 'Outside Expectation']]} value={filter} onChange={setFilter} />
       </div>
       {groups.map(g => (

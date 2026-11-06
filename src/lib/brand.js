@@ -8,8 +8,6 @@ export const BRAND = {
   by: 'By Project Accountants',
   firm: 'Project Accountants',
   tagline: 'AI-assisted review of financial statements.',
-  /** where "Contact support" on the sign-in page goes (opens in a new tab); the link is hidden while this is empty */
-  // the website's own "Get in touch" page (it shows /book-a-call in the address bar once loaded, but that
-  // address itself is not a page on the site, so link to /contact-us/)
-  supportUrl: 'https://projectaccountants.co.uk/contact-us/'
+  /** who "Contact support" on the sign-in page emails (it opens the person's email app); hidden while empty */
+  supportEmail: 'muhammad.salman@projectaccountants.co.uk'
 };

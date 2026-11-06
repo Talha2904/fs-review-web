@@ -34,7 +34,7 @@ export default function LoginPage({ auth, setupRequired, onSignedIn }) {
         {mode === 'signin' && <SignInForm auth={auth} setupRequired={setupRequired} onSignedIn={onSignedIn} notice={notice} onForgot={() => { setNotice(''); setMode('forgot'); }} />}
         <div className="siq-foot">
           <span>Access is limited to accounts issued by your administrator.</span>
-          {BRAND.supportUrl && <a className="siq-link" href={BRAND.supportUrl} target="_blank" rel="noopener noreferrer">Contact support</a>}
+          {BRAND.supportEmail && <a className="siq-link" href={`mailto:${BRAND.supportEmail}?subject=${encodeURIComponent(`${BRAND.name} support`)}`} title={BRAND.supportEmail}>Contact support</a>}
         </div>
       </main>
     </div>

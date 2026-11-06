@@ -52,7 +52,7 @@ export const Tile = ({ bg, label, value, sub, flex = '1 1 140px', onClick, title
   </>;
   const style = { flex, minWidth: 140, background: bg, padding: 'var(--card-pad)' };
   return onClick
-    ? <button type="button" className="tile is-link" title={title} onClick={onClick} style={{ ...style, border: 0, font: 'inherit', color: 'inherit', textAlign: 'left' }}>{inner}</button>
+    ? <button type="button" className="tile is-link" title={title} onClick={onClick} style={{ ...style, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', border: 0, font: 'inherit', color: 'inherit', textAlign: 'left' }}>{inner}</button>
     : <div className="tile" style={style}>{inner}</div>;
 };
 
