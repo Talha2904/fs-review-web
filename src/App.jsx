@@ -424,13 +424,17 @@ function Workspace({ user, auth, onSignOut }) {
   const pick = item => setTray(t => t.some(x => x.id === item.id) ? t.filter(x => x.id !== item.id) : [...t, item].slice(-4));
   const preparerOf = () => people.find(x => x.id === active?.fund?.preparerId && x.active && x.role === 'Preparer') || null;
   const pointName = id => review.points.find(p => p.id === id);
-  const pushPoint = async p => {
-    if (!canRaise) return;
+  // Raises a point and returns it as saved. The server may renumber the reference, so the saved one is used.
+  // `stay` keeps the reviewer where they are (raising from the variance list), instead of opening Review Points.
+  const pushPoint = async (p, { stay = false } = {}) => {
+    if (!canRaise) return null;
     const prefix = p.ref.replace(/\d+$/, ''), n = review.points.filter(x => x.ref.startsWith(prefix)).length + 1;
     const content = { ...p, ref: prefix + n }, assignee = preparerOf();
-    await reviewStore.raisePoint(active.id, content, { user, assignee });
-    setTab('sched'); setSel(content.ref);
-    log('Review points', `Raised ${content.ref}: ${content.title}`, assignee ? `Assigned to ${assignee.name}` : 'Not assigned');
+    const saved = await reviewStore.raisePoint(active.id, content, { user, assignee });
+    const ref = saved?.ref || content.ref;
+    if (!stay) { setTab('sched'); setSel(ref); }
+    log('Review points', `Raised ${ref}: ${content.title}`, assignee ? `Assigned to ${assignee.name}` : 'Not assigned');
+    return saved;
   };
   const pointActions = {
     // A response can carry a revised document (a new version of that document, checked as usual, even
@@ -480,14 +484,25 @@ function Workspace({ user, auth, onSignOut }) {
     setTray([]);
   };
 
+  // What the line did, in words that fit every case, then the analysis note (unless it only repeats that).
+  const varianceBasis = r => {
+    const what = !r.py ? `${r.label}: new line, ${sym()}${fmt(r.cy)} with no prior-year comparative.`
+      : r.cy == null ? `${r.label}: not in the current year draft; ${sym()}${fmt(r.py)} in the prior year.`
+      : `${r.label} moved from ${sym()}${fmt(r.py)} to ${sym()}${fmt(r.cy)} (${pctLabel(r.pct)}).`;
+    const note = (r.note || '').trim();
+    return /^new line in the current year/i.test(note) && !r.py ? what : [what, note].filter(Boolean).join(' ');
+  };
+  // A variance line (Investigate or Explain) raised as a point. `line` records exactly which line it came from.
   const raiseVariance = r => pushPoint({
-    ref: 'RP-V1', pri: r.pri, area: 'Variance', doc: 'cy',
+    ref: 'RP-V1', pri: r.pri, area: 'Variance', doc: 'cy', line: r.label,
     title: 'Variance on ' + r.label.charAt(0).toLowerCase() + r.label.slice(1),
-    basis: `${r.label} moved from ${sym()}${fmt(r.py)} to ${sym()}${fmt(r.cy)} (${pctLabel(r.pct)}). ${r.note}`,
+    basis: varianceBasis(r),
     amount: Math.abs(r.delta), refs: r.group, follow: r.action,
     status: 'open', agent: 'new', agentNote: 'Raised from the variance analysis on this version.'
-  });
-  const raised = label => review.points.some(p => p.content.area === 'Variance' && (p.content.basis || '').startsWith(label));
+  }, { stay: true });
+  // The point already raised for a line, if any. Points raised before `line` existed are matched by their wording.
+  const raised = label => review.points.find(p => p.content.area === 'Variance'
+    && (p.content.line ? p.content.line === label : (p.content.basis || '').startsWith(label + ' moved from '))) || null;
 
   // Alerts and notifications across every fund, for the bell.
   // worked out on the api (GET /api/notifications) with the same rules the browser used
@@ -649,7 +664,7 @@ function Workspace({ user, auth, onSignOut }) {
           onRejected={(d, file, why) => log('Documents', `Refused a file for ${d.name}: ${file.name}`, why)} />}
         {tab === 'analysis' && done && <AnalysisTab result={result} checks={checks} openPoints={openPoints} files={files} docSel={docSel} setDocSel={setDocSel} tray={tray} pick={pick} clearTray={() => setTray([])} addFromTray={addFromTray} sel={sel} setSel={setSel} goto={setTab} openPoint={openPoint} hasPoint={ref => points.some(p => p.ref === ref)} showFlags={CONFIG.showFlags} analysedAt={analysedAt} canRaise={canRaise}
           tbOn={ruleOn(setup, 'CHK-02')} tbMap={active?.tbMap || {}} tbTol={setup.rules?.['CHK-02']?.tol ?? 1} canMap={(canAttach || canRun) && !signed} onSaveMap={saveTbMap} />}
-        {tab === 'var' && done && <VarianceTab aiNotes={Object.values(result.varNotes || {}).some(n => n?.aiDrafted)} canEditPoints={canRaise} enabled={varianceOn} mode={setup.varianceMode} goSetup={() => { setDraft(null); setTab('engagement'); }} model={vm} filter={varFilter} setFilter={setVarFilter} raised={raised} onRaise={raiseVariance} threshold={th} growth={growth} avgGrowth={avgGrowth} />}
+        {tab === 'var' && done && <VarianceTab aiNotes={Object.values(result.varNotes || {}).some(n => n?.aiDrafted)} canEditPoints={canRaise} enabled={varianceOn} mode={setup.varianceMode} goSetup={() => { setDraft(null); setTab('engagement'); }} model={vm} filter={varFilter} setFilter={setVarFilter} raised={raised} onRaise={raiseVariance} openPoint={openPoint} threshold={th} growth={growth} avgGrowth={avgGrowth} />}
         {tab === 'sched' && points.length > 0 && <ScheduleTab points={points} messages={review.messages} user={user} people={people} sel={sel} setSel={setSel} focus={focusPoint} onFocused={() => setFocusPoint(null)} actions={pointActions} waitingForMe={waitingForMe}
           canRaise={canRaise} canRespond={canRespond} locked={signed} threshold={th} version={result?.version} />}
         {tab === 'disc' && done && clOn && <DisclosuresTab framework={clFramework} list={clList} state={clState} cy={result.docs?.cy} signed={signed} canAnswer={canRaise} onAnswer={answerDisclosure} />}

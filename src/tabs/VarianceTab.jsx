@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { gbp, signedGbp, pctLabel, fmt, sym } from '../lib/format';
 import { Button, Card, CardHead, Pill, PriPill, Segmented, Tile, BAND_BG, cap, body, h2, muted, page } from '../components/ui';
 
 const GRID = 'minmax(180px,2.2fr) minmax(100px,1fr) minmax(100px,1fr) minmax(100px,1fr) 78px 112px';
 const COLS = ['Financial statement line', 'Current year draft', 'Prior year signed', 'Movement', 'Movement %', 'Assessment'];
 
-export default function VarianceTab({ aiNotes = false, canEditPoints = true, enabled = true, mode = 'library', goSetup, model, filter, setFilter, raised, onRaise, threshold, growth, avgGrowth }) {
+export default function VarianceTab({ aiNotes = false, canEditPoints = true, enabled = true, mode = 'library', goSetup, model, filter, setFilter, raised, onRaise, openPoint, threshold, growth, avgGrowth }) {
+  // lines being raised right now (so a second click can't raise twice) and the last error, by line
+  const [raising, setRaising] = useState({});
+  const [raiseError, setRaiseError] = useState({});
+  // the point just raised for a line, shown until the refreshed review includes it
+  const [justRaised, setJustRaised] = useState({});
   if (!enabled) return (
     <div style={page}>
       <Card>
@@ -42,6 +47,15 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
     // a repeat click restarts the highlight; only the latest click removes it
     if (flash) { clearTimeout(el._flash); el.classList.remove('is-flash'); void el.offsetWidth; el.classList.add('is-flash'); el._flash = setTimeout(() => el.classList.remove('is-flash'), 2000); }
   }, 50);
+  // Raises the line as a review point and stays here; the row then links to the point.
+  const raise = async r => {
+    if (raising[r.label]) return;
+    setRaising(m => ({ ...m, [r.label]: true }));
+    setRaiseError(m => ({ ...m, [r.label]: '' }));
+    try { const saved = await onRaise(r); if (saved) setJustRaised(m => ({ ...m, [r.label]: saved })); }
+    catch (e) { setRaiseError(m => ({ ...m, [r.label]: e.message || 'The point could not be raised.' })); }
+    finally { setRaising(m => ({ ...m, [r.label]: false })); }
+  };
   const showLines = f => { setFilter(f); goTo('var-lines'); };
   const showLine = r => { if (filter !== 'all' && r.band === 'Expected') setFilter('all'); goTo(rowId(r.label), true); };
 
@@ -98,7 +112,7 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
               {COLS.map(c => <div key={c} style={{ ...cap, ...muted }}>{c}</div>)}
             </div>
             {g.rows.filter(r => filter === 'all' || r.band !== 'Expected').map(r => {
-              const isRaised = raised(r.label);
+              const point = raised(r.label) || justRaised[r.label] || null;
               const num = { ...body, fontWeight: r.sub ? 600 : 400 };
               const dl = { ...body, fontWeight: r.band === 'Investigate' ? 600 : 400 };
               return (
@@ -114,11 +128,15 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
                     <div data-label="Movement %" className="num" style={dl}>{pctLabel(r.pct)}<MoveBar pct={r.pct} /></div>
                     <div data-label="Assessment"><Pill bg={BAND_BG[r.band]}>{r.band}</Pill></div>
                   </div>
-                  {r.note && r.band !== 'Expected' && (
+                  {r.band !== 'Expected' && (r.note || point || canEditPoints) && (
                     <div style={{ padding: '0 12px 10px', maxWidth: 860, ...cap }}>
-                      <div>{aiNotes && <span style={{ fontSize: 11, background: 'var(--snow-status-pending-bg)', borderRadius: 999, padding: '1px 8px', marginRight: 6 }}>Drafted by AI</span>}{r.note}</div>
-                      <div style={{ marginTop: 6 }}><span style={muted}>Suggested work — </span>{r.action}</div>
-                      {r.band === 'Investigate' && canEditPoints && <Button size="sm" disabled={isRaised} style={{ marginTop: 10 }} onClick={() => onRaise(r)}>{isRaised ? 'Raised' : 'Raise Review Point'}</Button>}
+                      {r.note && <div>{aiNotes && <span style={{ fontSize: 11, background: 'var(--snow-status-pending-bg)', borderRadius: 999, padding: '1px 8px', marginRight: 6 }}>Drafted by AI</span>}{r.note}</div>}
+                      {r.action && <div style={{ marginTop: 6 }}><span style={muted}>Suggested work — </span>{r.action}</div>}
+                      {/* optional on both Investigate and Explain lines; nothing is raised automatically */}
+                      {point
+                        ? <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><Pill bg="var(--snow-status-complete-bg)">Raised {point.ref}</Pill>{openPoint && <button type="button" className="link" style={cap} onClick={() => openPoint(point.ref)}>Open point</button>}</div>
+                        : canEditPoints && <Button size="sm" disabled={!!raising[r.label]} style={{ marginTop: 10 }} onClick={() => raise(r)}>{raising[r.label] ? 'Raising…' : 'Raise Review Point'}</Button>}
+                      {raiseError[r.label] && <div role="alert" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '6px 10px' }}>{raiseError[r.label]}</div>}
                     </div>
                   )}
                 </div>

@@ -106,8 +106,8 @@ export default function RuleEditor({ rule, isNew, busy, error, onSave, onCancel,
               <span style={cap}>±</span>
               <input className="input" type="number" min={0} step={r.tolKind === 'pct' ? 0.1 : 1} style={{ width: 110 }} value={r.tol ?? ''} onChange={e => set({ tol: e.target.value === '' ? null : Number(e.target.value) })} />
               {(r.engine === 'custom-tieout' || r.id === 'CHK-10')
-                ? <select className="input" style={{ width: 56 }} aria-label="Tolerance unit" value={r.tolKind} onChange={e => set({ tolKind: e.target.value })}><option value="abs">£</option><option value="pct">%</option></select>
-                : <span style={cap}>£</span>}
+                ? <select className="input" style={{ width: 96 }} aria-label="Tolerance unit" value={r.tolKind} onChange={e => set({ tolKind: e.target.value })}><option value="abs">Amount</option><option value="pct">%</option></select>
+                : <span style={cap}>Amount</span>}
             </div>
           </Field>
         </div>

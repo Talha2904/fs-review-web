@@ -9,5 +9,7 @@ export const BRAND = {
   firm: 'Project Accountants',
   tagline: 'AI-assisted review of financial statements.',
   /** who "Contact support" on the sign-in page emails (it opens the person's email app); hidden while empty */
-  supportEmail: 'muhammad.salman@projectaccountants.co.uk'
+  supportEmail: 'muhammad.salman@projectaccountants.co.uk',
+  /** the Prepare FS application, opened in a new tab from the top bar; the button is hidden while this is empty */
+  prepareFsUrl: '/prepare-fs.html'
 };

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Sidebar from './Sidebar';
+import { BRAND } from '../lib/brand';
 
 // The frame every signed-in area shares: sidebar, top bar with the breadcrumb and actions, then the screen.
 // Below 1024px the sidebar becomes a drawer opened from the top bar; choosing a screen, Escape or the scrim closes it.
@@ -50,7 +51,11 @@ export default function AppShell({ sidebar, root, crumb, actions, children, acce
           <div className="crumb">
             <span className="crumb-root">{root}</span><span className="crumb-root crumb-sep">/</span><span className="crumb-here">{crumb}</span>
           </div>
-          {actions && <div className="topbar-actions">{actions}</div>}
+          {(actions || BRAND.prepareFsUrl) && <div className="topbar-actions">
+            {/* the next application, in a new tab; shown once its address is set in lib/brand.js */}
+            {BRAND.prepareFsUrl && <a className="btn btn-secondary" href={BRAND.prepareFsUrl} target="_blank" rel="noopener noreferrer" style={{ height: 32, padding: '0 14px', textDecoration: 'none' }}>Prepare<span className="hide-sm">&nbsp;FS</span></a>}
+            {actions}
+          </div>}
         </header>
         <div ref={pageRef} className="shell-page">{children}</div>
       </main>

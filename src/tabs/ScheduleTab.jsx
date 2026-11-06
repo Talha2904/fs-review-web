@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { gbp, fmt, signedGbp } from '../lib/format';
+import { gbp, fmt, signedGbp, sym } from '../lib/format';
 
 // What correcting a point changes (from the AI review): profit before tax, tax and net assets.
 const effects = p => [
@@ -52,7 +52,7 @@ export default function ScheduleTab({ points, messages, user, people, sel, setSe
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
           <div style={h2}>Review Points</div>
-          <div style={{ ...cap, ...muted, marginTop: 4 }}>{points.length} points · {count('preparer')} with the preparer · {count('responded')} responded · {count('cleared')} cleared{version ? ` · draft v${version}` : ''} · threshold £{fmt(threshold)}</div>
+          <div style={{ ...cap, ...muted, marginTop: 4 }}>{points.length} points · {count('preparer')} with the preparer · {count('responded')} responded · {count('cleared')} cleared{version ? ` · draft v${version}` : ''} · threshold {sym()}{fmt(threshold)}</div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <Segmented value={view} onChange={setView} options={[['mine', `Waiting for Me (${mine.length})`], ['preparer', 'With Preparer'], ['responded', 'Responded'], ...(overdueCount ? [['overdue', `Overdue (${overdueCount})`]] : []), ['cleared', 'Cleared'], ['all', 'All']]} />

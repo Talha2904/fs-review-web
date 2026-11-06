@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { fmt } from '../lib/format';
+import { fmt, sym } from '../lib/format';
 import { slotDefs } from '../data/sampleFund';
 import { Button, Card, CardHead, Pill, PriPill, cap, body, h2, muted, page, RING } from '../components/ui';
 import { PointStatus } from './ScheduleTab';
@@ -117,7 +117,7 @@ export default function SignoffTab({ reports = [], reportActions, review, summar
             <div style={{ ...cap, marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div>Draft v{summary.run.version} analysed by {summary.run.by} on {when(summary.run.at)}.</div>
               <div>{summary.draftAnalysed ? '✓ The latest draft was analysed.' : '! A newer draft has been attached since; it was not analysed.'}</div>
-              <div>{summary.differences.length ? `${summary.differences.length} check${summary.differences.length === 1 ? '' : 's'} still show a difference: ${summary.differences.map(d => `${d.name} (£${fmt(Math.abs(d.diff))})`).join('; ')}.` : '✓ No checks show a difference.'}</div>
+              <div>{summary.differences.length ? `${summary.differences.length} check${summary.differences.length === 1 ? '' : 's'} still show a difference: ${summary.differences.map(d => `${d.name} (${sym()}${fmt(Math.abs(d.diff))})`).join('; ')}.` : '✓ No checks show a difference.'}</div>
               <div>{summary.investigate.length ? `${summary.investigate.length} variance${summary.investigate.length === 1 ? '' : 's'} marked to investigate: ${summary.investigate.join(', ')}.` : '✓ No variances are marked to investigate.'}</div>
             </div>
           ) : <div style={{ ...cap, ...muted, marginTop: 10 }}>No analysis has been run.</div>}

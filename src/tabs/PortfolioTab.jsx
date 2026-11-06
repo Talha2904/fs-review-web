@@ -44,7 +44,7 @@ export default function PortfolioTab({ engagements, user, onOpen }) {
     const data = shown.map(r => ({ Client: r.client, Fund: r.fund, 'Year end': r.yearEnd, Stage: r.stage, 'Waiting for': r.ownerName, Preparer: r.team.preparer, Reviewer: r.team.reviewer, Manager: r.team.manager, Partner: r.team.partner,
       'Open points': r.open, 'Responded points': r.responded, 'Overdue points': r.overdue, 'Last activity': r.last ? new Date(r.last).toLocaleString('en-GB') : '' }));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Portfolio');
-    await saveFile(`portfolio-${today()}.xlsx`, new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })]));
+    await saveFile(`portfolio-${new Date().toLocaleDateString('en-CA')}.xlsx`, new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })]));
   };
   const grid = 'minmax(170px,1.3fr) minmax(150px,1.1fr) 104px 170px 150px 70px 70px 70px 100px';
 
