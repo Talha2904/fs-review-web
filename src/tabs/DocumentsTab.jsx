@@ -191,9 +191,10 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
             ? <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Already analysed on {rerun.at}. No document has changed since, so the analysis can’t be run again. Replace a document to run it again.</div>
             : <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Documents changed since the last analysis: {rerun.changes.join('; ')}.</div>)}
           {blockedReason && !signed && <div role="status" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-approved-bg)', padding: '8px 12px', borderRadius: 8 }}>{blockedReason}</div>}
-          {signed ? <div style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>The review is signed off and locked. A Manager can unlock it on the Sign-off tab.</div>
-            : !canRun && <div style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Your role ({role}) cannot run the analysis. Ask someone whose role can.</div>}
-          {error && <div style={{ ...cap, marginTop: 8, background: 'var(--snow-status-rejected-bg)', padding: '8px 12px', borderRadius: 8 }}>The analysis stopped: {error}</div>}
+          {signed ? <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>The review is signed off and locked. A Manager can unlock it on the Sign-off tab.</div>
+            : !canRun && <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Your role ({role}) cannot run the analysis. Ask someone whose role can.</div>}
+          {/* dark text of its own: this sits in the dark run panel, whose white text it would otherwise take */}
+          {error && <div role="alert" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-rejected-bg)', color: '#14213D', padding: '8px 12px', borderRadius: 8 }}>The analysis stopped: {error}</div>}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 'min(260px, 100%)' }}>
           {running && (
