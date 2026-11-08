@@ -14,6 +14,7 @@ import { LibraryContext } from './lib/library';
 import { connectStore, newId } from './lib/engagements';
 import FundDashboard from './components/FundDashboard';
 import ConsolidatedTab from './tabs/ConsolidatedTab';
+import CommonPointDialog from './components/CommonPointDialog';
 import EntityModal from './components/EntityModal';
 import NotificationBell from './components/NotificationBell';
 import { useLive } from './lib/useLive';
@@ -104,6 +105,8 @@ function Workspace({ user, auth, onSignOut }) {
   const [tab, setTab] = useState('engagement');
   // the Consolidated Review opens on the group of the fund or entity it was opened from (a new object each time)
   const [consFocus, setConsFocus] = useState(null);
+  // the Common review point form, open on a group ({ entityName } or { groupKey, yearEnd }) or none
+  const [commonFor, setCommonFor] = useState(null);
   const openConsolidated = (focus = null) => { setConsFocus(focus); setDraft(null); setTab('consolidated'); };
   // a point in any fund: that fund is put in review and the point opened (Consolidated Review, a shared point)
   const openFundPoint = (id, ref) => { if (id !== activeId) activate(id); setDraft(null); setSel(ref); setFocusPoint(ref); setTab('sched'); };
@@ -664,11 +667,13 @@ function Workspace({ user, auth, onSignOut }) {
             </div>
           </div>
         )}
-        {tab === 'portfolio' && <PortfolioTab engagements={engagements || []} user={user} onConsolidated={client => openConsolidated(client ? { entityName: client, label: client } : null)}
+        {commonFor && <CommonPointDialog focus={commonFor} onClose={() => setCommonFor(null)} onOpenPoint={openFundPoint}
+          onRaised={(out, names) => log('Review points', `Raised a common review point in ${names.join(', ')}`, out.points[0]?.content?.title || '')} />}
+        {tab === 'portfolio' && <PortfolioTab engagements={engagements || []} user={user} onCommonPoint={canRaise0 ? client => setCommonFor(client && client !== 'No client' ? { entityName: client } : {}) : null} onConsolidated={client => openConsolidated(client ? { entityName: client, label: client } : null)}
           onOpen={(e, t) => { if (e.id !== activeId) activate(e.id); setDraft(null); setTab(t); }} />}
         {tab === 'consolidated' && <ConsolidatedTab focus={consFocus} canRun={canRun}
           onOpenFund={id => { if (id !== activeId) activate(id); else setTab('docs'); }}
-          canLink={canRaise0} onOpenPoint={openFundPoint} />}
+          canLink={canRaise0} onOpenPoint={openFundPoint} onCommonPoint={canRaise0 ? g => setCommonFor({ groupKey: g.groupKey, yearEnd: g.yearEnd }) : null} />}
         {tab === 'engagement' && !draft && <EngagementList onConsolidated={ent => openConsolidated({ entityName: ent.name, label: ent.name })} rulesOf={rulesOf} engagements={engagements} activeId={activeId} mode={store?.mode} loadError={loadError} notice={notice} locked={phase === 'running'} canWrite={canWrite && canEditEng} entities={entities} people={people} onAdd={entityId => openEngagement(null, entityId)} onOpen={e => openEngagement(e)} onActivate={activate}
           onAddEntity={() => setEntityModal({ entity: null })} onEditEntity={ent => setEntityModal({ entity: ent })} />}
         {entityModal && <EntityModal me={user} entity={entityModal.entity} entities={entities || []} onSave={saveEntity} onClose={() => setEntityModal(null)}

@@ -15,7 +15,7 @@ export default function AiSettingsTab({ auth, me }) {
   if (!draft) return <div style={page}><div style={h2}>AI Settings</div><div style={{ ...body, ...muted }}>{msg.text || 'Loading…'}</div></div>;
 
   const set = patch => { setDraft(d => ({ ...d, ...patch })); setMsg({ kind: '', text: '' }); };
-  const view = (x, ack) => JSON.stringify({ on: !!x.enabled && ack, steps: x.steps, model: x.model, ack });
+  const view = (x, ack) => JSON.stringify({ on: !!x.enabled && ack, steps: x.steps, model: x.model, standards: x.standards !== false, ack });
   const dirty = view(draft, policy) !== view(saved, !!saved.acknowledgement);
   async function save() {
     setBusy(true);
@@ -59,7 +59,7 @@ export default function AiSettingsTab({ auth, me }) {
         <label style={{ ...body, display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 12, cursor: 'pointer' }}>
           <input type="checkbox" className="perm-check" checked={policy} onChange={e => { setPolicy(e.target.checked); if (!e.target.checked) set({ enabled: false }); }} />
           <span>Our firm’s policy allows client documents and figures to be sent to Anthropic for processing by Claude, for clients that have not opted out.
-            {saved.acknowledgement && !saved.acknowledgement.pending && <span style={{ ...cap, ...muted, display: 'block', marginTop: 2 }}>Confirmed by {saved.acknowledgement.by} · {when(saved.acknowledgement.at)}</span>}</span>
+            {saved.acknowledgement && !saved.acknowledgement.pending && <span style={{ ...cap, ...muted, display: 'block', marginTop: 2 }}>Confirmed by {typeof saved.acknowledgement.by === 'object' ? saved.acknowledgement.by?.name : saved.acknowledgement.by}{' · '}{when(saved.acknowledgement.at)}</span>}</span>
         </label>
         <label style={{ ...body, display: 'flex', gap: 10, alignItems: 'center', marginTop: 14, cursor: policy ? 'pointer' : 'default', opacity: policy ? 1 : 0.55 }}>
           <button type="button" role="switch" aria-checked={draft.enabled && policy} disabled={!policy} className={'switch' + (draft.enabled && policy ? ' on' : '')} onClick={() => set({ enabled: !draft.enabled })} aria-label="Use AI"><span /></button>
@@ -84,6 +84,15 @@ export default function AiSettingsTab({ auth, me }) {
               </div>
             );
           })}
+          {/* not a step of its own: what the narrative review is given */}
+          <div style={{ display: 'grid', gridTemplateColumns: '52px 1fr', gap: 12, padding: '12px 0', opacity: draft.enabled && policy ? 1 : 0.6 }}>
+            <button type="button" role="switch" aria-checked={draft.standards !== false} aria-label="Accounting standards" className={'switch' + (draft.standards !== false ? ' on' : '')} onClick={() => set({ standards: draft.standards === false })}><span /></button>
+            <div>
+              <div style={{ ...body, fontWeight: 600 }}>Accounting standards (FRS 102 and IFRS)</div>
+              <div style={{ ...cap, ...muted, marginTop: 2 }}>The narrative review is given the paragraphs of the fund’s framework most relevant to its draft and in force for its period, and cites them (for example FRS 102 33.9). Adds a few thousand tokens per review.</div>
+              {draft.standards === false && <div style={{ ...cap, marginTop: 4 }}>When off: the review runs without them and cites no paragraph numbers. Funds under US GAAP, another framework or none are reviewed without them either way.</div>}
+            </div>
+          </div>
         </div>
       </Card>
 

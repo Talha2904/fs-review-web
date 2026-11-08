@@ -20,7 +20,7 @@ const money = (v, cur) => (v == null ? '—' : sym(cur) + fmt(v));
 const alertBox = { ...cap, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 12px' };
 
 // `focus`: opened from a fund or an entity ({ engagementId } or { entityName }); its group is chosen if it has one.
-export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, onOpenFund }) {
+export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, onOpenFund, onCommonPoint }) {
   const [groupsData, groupsError] = useLive(() => reviewStore.consolidatedGroups(), null);
   const groups = groupsData?.groups || null;
   const [key, setKey] = useState('');
@@ -97,6 +97,7 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
             </Select>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
               {runBlock && <span style={{ ...cap, ...muted }}>{runBlock}</span>}
+              {onCommonPoint && <Button kind="secondary" onClick={() => onCommonPoint(group)}>Common Review Point</Button>}
               <Button disabled={busy || !!runBlock} onClick={run}>{busy ? 'Running…' : data?.review ? 'Run again' : 'Run the review'}</Button>
             </div>
           </div>
@@ -132,7 +133,7 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
       {result && (<>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: 12 }}>
           {[['Balances between funds', links.length, '#3FB8C9'], ['Differ', differing, differing ? 'var(--pa-red)' : '#AEB9C9'],
-            ['With no match', unmatched.length, unmatched.length ? '#E9B949' : '#AEB9C9'], ['Shared points', common.length, '#14213D']].map(([k, v, c]) => (
+            ['With no match', unmatched.length, unmatched.length ? '#E9B949' : '#AEB9C9'], ['Recurring matters', common.length, '#14213D']].map(([k, v, c]) => (
             <div key={k} className="kpi" style={{ '--c': c }}><div className="kpi-k">{k}</div><div className={'kpi-v' + (k === 'Differ' && v ? ' is-alert' : '')}>{v}</div></div>))}
         </div>
 
@@ -174,7 +175,7 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
           </Card>)}
 
         <Card>
-          <CardHead title="Shared points" info="Review points that are the same matter in two or more funds: the same check, the same title, or (with AI) the same issue worded differently. Link them as one shared point to read their comments in one thread; each fund still responds to and clears its own point. Statuses are as they are now." />
+          <CardHead title="Recurring matters" info="Review points that are the same matter in two or more funds: the same check, the same title, or (with AI) the same issue worded differently. Link them as one common review point to read their comments in one thread; each fund still responds to and clears its own point. Statuses are as they are now." />
           {!common.length ? <div style={{ ...body, ...muted, marginTop: 8 }}>No open matter recurs across these funds.</div> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
               {common.map(g => (
@@ -184,9 +185,9 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
                     {(() => {
                       const live = g.points.filter(p => p.pointId), open = linkable(g);
                       const ids = new Set(live.map(p => p.sharedGroupId));
-                      if (live.length >= 2 && ids.size === 1 && !ids.has(null)) return <Pill bg="var(--snow-primary-purple)">Shared point</Pill>;
+                      if (live.length >= 2 && ids.size === 1 && !ids.has(null)) return <Pill bg="var(--snow-primary-purple)">Common review point</Pill>;
                       return canLink && open.length >= 2 && new Set(open.map(p => p.engagementId)).size === open.length
-                        ? <Button size="sm" kind="secondary" disabled={linking === g.key} onClick={() => link(g)}>{linking === g.key ? 'Linking…' : 'Link as one shared point'}</Button> : null;
+                        ? <Button size="sm" kind="secondary" disabled={linking === g.key} onClick={() => link(g)}>{linking === g.key ? 'Linking…' : 'Link as one common point'}</Button> : null;
                     })()}
                   </div>
                   {canLink && g.points.some(p => p.pointId && lockedFund(p.engagementId)) && linkable(g).length >= 2 && !g.points.every(p => p.sharedGroupId && p.sharedGroupId === g.points[0].sharedGroupId) && (

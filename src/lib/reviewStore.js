@@ -222,6 +222,9 @@ export const reviewStore = {
   async sharePoint(pointId, engagementIds) {
     return afterShared(await call(`/api/points/${encodeURIComponent(pointId)}/share`, 'POST', { engagementIds }));
   },
+  async raiseCommonPoint(engagementIds, content) {
+    return afterShared(await call('/api/points/common', 'POST', { engagementIds, content }));
+  },
   async linkShared(pointIds) {
     return afterShared(await call('/api/points/shared', 'POST', { pointIds }));
   },

@@ -17,10 +17,10 @@ export const MODELS = [
   { id: 'claude-opus-5-5', name: 'Claude Opus 5.5', note: 'Most thorough; slower and more expensive.' },
   { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5', note: 'Fastest and lowest cost; best for simpler documents.' }
 ];
-export const DEFAULT_AI = { enabled: false, acknowledgement: null, steps: { extract: true, narrative: true, explain: true, version: true, consolidated: true }, model: 'claude-sonnet-5-5' };
+export const DEFAULT_AI = { enabled: false, acknowledgement: null, steps: { extract: true, narrative: true, explain: true, version: true, consolidated: true }, model: 'claude-sonnet-5-5', standards: true };
 export function normalizeAi(s) {
   const steps = Object.fromEntries(AI_STEPS.map(x => [x.id, s?.steps?.[x.id] !== false]));
   const model = MODELS.some(m => m.id === s?.model) ? s.model : DEFAULT_AI.model;
-  return { enabled: !!s?.enabled && !!s?.acknowledgement, acknowledgement: s?.acknowledgement || null, steps, model };
+  return { enabled: !!s?.enabled && !!s?.acknowledgement, acknowledgement: s?.acknowledgement || null, steps, model, standards: s?.standards !== false };
 }
 export const stepLabel = id => AI_STEPS.find(s => s.id === id)?.label || id;

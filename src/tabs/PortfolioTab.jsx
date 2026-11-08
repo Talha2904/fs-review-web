@@ -22,7 +22,7 @@ const STAGES = [
 const STAGE = Object.fromEntries(STAGES.map(([n, bg, owner, tab, ink], i) => [n, { bg, owner, tab, ink, order: i }]));
 const ago = iso => { if (!iso) return '—'; const d = Math.floor((Date.now() - new Date(iso)) / 864e5); return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`; };
 
-export default function PortfolioTab({ engagements, user, onOpen, onConsolidated }) {
+export default function PortfolioTab({ engagements, user, onOpen, onConsolidated, onCommonPoint }) {
   const [view, setView] = useState('all'), [stageF, setStageF] = useState(''), [clientF, setClientF] = useState(''), [q, setQ] = useState('');
   // worked out on the api (GET /api/portfolio): stages, who each fund waits for, open and overdue points
   const [data, loadError] = useLive(() => reviewStore.portfolio(), null);
@@ -60,6 +60,7 @@ export default function PortfolioTab({ engagements, user, onOpen, onConsolidated
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {/* opens on the client chosen in the filter below, when there is one */}
           <Button kind="secondary" onClick={() => onConsolidated(clientF === 'No client' ? '' : clientF)}>Consolidated Review</Button>
+          {onCommonPoint && <Button kind="secondary" onClick={() => onCommonPoint(clientF)}>Common Review Point</Button>}
           <Button kind="secondary" onClick={exportX}>Export (.xlsx)</Button>
         </div>
       </div>

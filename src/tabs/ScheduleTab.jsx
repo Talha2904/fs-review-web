@@ -75,7 +75,7 @@ export default function ScheduleTab({ engagementId, shared = { points: [], messa
                   <span style={{ ...body, fontWeight: 600 }}>{p.ref}</span><PriPill pri={p.pri} /><PointStatus status={p.status} />
                   {waitingForMe(p) && <Pill bg="var(--snow-black-100)"><span style={{ color: '#fff' }}>For you</span></Pill>}
                   {p.type !== 'change' && <Pill bg="var(--snow-ink-5)">{TYPES[p.type]}</Pill>}
-                  {siblingsOf(p).length > 0 && <Pill bg="var(--snow-primary-purple)">Shared · {siblingsOf(p).length + 1} funds</Pill>}
+                  {siblingsOf(p).length > 0 && <Pill bg="var(--snow-primary-purple)">Common · {siblingsOf(p).length + 1} funds</Pill>}
                   {p.dueDate && p.status !== 'cleared' && <span style={{ ...cap, color: isOverdue(p) ? 'var(--pa-red)' : 'var(--snow-black-40)', fontWeight: isOverdue(p) ? 600 : 400 }}>{isOverdue(p) ? 'Overdue · ' : 'Due '}{dayLabel(p.dueDate)}</span>}
                 </div>
                 <div style={{ ...body, marginTop: 6 }}>{p.title}</div>
@@ -133,14 +133,14 @@ function PointDetail({ p, thread: own, siblings = [], siblingThread = [], engage
       <div style={{ ...h3, fontWeight: 600, marginTop: 8 }}>{p.title}</div>
       {siblings.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginTop: 8, ...cap }}>
-          <span style={{ fontWeight: 600 }}>Shared with<InfoTip label="About shared points">The same matter in related funds. Comments and responses in any fund show in this thread; each fund responds to and clears its own copy, so this point stays open until it is cleared here.</InfoTip></span>
+          <span style={{ fontWeight: 600 }}>Common review point, also in<InfoTip label="About common review points">The same matter in related funds. Comments and responses in any fund show in this thread; each fund responds to and clears its own copy, so this point stays open until it is cleared here.</InfoTip></span>
           {siblings.map(x => (
             <button key={x.id} type="button" className="link" onClick={() => onOpenFundPoint?.(x.engagementId, x.ref)} title={`Open ${x.ref} in ${fundNameOf(x.engagementId)}`}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <span>{fundNameOf(x.engagementId)} · {x.ref}</span><PointStatus status={x.status} />
             </button>))}
           {canRaise && !locked && <button type="button" className="link" style={{ ...muted }} disabled={unsharing}
-            onClick={async () => { setUnsharing(true); setError(''); try { await actions.unshare(p); } catch (e) { setError(e.message); } finally { setUnsharing(false); } }}>Stop sharing</button>}
+            onClick={async () => { setUnsharing(true); setError(''); try { await actions.unshare(p); } catch (e) { setError(e.message); } finally { setUnsharing(false); } }}>Remove from the common point</button>}
         </div>)}
       <div style={{ ...cap, ...muted, marginTop: 4 }}>{[p.kind, p.area, p.refs, p.amount != null && `${gbp(p.amount)} (${p.amount >= threshold ? 'above' : 'below'} threshold)`].filter(Boolean).join(' · ')}</div>
       {p.basis && <div style={{ ...body, marginTop: 12 }}>{p.basis}</div>}
@@ -200,7 +200,7 @@ function PointDetail({ p, thread: own, siblings = [], siblingThread = [], engage
       <div style={{ ...cap, ...muted, marginTop: 16 }}>{waiting}</div>
       {canRaise && !locked && (
         <div style={{ marginTop: 10 }}>
-          <button type="button" className="link" style={cap} onClick={() => setSharing(true)}>{siblings.length ? 'Share with more funds' : 'Share with other funds'}</button>
+          <button type="button" className="link" style={cap} onClick={() => setSharing(true)}>{siblings.length ? 'Add to more funds' : 'Make common with other funds'}</button>
         </div>)}
       {sharing && <ShareDialog p={p} engagementId={engagementId} have={[engagementId, ...siblings.map(x => x.engagementId)]} onShare={ids => actions.share(p, ids)} onClose={() => setSharing(false)} />}
       {buttons.length > 0 && (
@@ -253,13 +253,13 @@ function ShareDialog({ p, engagementId, have, onShare, onClose }) {
     try { await onShare(chosen); onClose(); } catch (e) { setError(e.message); setBusy(false); }
   };
   return (
-    <Modal title={`Share ${p.ref} with other funds`} onClose={onClose} footer={<>
+    <Modal title={`Make ${p.ref} common with other funds`} onClose={onClose} footer={<>
       <Button kind="secondary" onClick={onClose}>Cancel</Button>
-      <Button disabled={busy || !chosen.length} onClick={share}>{busy ? 'Sharing…' : `Share with ${chosen.length || ''} fund${chosen.length === 1 ? '' : 's'}`.replace('  ', ' ')}</Button>
+      <Button disabled={busy || !chosen.length} onClick={share}>{busy ? 'Adding…' : `Add to ${chosen.length || ''} fund${chosen.length === 1 ? '' : 's'}`.replace('  ', ' ')}</Button>
     </>}>
       <div style={{ ...cap, ...muted }}>Each fund gets its own copy to respond to and clear; comments show in one thread.</div>
       {funds === null && <div style={{ ...body, ...muted, marginTop: 12 }}>Loading…</div>}
-      {funds && !funds.length && !error && <div style={{ ...body, marginTop: 12 }}>No other fund to share with. Points are shared between funds whose entities have the same Client name and year end.</div>}
+      {funds && !funds.length && !error && <div style={{ ...body, marginTop: 12 }}>No other fund to add it to. A common review point covers funds whose entities have the same Client name and year end.</div>}
       {funds && funds.length > 0 && (
         <div role="group" aria-label="Funds" style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 12 }}>
           {funds.map(f => (
