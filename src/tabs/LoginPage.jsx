@@ -66,7 +66,7 @@ function SignInForm({ auth, setupRequired, onSignedIn, notice, onForgot }) {
   return (
     <form className="siq-form" onSubmit={submit} noValidate>
       <div className="siq-head">
-        <span className="siq-eyebrow">{setupRequired ? 'First-time setup' : 'Secure access'}</span>
+        {setupRequired && <span className="siq-eyebrow">First-time setup</span>}
         <h1 className="siq-title">{setupRequired ? 'Create the administrator account' : 'Sign in'}</h1>
         <p className="siq-lead">{setupRequired ? 'No accounts exist yet. This first account is an Administrator, who then adds everyone else.' : 'Enter your account credentials to continue.'}</p>
       </div>
@@ -111,7 +111,6 @@ function ForgotForm({ auth, onBack }) {
   return (
     <form className="siq-form" onSubmit={submit} noValidate>
       <div className="siq-head">
-        <span className="siq-eyebrow">Secure access</span>
         <h1 className="siq-title">Reset your password</h1>
         <p className="siq-lead">Enter your username or the email address on your account. We’ll email you a link to choose a new password.</p>
       </div>
@@ -142,7 +141,6 @@ function ResetForm({ auth, onDone }) {
   return (
     <form className="siq-form" onSubmit={submit} noValidate>
       <div className="siq-head">
-        <span className="siq-eyebrow">Secure access</span>
         <h1 className="siq-title">Choose a new password</h1>
         <p className="siq-lead">The link works once. When you save, you’ll be signed out everywhere else.</p>
       </div>
