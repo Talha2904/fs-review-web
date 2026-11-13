@@ -29,10 +29,12 @@ export default function FinanceConsole({ user, auth, onSignOut }) {
   const extra = async (fn, ok) => { setMsg({ kind: '', text: '' }); try { const r = await fn(); if (r?.state) setData(d => ({ ...d, state: r.state })); if (ok) setMsg({ kind: 'ok', text: ok }); return r || true; } catch (e) { setMsg({ kind: 'err', text: e.message }); return null; } };
   const act = async (action, ok) => {
     setMsg({ kind: '', text: '' });
-    try { const r = await auth.billingAct(action); setData(r); if (ok) setMsg({ kind: 'ok', text: ok }); return r; }
+    try { const r = await auth.billingAct(action); setData(d => ({ ...r, deletedFunds: d?.deletedFunds || [] })); if (ok) setMsg({ kind: 'ok', text: ok }); return r; }
     catch (e) { setMsg({ kind: 'err', text: e.message }); return null; }
   };
   const st = data?.state, usage = data?.usage || [];
+  // deleted funds stay billable; they are only marked so Finance knows the review was removed
+  const deleted = useMemo(() => new Set(data?.deletedFunds || []), [data?.deletedFunds]);
   const queue = useMemo(() => !st ? [] : Object.values(st.events).filter(e => e.state === 'signed').map(e => {
     const invs = st.invoices.filter(i => i.engagementId === e.engagementId);
     const issued = invs.some(i => i.status === 'issued'), draft = invs.find(i => i.status === 'draft');
@@ -57,8 +59,8 @@ export default function FinanceConsole({ user, auth, onSignOut }) {
           {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'var(--snow-status-rejected-bg)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}
           {!st ? <div style={{ ...body, ...muted }}>Loading…</div>
             : open ? <InvoiceDetail inv={st.invoices.find(i => i.id === open)} st={st} usage={usage} act={act} extra={extra} auth={auth} integ={integ} onBack={() => setOpen(null)} />
-            : tab === 'ready' ? <Ready queue={queue} unlocked={unlockedAfter} st={st} onCreate={async x => { if (x.draft) return setOpen(x.draft.id); const r = await act({ type: 'createDraft', engagementId: x.e.engagementId }, 'Draft invoice created.'); if (r) setOpen(r.state.invoices[r.state.invoices.length - 1].id); }} />
-            : tab === 'invoices' ? <Invoices st={st} onOpen={setOpen} />
+            : tab === 'ready' ? <Ready queue={queue} unlocked={unlockedAfter} st={st} deleted={deleted} onCreate={async x => { if (x.draft) return setOpen(x.draft.id); const r = await act({ type: 'createDraft', engagementId: x.e.engagementId }, 'Draft invoice created.'); if (r) setOpen(r.state.invoices[r.state.invoices.length - 1].id); }} />
+            : tab === 'invoices' ? <Invoices st={st} deleted={deleted} onOpen={setOpen} />
             : tab === 'recovery' ? <Recovery st={st} usage={usage} />
             : <Settings st={st} act={act} extra={extra} auth={auth} integ={integ} reloadInteg={loadInteg} />}
         </div>
@@ -67,7 +69,7 @@ export default function FinanceConsole({ user, auth, onSignOut }) {
 }
 
 // ---- Ready to Invoice ----------------------------------------------------------------------
-function Ready({ queue, unlocked, st, onCreate }) {
+function Ready({ queue, unlocked, st, deleted, onCreate }) {
   return (<>
     <div><div style={h2}>Ready to Invoice</div><div style={{ ...body, ...muted, marginTop: 6, maxWidth: 760 }}>Funds appear here at the final sign-off (the Partner’s, where partner sign-off is required). Each invoice has the professional fee and the fund’s AI usage as separate lines.<InfoTip label="About later AI usage">AI usage after an invoice was issued appears again here for a supplementary invoice.</InfoTip></div></div>
     {unlocked.length > 0 && <div role="status" style={{ ...cap, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '10px 14px' }}>Unlocked after invoicing: {unlocked.map(e => e.fundName).join(', ')}. If it is signed off again, any new AI usage will appear here for a supplementary invoice.</div>}
@@ -78,7 +80,7 @@ function Ready({ queue, unlocked, st, onCreate }) {
           {queue.map(x => (
             <Row key={x.e.engagementId} cols={[
               <div><div style={{ ...body, fontWeight: 600 }}>{x.e.clientName || x.e.entityName}</div><div style={{ ...cap, ...muted }}>{x.e.entityName}</div></div>,
-              <div><div style={body}>{x.e.fundName}</div>{x.issued && <Pill bg="var(--snow-primary-blue)">Supplementary</Pill>}</div>,
+              <div><div style={body}>{x.e.fundName}</div>{x.issued && <Pill bg="var(--snow-primary-blue)">Supplementary</Pill>}{deleted.has(x.e.engagementId) && <DeletedPill />}</div>,
               <span style={body}>{x.e.yearEndLabel || d(x.e.yearEnd)}</span>,
               <div style={cap}>{x.e.signedBy || '—'}<div style={muted}>{d(x.e.signedAt)}</div></div>,
               <div style={cap}>{x.ai.calls} call{x.ai.calls === 1 ? '' : 's'}<div style={muted}>{x.ai.calls ? (x.ai.missing ? 'Prices not set' : `${money(x.ai.cost)} at cost`) : 'No AI used'}</div></div>,
@@ -89,6 +91,8 @@ function Ready({ queue, unlocked, st, onCreate }) {
     </Card>
   </>);
 }
+// The fund was deleted from the review app (an Administrator can restore it); its billing is unchanged.
+const DeletedPill = () => <span title="This fund was deleted from the review app. Its billing and AI usage are unchanged."><Pill bg="var(--snow-status-rejected-bg)">Deleted</Pill></span>;
 const GRID6 = 'minmax(180px,1.4fr) minmax(160px,1.2fr) 120px 140px 150px 130px';
 const READY_COLS = ['Client', 'Fund', 'Year end', 'Signed off', 'AI usage to bill', ''];
 const READY_CELL = ['dt-main', '', '', '', '', 'dt-end'];
@@ -99,7 +103,7 @@ const Row = ({ cols, head }) => (
   </div>);
 
 // ---- Invoices list -------------------------------------------------------------------------
-function Invoices({ st, onOpen }) {
+function Invoices({ st, deleted, onOpen }) {
   const [f, setF] = useState('all');
   const list = st.invoices.slice().reverse().filter(i => f === 'all' || (f === 'open' ? i.status === 'issued' && totals(i).outstanding > 0 : f === 'overdue' ? daysOverdue(i) > 0 : i.status === f));
   const grid = '140px minmax(180px,1.4fr) 110px 110px 120px 120px 150px';
@@ -126,7 +130,7 @@ function Invoices({ st, onOpen }) {
           {list.map(i => { const t = totals(i), s = invoiceStatus(i); return (
             <button type="button" key={i.id} className="row dt-row" onClick={() => onOpen(i.id)} style={{ border: 0, background: 'transparent', font: 'inherit', textAlign: 'left', cursor: 'pointer', boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.05)' }}>
               <span data-label="Invoice" style={{ ...body, fontWeight: 600 }}>{i.number || 'Draft'}{i.kind === 'supplementary' && <span style={{ ...cap, ...muted, display: 'block', fontWeight: 400 }}>Supplementary</span>}</span>
-              <span className="dt-main"><span style={body}>{i.clientName}</span><span style={{ ...cap, ...muted, display: 'block' }}>{i.fundName}</span></span>
+              <span className="dt-main"><span style={body}>{i.clientName}</span><span style={{ ...cap, ...muted, display: 'block' }}>{i.fundName}</span>{deleted.has(i.engagementId) && <DeletedPill />}</span>
               <span data-label="Issued" style={cap}>{d(i.issuedAt)}</span><span data-label="Due" style={cap}>{d(i.dueDate)}</span>
               <span data-label="Total" style={body}>{money(t.gross)}</span><span data-label="Outstanding" style={{ ...body, fontWeight: t.outstanding ? 600 : 400 }}>{i.status === 'issued' ? money(t.outstanding) : '—'}</span>
               <span data-label="Status"><Pill bg={STATUS_BG[s]}>{s}</Pill>{daysOverdue(i) > 0 && <span style={{ ...cap, color: 'var(--pa-red)', marginLeft: 6 }}>{daysOverdue(i)} days</span>}{i.xero && <span style={{ ...cap, ...muted, marginLeft: 6 }}>In Xero</span>}</span>

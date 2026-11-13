@@ -8,6 +8,7 @@ export const ROLES = ['Administrator', 'Partner', 'Manager', 'Reviewer', 'Prepar
 export const STAFF_ROLES = ['Partner', 'Manager', 'Reviewer', 'Preparer'];
 export const EDITABLE_PERMS = [
   { id: 'engagements.edit', label: 'Add and edit engagements', verb: 'sets up engagements' },
+  { id: 'engagements.delete', label: 'Delete and restore funds (Administrators always can)', verb: 'deletes and restores funds', noPreparer: true },
   { id: 'documents.attach', label: 'Attach documents', verb: 'attaches documents' },
   { id: 'analysis.run', label: 'Run the analysis and version pass', verb: 'runs the analysis' },
   { id: 'points.raise', label: 'Raise review points and assign them', verb: 'raises review points' },
@@ -19,6 +20,7 @@ export const EDITABLE_PERMS = [
 ];
 export const DEFAULT_MATRIX = {
   'engagements.edit': ['Manager'],
+  'engagements.delete': [], // Administrators only, unless an Administrator grants it
   'documents.attach': ['Manager', 'Reviewer', 'Preparer'],
   'analysis.run': ['Manager', 'Reviewer'],
   'points.raise': ['Partner', 'Manager', 'Reviewer'],

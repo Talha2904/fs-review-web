@@ -14,7 +14,7 @@ const has = (text, q) => String(text || '').toLowerCase().includes(q);
 
 // Funds (engagements) listed under the entity they belong to. Funds whose entity is not set, or
 // no longer exists, are kept in a final group so they can be linked.
-export default function EngagementList({ rulesOf = e => e.rules || {}, people = [], engagements, entities, activeId, mode, loadError, notice, locked, canWrite, onAdd, onOpen, onActivate, onAddEntity, onEditEntity, onConsolidated }) {
+export default function EngagementList({ rulesOf = e => e.rules || {}, people = [], engagements, entities, activeId, mode, loadError, notice, locked, canWrite, onManageFunds = null, onAdd, onOpen, onActivate, onAddEntity, onEditEntity, onConsolidated }) {
   const LIBRARY = useLibrary();
   const [q, setQ] = useState('');
   const where = mode === 'shared' ? 'Saved engagements are shared with everyone who can open this app.' : 'Saved engagements are shared with everyone who signs in.';
@@ -56,10 +56,11 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
           <div style={h2}>Engagements</div>
           <div style={{ ...body, ...muted, marginTop: 6 }}>Click In Review on a fund to open its documents and analysis. {mode && where}</div>
         </div>
-        {canWrite && (
+        {(canWrite || onManageFunds) && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            <Button size="lg" kind="secondary" onClick={onAddEntity}>Add Entity</Button>
-            <Button size="lg" onClick={() => onAdd(null)}>Add Engagement</Button>
+            {onManageFunds && <Button size="lg" kind="secondary" onClick={onManageFunds}>Delete or Restore Funds</Button>}
+            {canWrite && <Button size="lg" kind="secondary" onClick={onAddEntity}>Add Entity</Button>}
+            {canWrite && <Button size="lg" onClick={() => onAdd(null)}>Add Engagement</Button>}
           </div>
         )}
       </div>

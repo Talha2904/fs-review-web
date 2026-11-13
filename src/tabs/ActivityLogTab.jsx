@@ -138,7 +138,7 @@ export default function ActivityLogTab({ fund = null, link = null }) {
                   {...(open ? { role: 'link', tabIndex: 0, title: to.label, onClick: open, onKeyDown: k => { if (k.key === 'Enter' || k.key === ' ') { k.preventDefault(); open(); } } } : {})}>
                   <div data-label="Time" style={{ ...cap, fontVariantNumeric: 'tabular-nums' }}>{when(e.at)}</div>
                   <div data-label="Person">{e.actor ? <><div style={body}>{e.actor.name}</div><div style={{ ...cap, ...muted }}>{e.actor.role}</div></> : <div style={{ ...cap, ...muted }}>Not signed in</div>}</div>
-                  {!scoped && <div data-label="Fund" style={{ ...cap, overflowWrap: 'anywhere' }}>{e.fundName || <span style={muted}>—</span>}</div>}
+                  {!scoped && <div data-label="Fund" style={{ ...cap, overflowWrap: 'anywhere' }}>{e.fundName || <span style={muted}>—</span>}{e.fundDeleted && <> <span title="This fund is deleted. An Administrator can restore it under Funds."><Pill bg="var(--snow-status-rejected-bg)">Deleted</Pill></span></>}</div>}
                   <div data-label="Activity"><Pill bg={TINT[e.category] || 'var(--snow-ink-5)'}>{e.category}</Pill></div>
                   <div className="dt-main">
                     <div style={body}>{e.summary}{open && <span className="log-open"> {to.label} →</span>}</div>

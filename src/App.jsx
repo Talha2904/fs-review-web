@@ -33,6 +33,7 @@ import { validateFile } from './lib/validateFile';
 import { extOf } from './lib/fileRules';
 import LoginPage from './tabs/LoginPage';
 import AdminConsole from './tabs/AdminConsole';
+import FundsTab from './tabs/FundsTab';
 import ActivityLogTab from './tabs/ActivityLogTab';
 import { BRAND } from './lib/brand';
 import SignoffTab, { signoffSummary } from './tabs/SignoffTab';
@@ -59,7 +60,7 @@ const CRUMB = { portfolio: 'Portfolio', consolidated: 'Consolidated Review', use
 function Workspace({ user, auth, onSignOut }) {
   const { log: logRaw } = useActivity();
   const canEditEng = can(user, 'engagements.edit'), canRun = can(user, 'analysis.run'), canRaise0 = can(user, 'points.raise'), canRespond0 = can(user, 'points.respond'), canSignoff = can(user, 'review.signoff'),
-    canResubmit = can(user, 'points.clear') || can(user, 'points.clearAny'), canAttach = can(user, 'documents.attach');
+    canResubmit = can(user, 'points.clear') || can(user, 'points.clearAny'), canAttach = can(user, 'documents.attach'), canDeleteFunds = can(user, 'engagements.delete');
   // Engagements: the saved list, which one is under review, and the form being edited.
   const [store, setStore] = useState(null);
   const [engagements, setEngagements] = useState(null); // null while loading
@@ -70,6 +71,7 @@ function Workspace({ user, auth, onSignOut }) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [notice, setNotice] = useState('');
+  const [fundsView, setFundsView] = useState(false); // the Funds screen (delete and restore), for whoever may delete funds
   const [entities, setEntities] = useState(null); // null while loading
   const [entityModal, setEntityModal] = useState(null); // { entity, onCreated } while the entity form is open
   const [people, setPeople] = useState([]); // staff directory for the preparer, reviewer and manager lists
@@ -167,6 +169,23 @@ function Workspace({ user, auth, onSignOut }) {
     setNotice('');
     setTab('docs'); // selecting a fund takes the reviewer straight to its documents
   };
+  // A fund deleted or restored anywhere: the lists are fetched again now, not at the next poll.
+  useEffect(() => reviewStore.onChange(e => { if (e.topic === 'engagements') store?.refreshAll(); }), [store]);
+  // The fund in review was deleted (here or by someone else): nothing of it stays on screen.
+  useEffect(() => {
+    if (!activeId || engagements === null || active) return;
+    setResult(null); setTray([]); setSel(null); setPhase('idle'); setStep(0); setError(''); setRanWith('');
+    setActiveId(''); setDraft(null); setTab('engagement');
+    setNotice('The fund you had in review was deleted. An Administrator can restore it.');
+  }, [activeId, engagements, active]); // eslint-disable-line react-hooks/exhaustive-deps
+  // The fund open in the edit form was deleted by someone else: the form closes.
+  useEffect(() => {
+    if (!draft?.id || engagements === null || engagements.some(e => e.id === draft.id)) return;
+    setDraft(null); setSaveError('');
+    setNotice('The fund you were editing was deleted. An Administrator can restore it.');
+  }, [draft?.id, engagements]); // eslint-disable-line react-hooks/exhaustive-deps
+  // the Funds screen is left when another screen is opened
+  useEffect(() => { if (tab !== 'engagement') setFundsView(false); }, [tab]);
   // Documents and workflow for the fund in review come from the review store (in memory for now).
   const EMPTY_REVIEW = { versions: [], current: {}, workflow: { state: 'preparing', history: [] }, points: [], messages: [], signoff: { state: 'none', history: [] }, latestRun: null };
   const [review, setReview] = useState(EMPTY_REVIEW);
@@ -674,7 +693,8 @@ function Workspace({ user, auth, onSignOut }) {
         {tab === 'consolidated' && <ConsolidatedTab focus={consFocus} canRun={canRun}
           onOpenFund={id => { if (id !== activeId) activate(id); else setTab('docs'); }}
           canLink={canRaise0} onOpenPoint={openFundPoint} onCommonPoint={canRaise0 ? g => setCommonFor({ groupKey: g.groupKey, yearEnd: g.yearEnd }) : null} />}
-        {tab === 'engagement' && !draft && <EngagementList onConsolidated={ent => openConsolidated({ entityName: ent.name, label: ent.name })} rulesOf={rulesOf} engagements={engagements} activeId={activeId} mode={store?.mode} loadError={loadError} notice={notice} locked={phase === 'running'} canWrite={canWrite && canEditEng} entities={entities} people={people} onAdd={entityId => openEngagement(null, entityId)} onOpen={e => openEngagement(e)} onActivate={activate}
+        {tab === 'engagement' && !draft && fundsView && canDeleteFunds && <FundsTab store={store} onBack={() => setFundsView(false)} />}
+        {tab === 'engagement' && !draft && !(fundsView && canDeleteFunds) && <EngagementList onManageFunds={canDeleteFunds ? () => setFundsView(true) : null} onConsolidated={ent => openConsolidated({ entityName: ent.name, label: ent.name })} rulesOf={rulesOf} engagements={engagements} activeId={activeId} mode={store?.mode} loadError={loadError} notice={notice} locked={phase === 'running'} canWrite={canWrite && canEditEng} entities={entities} people={people} onAdd={entityId => openEngagement(null, entityId)} onOpen={e => openEngagement(e)} onActivate={activate}
           onAddEntity={() => setEntityModal({ entity: null })} onEditEntity={ent => setEntityModal({ entity: ent })} />}
         {entityModal && <EntityModal me={user} entity={entityModal.entity} entities={entities || []} onSave={saveEntity} onClose={() => setEntityModal(null)}
           fundCount={entityModal.entity ? (engagements || []).filter(x => x.entityId === entityModal.entity.id).length : 0} />}

@@ -80,6 +80,18 @@ function apiStore() {
       await call(e.id ? `/api/engagements/${encodeURIComponent(e.id)}` : '/api/engagements', e.id ? 'PUT' : 'POST', e);
       await engagements.refresh();
     },
+    // Deleting a fund is a soft delete on the api (it can be restored): the fund's name is typed again to confirm.
+    async deleteFund(id, confirmName, reason) {
+      const out = await call(`/api/engagements/${encodeURIComponent(id)}`, 'DELETE', { confirmName, reason: reason || null });
+      await engagements.refresh();
+      return out;
+    },
+    async restoreFund(id) {
+      const out = await call(`/api/engagements/${encodeURIComponent(id)}/restore`, 'POST', {});
+      await engagements.refresh();
+      return out;
+    },
+    deletedFunds: async () => (await call('/api/engagements/deleted')).funds,
     refreshAll: () => Promise.all([engagements.refresh(), entities.refresh(), config.refresh()])
   };
   function cfgNow() { let v = null; const off = config.subscribe(c => { v = c; }); off(); return v; }

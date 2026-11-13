@@ -118,6 +118,10 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
                 ? `Step ${Math.min(latest.step + 1, latest.total)} of ${latest.total}: ${STEPS[Math.min(latest.step, STEPS.length - 1)]}…`
                 : 'Starting the review…'}
             </div>)}
+          {data?.review?.withheld && !busy && (
+            <div role="status" style={{ ...cap, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '8px 12px', marginTop: 10 }}>
+              The last review read a fund that has since been deleted, so its results are hidden. Run it again to review the funds now in the group.
+            </div>)}
           {latest?.status === 'failed' && !busy && <div role="alert" style={{ ...alertBox, marginTop: 10 }}>The last run did not complete: {latest.error}</div>}
           {data?.stale && !busy && (
             <div role="status" style={{ ...cap, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '8px 12px', marginTop: 10 }}>
