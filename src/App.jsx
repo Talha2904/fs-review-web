@@ -124,8 +124,8 @@ function Workspace({ user, auth, onSignOut }) {
   async function saveEntity(ent) {
     const isNew = !ent.id, now = new Date().toISOString();
     const before = (entities || []).find(x => x.id === ent.id);
-    const saved = { ...ent, id: ent.id || newId('ent'), createdAt: ent.createdAt || now, savedAt: now };
-    await store.saveEntity(saved); // errors are shown in the entity form
+    const draftEnt = { ...ent, id: ent.id || newId('ent'), createdAt: ent.createdAt || now, savedAt: now };
+    const saved = { ...draftEnt, ...(await store.saveEntity(draftEnt)) }; // errors are shown in the entity form
     const labels = { name: 'name', client: 'client', legalForm: 'legal form', jurisdiction: 'jurisdiction', yearEnd: 'year end', administrator: 'administrator', auditor: 'auditor' };
     const changed = before ? Object.keys(labels).filter(k => (before[k] || '') !== (saved[k] || '')).map(k => labels[k]) : [];
     log('Engagements', isNew ? `Created entity ${saved.name}` : `Updated entity ${saved.name}`,

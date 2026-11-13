@@ -60,8 +60,9 @@ function apiStore() {
     subscribeEntities: (onList, onError) => entities.subscribe(onList, onError),
     async saveEntity(ent) {
       const e = plain(ent);
-      await call(e.id ? `/api/entities/${encodeURIComponent(e.id)}` : '/api/entities', e.id ? 'PUT' : 'POST', e);
+      const out = await call(e.id ? `/api/entities/${encodeURIComponent(e.id)}` : '/api/entities', e.id ? 'PUT' : 'POST', e);
       await entities.refresh();
+      return out?.entity || e; // the api may bring back an entity hidden after its funds were all deleted, under its own id
     },
     subscribeConfig: (onConfig, onError) => config.subscribe(c => onConfig(c), onError),
     // The Administration screens save the whole config; only the parts that changed are sent.
