@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MIN_PASSWORD } from '../lib/roles';
 import { BRAND } from '../lib/brand';
+import ArcWordmark from '../components/ArcWordmark';
 import '../login.css';
 
-// The StatementIQ sign-in page (design: "StatementIQ Sign In"). It also creates the first Administrator
+// The StatementArc sign-in page (design: "StatementArc Sign In"). It also creates the first Administrator
 // on a new installation, asks for a password-reset link, and sets a new password from that link.
 
 // A reset link from an email opens this page with ?reset=<token>.
@@ -14,30 +15,49 @@ export default function LoginPage({ auth, setupRequired, onSignedIn }) {
   const [notice, setNotice] = useState('');
   const back = msg => { setNotice(msg || ''); setMode('signin'); };
   return (
-    <div className="siq">
-      <aside className="siq-brand" aria-label={`About ${BRAND.name}`}>
-        <div className="siq-ambient" aria-hidden="true" />
-        <img className="siq-logo" src="/pa-logo-white.png" alt="Project Accountants — Empowering Businesses Worldwide" />
-        <div className="siq-hero">
-          <p className="siq-name">{BRAND.word}<span className="siq-iq">{BRAND.mark}</span></p>
-          <div className="siq-rule" aria-hidden="true" />
-          <p className="siq-headline">Smarter reviews.<br />Better insights.</p>
-          <p className="siq-tagline">{BRAND.tagline}</p>
+    <div className="sarc">
+      <aside className="sarc-brand" aria-label={`About ${BRAND.name}`}>
+        <div className="sarc-ambient" aria-hidden="true" />
+        <img className="sarc-logo" src="/pa-logo-white.png" alt="Project Accountants — Empowering Businesses Worldwide" />
+        <div className="sarc-hero">
+          <p className="sarc-name"><ArcWordmark word={BRAND.word} label={BRAND.name} draw /></p>
+          <div className="sarc-rule" aria-hidden="true" />
+          <p className="sarc-headline">Smarter reviews.<br />Better insights.</p>
+          <p className="sarc-tagline">{BRAND.tagline}</p>
+          <ReviewSteps />
         </div>
-        <div className="siq-legal">© {new Date().getFullYear()} {BRAND.firm}. For authorised users only.</div>
+        <div className="sarc-legal">© {new Date().getFullYear()} {BRAND.firm}. For authorised users only.</div>
       </aside>
 
-      <main className="siq-main">
-        <div className="siq-spacer" />
+      <main className="sarc-main">
+        <div className="sarc-spacer" />
         {mode === 'forgot' && <ForgotForm auth={auth} onBack={() => back('')} />}
         {mode === 'reset' && <ResetForm auth={auth} onDone={msg => { try { window.history.replaceState(null, '', window.location.pathname); } catch { /* ignore */ } back(msg); }} />}
         {mode === 'signin' && <SignInForm auth={auth} setupRequired={setupRequired} onSignedIn={onSignedIn} notice={notice} onForgot={() => { setNotice(''); setMode('forgot'); }} />}
-        <div className="siq-foot">
+        <div className="sarc-foot">
           <span>Access is limited to accounts issued by your administrator.</span>
-          {BRAND.supportEmail && <a className="siq-link" href={`mailto:${BRAND.supportEmail}?subject=${encodeURIComponent(`${BRAND.name} support`)}`} title={BRAND.supportEmail}>Contact support</a>}
+          {BRAND.supportEmail && <a className="sarc-link" href={`mailto:${BRAND.supportEmail}?subject=${encodeURIComponent(`${BRAND.name} support`)}`} title={BRAND.supportEmail}>Contact support</a>}
         </div>
       </main>
     </div>
+  );
+}
+
+// The review in four steps, each lit in turn (every 2.6 seconds); still for people who prefer reduced motion.
+const STEPS = ['Assess', 'Challenge', 'Resolve', 'Sign off'];
+function ReviewSteps() {
+  const [on, setOn] = useState(0);
+  useEffect(() => {
+    let still = false;
+    try { still = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { /* keep moving */ }
+    if (still) return undefined;
+    const t = setInterval(() => setOn(i => (i + 1) % STEPS.length), 2600);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <ol className="sarc-steps" aria-label="How a review works">
+      {STEPS.map((s, i) => <li key={s} className={'sarc-step' + (i === on ? ' is-on' : '')}><span className="sarc-step-text">{s}</span></li>)}
+    </ol>
   );
 }
 
@@ -64,37 +84,37 @@ function SignInForm({ auth, setupRequired, onSignedIn, notice, onForgot }) {
   }
 
   return (
-    <form className="siq-form" onSubmit={submit} noValidate>
-      <div className="siq-head">
-        {setupRequired && <span className="siq-eyebrow">First-time setup</span>}
-        <h1 className="siq-title">{setupRequired ? 'Create the administrator account' : 'Sign in'}</h1>
-        <p className="siq-lead">{setupRequired ? 'No accounts exist yet. This first account is an Administrator, who then adds everyone else.' : 'Enter your account credentials to continue.'}</p>
+    <form className="sarc-form" onSubmit={submit} noValidate>
+      <div className="sarc-head">
+        {setupRequired && <span className="sarc-eyebrow">First-time setup</span>}
+        <h1 className="sarc-title">{setupRequired ? 'Create the administrator account' : 'Sign in'}</h1>
+        <p className="sarc-lead">{setupRequired ? 'No accounts exist yet. This first account is an Administrator, who then adds everyone else.' : 'Enter your account credentials to continue.'}</p>
       </div>
-      {notice && <div role="status" className="siq-alert is-ok">{notice}</div>}
+      {notice && <div role="status" className="sarc-alert is-ok">{notice}</div>}
 
-      <div className="siq-fields">
-        {setupRequired && <Field id="siq-name" label="Full name"><input id="siq-name" className="siq-input" autoComplete="name" value={f.name} onChange={set('name')} required autoFocus /></Field>}
-        <Field id="siq-user" label="Username"><input id="siq-user" className="siq-input" autoComplete="username" autoCapitalize="none" spellCheck={false} value={f.username} onChange={set('username')} required autoFocus={!setupRequired} /></Field>
-        <Field id="siq-pass" label="Password" help={setupRequired ? `At least ${MIN_PASSWORD} characters.` : error} invalid={!setupRequired && !!error}
-          toggle={<button type="button" className="siq-show" aria-pressed={show} aria-controls="siq-pass" onClick={() => setShow(s => !s)}>{show ? 'Hide' : 'Show'}</button>}>
-          <input id="siq-pass" className="siq-input" type={show ? 'text' : 'password'} autoComplete={setupRequired ? 'new-password' : 'current-password'}
+      <div className="sarc-fields">
+        {setupRequired && <Field id="sarc-fullname" label="Full name"><input id="sarc-fullname" className="sarc-input" autoComplete="name" value={f.name} onChange={set('name')} required autoFocus /></Field>}
+        <Field id="sarc-user" label="Username"><input id="sarc-user" className="sarc-input" autoComplete="username" autoCapitalize="none" spellCheck={false} value={f.username} onChange={set('username')} required autoFocus={!setupRequired} /></Field>
+        <Field id="sarc-pass" label="Password" help={setupRequired ? `At least ${MIN_PASSWORD} characters.` : error} invalid={!setupRequired && !!error}
+          toggle={<button type="button" className="sarc-show" aria-pressed={show} aria-controls="sarc-pass" onClick={() => setShow(s => !s)}>{show ? 'Hide' : 'Show'}</button>}>
+          <input id="sarc-pass" className="sarc-input" type={show ? 'text' : 'password'} autoComplete={setupRequired ? 'new-password' : 'current-password'}
             value={f.password} onChange={set('password')} onKeyUp={capsCheck} onKeyDown={capsCheck} required />
         </Field>
-        {setupRequired && <Field id="siq-confirm" label="Confirm password" help={mismatch ? error : ''} invalid={mismatch}>
-          <input id="siq-confirm" className="siq-input" type={show ? 'text' : 'password'} autoComplete="new-password" value={f.confirm} onChange={set('confirm')} onKeyUp={capsCheck} required />
+        {setupRequired && <Field id="sarc-confirm" label="Confirm password" help={mismatch ? error : ''} invalid={mismatch}>
+          <input id="sarc-confirm" className="sarc-input" type={show ? 'text' : 'password'} autoComplete="new-password" value={f.confirm} onChange={set('confirm')} onKeyUp={capsCheck} required />
         </Field>}
-        {caps && <div role="status" className="siq-help" style={{ marginTop: -8 }}>Caps Lock is on.</div>}
+        {caps && <div role="status" className="sarc-help" style={{ marginTop: -8 }}>Caps Lock is on.</div>}
       </div>
       {/* first-time setup: a problem from the server (a taken username, a weak password) is about the whole form */}
-      {setupRequired && error && !mismatch && <div role="alert" className="siq-alert">{error}</div>}
+      {setupRequired && error && !mismatch && <div role="alert" className="sarc-alert">{error}</div>}
 
-      <div className="siq-actions">
-        <button type="submit" className="siq-submit" disabled={busy || !f.username || !f.password || (setupRequired && (!f.name || !f.confirm))}>
+      <div className="sarc-actions">
+        <button type="submit" className="sarc-submit" disabled={busy || !f.username || !f.password || (setupRequired && (!f.name || !f.confirm))}>
           {busy && <span className="spin" aria-hidden="true" />}{busy ? (setupRequired ? 'Creating…' : 'Signing in…') : setupRequired ? 'Create account and sign in' : 'Sign in'}
         </button>
         {!setupRequired && (auth.resetAvailable
-          ? <button type="button" className="siq-link" onClick={onForgot}>Forgot your password?</button>
-          : <p className="siq-note">Forgotten your password? Ask an Administrator to reset it.</p>)}
+          ? <button type="button" className="sarc-link" onClick={onForgot}>Forgot your password?</button>
+          : <p className="sarc-note">Forgotten your password? Ask an Administrator to reset it.</p>)}
       </div>
     </form>
   );
@@ -109,20 +129,20 @@ function ForgotForm({ auth, onBack }) {
     catch (err) { setError(err.message); } finally { setBusy(false); }
   }
   return (
-    <form className="siq-form" onSubmit={submit} noValidate>
-      <div className="siq-head">
-        <h1 className="siq-title">Reset your password</h1>
-        <p className="siq-lead">Enter your username or the email address on your account. We’ll email you a link to choose a new password.</p>
+    <form className="sarc-form" onSubmit={submit} noValidate>
+      <div className="sarc-head">
+        <h1 className="sarc-title">Reset your password</h1>
+        <p className="sarc-lead">Enter your username or the email address on your account. We’ll email you a link to choose a new password.</p>
       </div>
-      {msg ? <div role="status" className="siq-alert is-ok">{msg}</div> : (
-        <div className="siq-fields">
-          <Field id="siq-login" label="Username or email" help={error} invalid={!!error}>
-            <input id="siq-login" className="siq-input" autoComplete="username" autoCapitalize="none" spellCheck={false} value={login} onChange={e => { setLogin(e.target.value); setError(''); }} autoFocus aria-invalid={!!error} />
+      {msg ? <div role="status" className="sarc-alert is-ok">{msg}</div> : (
+        <div className="sarc-fields">
+          <Field id="sarc-login" label="Username or email" help={error} invalid={!!error}>
+            <input id="sarc-login" className="sarc-input" autoComplete="username" autoCapitalize="none" spellCheck={false} value={login} onChange={e => { setLogin(e.target.value); setError(''); }} autoFocus aria-invalid={!!error} />
           </Field>
         </div>)}
-      <div className="siq-actions">
-        {!msg && <button type="submit" className="siq-submit" disabled={busy || !login.trim()}>{busy && <span className="spin" aria-hidden="true" />}{busy ? 'Sending…' : 'Email me a reset link'}</button>}
-        <button type="button" className="siq-link" onClick={onBack}>Back to sign in</button>
+      <div className="sarc-actions">
+        {!msg && <button type="submit" className="sarc-submit" disabled={busy || !login.trim()}>{busy && <span className="spin" aria-hidden="true" />}{busy ? 'Sending…' : 'Email me a reset link'}</button>}
+        <button type="button" className="sarc-link" onClick={onBack}>Back to sign in</button>
       </div>
     </form>);
 }
@@ -139,23 +159,23 @@ function ResetForm({ auth, onDone }) {
     catch (err) { setError(err.message); setBusy(false); }
   }
   return (
-    <form className="siq-form" onSubmit={submit} noValidate>
-      <div className="siq-head">
-        <h1 className="siq-title">Choose a new password</h1>
-        <p className="siq-lead">The link works once. When you save, you’ll be signed out everywhere else.</p>
+    <form className="sarc-form" onSubmit={submit} noValidate>
+      <div className="sarc-head">
+        <h1 className="sarc-title">Choose a new password</h1>
+        <p className="sarc-lead">The link works once. When you save, you’ll be signed out everywhere else.</p>
       </div>
-      <div className="siq-fields">
-        <Field id="siq-new" label="New password" help={`At least ${MIN_PASSWORD} characters.`}
-          toggle={<button type="button" className="siq-show" aria-pressed={show} aria-controls="siq-new" onClick={() => setShow(s => !s)}>{show ? 'Hide' : 'Show'}</button>}>
-          <input id="siq-new" className="siq-input" type={show ? 'text' : 'password'} autoComplete="new-password" value={pw} onChange={e => { setPw(e.target.value); setError(''); }} autoFocus />
+      <div className="sarc-fields">
+        <Field id="sarc-new" label="New password" help={`At least ${MIN_PASSWORD} characters.`}
+          toggle={<button type="button" className="sarc-show" aria-pressed={show} aria-controls="sarc-new" onClick={() => setShow(s => !s)}>{show ? 'Hide' : 'Show'}</button>}>
+          <input id="sarc-new" className="sarc-input" type={show ? 'text' : 'password'} autoComplete="new-password" value={pw} onChange={e => { setPw(e.target.value); setError(''); }} autoFocus />
         </Field>
-        <Field id="siq-new2" label="Confirm new password" help={error} invalid={!!error}>
-          <input id="siq-new2" className="siq-input" type={show ? 'text' : 'password'} autoComplete="new-password" value={confirm} onChange={e => { setConfirm(e.target.value); setError(''); }} aria-invalid={!!error} />
+        <Field id="sarc-new2" label="Confirm new password" help={error} invalid={!!error}>
+          <input id="sarc-new2" className="sarc-input" type={show ? 'text' : 'password'} autoComplete="new-password" value={confirm} onChange={e => { setConfirm(e.target.value); setError(''); }} aria-invalid={!!error} />
         </Field>
       </div>
-      <div className="siq-actions">
-        <button type="submit" className="siq-submit" disabled={busy || !pw || !confirm}>{busy && <span className="spin" aria-hidden="true" />}{busy ? 'Saving…' : 'Save new password'}</button>
-        <button type="button" className="siq-link" onClick={() => onDone('')}>Back to sign in</button>
+      <div className="sarc-actions">
+        <button type="submit" className="sarc-submit" disabled={busy || !pw || !confirm}>{busy && <span className="spin" aria-hidden="true" />}{busy ? 'Saving…' : 'Save new password'}</button>
+        <button type="button" className="sarc-link" onClick={() => onDone('')}>Back to sign in</button>
       </div>
     </form>);
 }
@@ -163,10 +183,10 @@ function ResetForm({ auth, onDone }) {
 // A labelled input; `toggle` (Show / Hide) is drawn on the label line but comes after the input, so Tab goes
 // from one input to the next; `help` sits under the input (red when invalid) and describes it.
 const Field = ({ id, label, help, invalid, toggle, children }) => (
-  <div className="siq-field">
-    <label className="siq-label" htmlFor={id}>{label}</label>
+  <div className="sarc-field">
+    <label className="sarc-label" htmlFor={id}>{label}</label>
     {React.cloneElement(children, { 'aria-describedby': help ? `${id}-help` : undefined, 'aria-invalid': invalid || undefined })}
     {toggle}
-    {help && <div id={`${id}-help`} className={'siq-help' + (invalid ? ' is-error' : '')} role={invalid ? 'alert' : undefined}>{help}</div>}
+    {help && <div id={`${id}-help`} className={'sarc-help' + (invalid ? ' is-error' : '')} role={invalid ? 'alert' : undefined}>{help}</div>}
   </div>
 );

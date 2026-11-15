@@ -746,7 +746,7 @@ export default function App() {
     <div role="alert" className="app-state">
       <div className="app-state-card">
         <img src="/pa-mark.png" alt="" width="44" height="44" />
-        <h1 className="app-state-title">Can’t reach StatementIQ</h1>
+        <h1 className="app-state-title">Can’t reach StatementArc</h1>
         <p>{startError}</p>
         <button type="button" className="btn btn-primary" onClick={() => setAttempt(n => n + 1)}>Try Again</button>
       </div>
@@ -755,7 +755,7 @@ export default function App() {
   if (!auth || user === undefined) return (
     <div className="app-state" role="status">
       <div className="app-loader"><span className="app-loader-ring" aria-hidden="true" /><img src="/pa-mark.png" alt="" width="40" height="40" /></div>
-      <span className="app-state-text">Loading StatementIQ…</span>
+      <span className="app-state-text">Loading StatementArc…</span>
     </div>
   );
   if (!user) return <LoginPage auth={auth} setupRequired={setupRequired} onSignedIn={u => { setSetupRequired(false); setUser(u); }} />;
