@@ -1,5 +1,5 @@
 import React from 'react';
-import ArcWordmark from './ArcWordmark';
+import BrandWordmark from './BrandWordmark';
 import { BRAND } from '../lib/brand';
 
 // The review steps take the colours of the login page's review cycle, so the workspace continues it.
@@ -28,7 +28,7 @@ export default function Sidebar({ tabs, tab, onTab, meta, user, onSignOut, navTi
       <div className="side-brand">
         <img src="/pa-mark.png" alt="Project Accountants" width="30" height="30" />
         <div>
-          <div className="side-brand-name"><ArcWordmark word={BRAND.word} label={BRAND.name} /></div>
+          <div className="side-brand-name"><BrandWordmark word={BRAND.word} label={BRAND.name} /></div>
           <div className="side-brand-sub">{subtitle}</div>
         </div>
       </div>

@@ -59,25 +59,19 @@
 .side-brand { display: flex; gap: 10px; align-items: center; padding: 0 6px; flex: 0 0 auto; }
 .side-brand img { border-radius: 8px; background: #fff; padding: 3px; }
 .side-brand-name { font-size: 15px; line-height: 20px; font-weight: 600; letter-spacing: -0.01em; }
-/* The Arc wordmark (components/ArcWordmark.jsx, design "StatementArc Sign In"): the name, "Ar" in the moving
-   brand gradient, and the "c" drawn as an arc with a dot. Everything is in em, so font-size sets its size. */
-.arc-word { display: inline-flex; align-items: baseline; white-space: nowrap; line-height: 1; }
-.arc-word-base, .arc-word-ar { font-weight: 500; letter-spacing: -0.03em; }
-.arc-word-ar { display: inline-block; padding-bottom: 0.08em; margin-bottom: -0.08em; color: transparent;
-  background-image: linear-gradient(90deg, #5BB8D0 0%, #4FBFB0 30%, #8DD08A 60%, #5BB8D0 100%); background-size: 250% 100%;
-  -webkit-background-clip: text; background-clip: text; animation: arcFlow 6s ease-in-out infinite alternate; }
-.arc-word-c { width: 0.5em; height: 0.54em; margin-left: 0.03em; overflow: visible; flex: 0 0 auto; }
-.arc-word-dot { fill: #fff; transform-box: fill-box; transform-origin: center; animation: arcDot 3.2s ease-in-out 2s infinite; }
-/* drawn once where the mark first appears (the sign-in page) */
-.arc-word.is-draw .arc-word-ar { animation: arcIn 600ms cubic-bezier(.16,1,.3,1) 300ms both, arcFlow 6s ease-in-out infinite alternate; }
-.arc-word.is-draw .arc-word-path { animation: arcDraw 1400ms cubic-bezier(.16,1,.3,1) 500ms both; }
-.arc-word.is-draw .arc-word-dot { animation: arcDotIn 500ms cubic-bezier(.16,1,.3,1) 1500ms both, arcDot 3.2s ease-in-out 2s infinite; }
-@keyframes arcFlow { from { background-position: 0% 0; } to { background-position: 100% 0; } }
-@keyframes arcIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-@keyframes arcDraw { from { stroke-dashoffset: -100; } to { stroke-dashoffset: 0; } }
-@keyframes arcDotIn { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
-@keyframes arcDot { 0%, 100% { filter: drop-shadow(0 0 0 rgba(141,208,138,0)); } 50% { filter: drop-shadow(0 0 6px rgba(141,208,138,.9)); } }
-@media (prefers-reduced-motion: reduce) { .arc-word-ar, .arc-word-dot, .arc-word.is-draw .arc-word-ar, .arc-word.is-draw .arc-word-path, .arc-word.is-draw .arc-word-dot { animation: none; } }
+/* The wordmark (components/BrandWordmark.jsx, design "StatementX Sign In"): the name, then an X of two crossing
+   strokes in the brand gradients, with a light sweeping along each in turn. Everything is in em, so font-size sets its size. */
+.brand-word { display: inline-flex; align-items: baseline; white-space: nowrap; line-height: 1; }
+.brand-word-base { font-weight: 500; letter-spacing: -0.03em; }
+.brand-word-x { width: 0.64em; height: 0.69em; margin-left: 0.06em; overflow: visible; flex: 0 0 auto; }
+.brand-word-sweep { mix-blend-mode: overlay; opacity: 0; animation: bwSweep 3.2s cubic-bezier(.45,0,.25,1) 1.8s infinite; }
+.brand-word-sweep.is-b { animation-delay: 3.4s; }
+/* drawn once where the mark first appears (the sign-in page): one stroke, then the other */
+.brand-word.is-draw .brand-word-stroke.is-a { animation: bwDraw 900ms cubic-bezier(.16,1,.3,1) 400ms both; }
+.brand-word.is-draw .brand-word-stroke.is-b { animation: bwDraw 900ms cubic-bezier(.16,1,.3,1) 750ms both; }
+@keyframes bwDraw { from { stroke-dashoffset: -100; } to { stroke-dashoffset: 0; } }
+@keyframes bwSweep { 0% { stroke-dashoffset: 14; opacity: 0; } 10% { opacity: .9; } 60% { stroke-dashoffset: -100; opacity: .9; } 61%, 100% { stroke-dashoffset: -100; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .brand-word-sweep, .brand-word.is-draw .brand-word-stroke { animation: none; } }
 .side-brand-sub { font-size: 12px; line-height: 16px; color: rgba(255,255,255,0.56); }
 .side-nav { display: flex; flex-direction: column; gap: 2px; }
 .side-section { padding: 6px 10px; font-size: 12px; line-height: 16px; color: rgba(255,255,255,0.5); }

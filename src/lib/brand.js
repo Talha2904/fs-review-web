@@ -1,8 +1,8 @@
 // The product's name and maker, in one place: the sign-in page, the sidebar, the window title,
 // exports and reports all read it from here.
 export const BRAND = {
-  name: 'StatementArc',
-  /** the first part of the name; the Arc wordmark (components/ArcWordmark.jsx) draws the "Arc" after it */
+  name: 'StatementX',
+  /** the first part of the name; the wordmark (components/BrandWordmark.jsx) draws the X after it */
   word: 'Statement',
   by: 'By Project Accountants',
   firm: 'Project Accountants',

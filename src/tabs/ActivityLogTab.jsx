@@ -67,7 +67,7 @@ export default function ActivityLogTab({ fund = null, link = null }) {
       ws['!autofilter'] = { ref: ws['!ref'] };
       const filters = [scoped && `Fund: ${fund.name}`, !scoped && fundFilter && `Fund: ${fundFilter === '_none' ? 'Not about a fund' : (funds.find(f => f[0] === fundFilter)?.[1] || '')}`, cat && `Activity: ${cat}`, who && `Person: ${who === '_none' ? 'Not signed in' : who}`, q && `Search: ${q}`].filter(Boolean);
       const about = XLSX.utils.aoa_to_sheet([
-        ['StatementArc Activity Log'], ['Exported', new Date().toLocaleString('en-GB')], ['Entries', rows.length],
+        ['StatementX Activity Log'], ['Exported', new Date().toLocaleString('en-GB')], ['Entries', rows.length],
         ['Filters', filters.join('; ') || 'None (all entries)'], ['Source', 'Server log']
       ]);
       about['!cols'] = [{ wch: 12 }, { wch: 60 }];
@@ -76,7 +76,7 @@ export default function ActivityLogTab({ fund = null, link = null }) {
       XLSX.utils.book_append_sheet(wb, about, 'About this export');
       const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const slug = scoped ? '-' + fund.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : '';
-      const name = `statementarc-activity-log${slug}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const name = `statementx-activity-log${slug}-${new Date().toISOString().slice(0, 10)}.xlsx`;
       const result = await saveFile(name, blob);
       if (result === 'saved') {
         log('Activity log', `Exported ${scoped ? `the ${fund.name} activity log` : 'the activity log'} (${rows.length} entr${rows.length === 1 ? 'y' : 'ies'})`, filters.join(' · ') || 'All entries', scoped ? { engagementId: fund.id, fundName: fund.name } : {});
