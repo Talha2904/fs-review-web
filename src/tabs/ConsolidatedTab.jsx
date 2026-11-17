@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Card, CardHead, InfoTip, Pill, STATUS_LABEL, cap, body, h2, muted, page } from '../components/ui';
 import { fmt, fmtDate, sym, whenOf, plural } from '../lib/format';
 import { reviewStore } from '../lib/reviewStore';
@@ -145,7 +145,10 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
 
         {(result.summary || aiNote) && (
           <Card>
-            {result.summary && <div style={body}>{result.summary}</div>}
+            {result.summary && <>
+              <div style={{ ...cap, ...muted, textTransform: 'uppercase', letterSpacing: '.04em' }}>Key finding</div>
+              <div style={{ ...body, marginTop: 4 }}>{result.summary}</div>
+            </>}
             {aiNote && <div style={{ ...cap, ...muted, marginTop: result.summary ? 8 : 0 }}>{aiNote}</div>}
           </Card>)}
 
@@ -168,16 +171,12 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
             </div>)}
         </Card>
 
+        {result.groupBalances && <GroupBalances g={result.groupBalances} />}
+
         {unmatched.length > 0 && (
           <Card>
             <CardHead title="Lines with no match" info="A balance or related-party line in one fund that may be owed to or by another entity in the group (it names one, or a related party such as the manager), with no line to pair it with. The other side may be missing, worded differently, or netted off; with AI on, Claude pairs lines named by role." />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-              {unmatched.map(c => (
-                <div key={c.id} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' }}>
-                  <span style={body}><strong>{c.fundName}</strong>: {c.label} <span style={{ ...cap, ...muted }}>({c.where}{c.mentions?.length ? ` · names ${c.mentions.map(nameOf).join(', ')}` : ''})</span></span>
-                  <span style={body}>{money(c.amount, c.currency)}</span>
-                </div>))}
-            </div>
+            <Unmatched rows={unmatched} nameOf={nameOf} />
           </Card>)}
 
         <Card>
@@ -223,5 +222,100 @@ function Side({ c, inline }) {
       <span style={{ ...body, overflowWrap: 'anywhere' }}>{c.label} <strong>{money(c.amount, c.currency)}</strong></span>
       <span style={{ ...cap, ...muted }}>{c.where}</span>
     </span>
+  );
+}
+
+// The lines with no match as a table: filter by fund and side, sort by amount, and the total of what is shown.
+const SIDE = { receivable: 'Owed to the fund', payable: 'Owed by the fund', flow: 'Income or charge' };
+function Unmatched({ rows, nameOf }) {
+  const [fund, setFund] = useState(''), [side, setSide] = useState(''), [sort, setSort] = useState('');
+  const fundsIn = useMemo(() => [...new Map(rows.map(c => [c.engagementId, c.fundName])).entries()], [rows]);
+  const cur = rows[0]?.currency;
+  const oneCur = rows.every(c => c.currency === cur);
+  const shown = useMemo(() => {
+    const list = rows.filter(c => (!fund || c.engagementId === fund) && (!side || c.side === side));
+    if (sort) list.sort((x, y) => (sort === 'desc' ? -1 : 1) * (Math.abs(x.amount ?? 0) - Math.abs(y.amount ?? 0)));
+    return list;
+  }, [rows, fund, side, sort]);
+  const sum = list => list.reduce((t, c) => t + Math.abs(c.amount ?? 0), 0);
+  const th = { ...cap, ...muted };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ ...cap, ...muted }}>{plural(shown.length, 'line')} shown</span>
+        {(
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <Select className="input" style={{ width: 'auto', maxWidth: '100%' }} aria-label="Fund" value={fund} onChange={e => setFund(e.target.value)}>
+              <option value="">All funds</option>{fundsIn.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+            </Select>
+            <Select className="input" style={{ width: 'auto', maxWidth: '100%' }} aria-label="Side" value={side} onChange={e => setSide(e.target.value)}>
+              <option value="">All sides</option><option value="receivable">Owed to the fund</option><option value="payable">Owed by the fund</option><option value="flow">Income or charge</option>
+            </Select>
+          </div>)}
+      </div>
+      {(
+        <div className="dt" style={{ '--cols': 'minmax(180px,1.2fr) minmax(220px,1.8fr) 150px 140px', '--min': '720px', marginTop: 0 }}>
+          <div className="dt-head">
+            <span style={th}>Fund</span><span style={th}>Line</span><span style={th}>Side</span>
+            <button type="button" className="link" style={{ ...th, textAlign: 'right' }} onClick={() => setSort(s => (s === 'desc' ? 'asc' : 'desc'))}
+              aria-label="Sort by amount">Amount {sort === 'desc' ? '↓' : sort === 'asc' ? '↑' : '↕'}</button>
+          </div>
+          {!shown.length && <div style={{ ...body, ...muted, padding: '10px 0' }}>No line matches these filters.</div>}
+          {shown.map(c => (
+            <div key={c.id} className="row dt-row">
+              <span className="dt-main" style={{ ...body, fontWeight: 600, overflowWrap: 'anywhere' }}>{c.fundName}</span>
+              <span data-label="Line" style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                <span style={{ ...body, overflowWrap: 'anywhere' }}>{c.label}</span>
+                <span style={{ ...cap, ...muted }}>{c.where}{c.mentions?.length ? ` · names ${c.mentions.map(nameOf).join(', ')}` : ' · names no fund'}</span>
+              </span>
+              <span data-label="Side" style={cap}>{SIDE[c.side] || c.side}</span>
+              <span data-label="Amount" style={{ ...body, textAlign: 'right' }}>{money(c.amount, c.currency)}</span>
+            </div>))}
+          {shown.length > 1 && oneCur && side && (
+            <div className="dt-row" style={{ fontWeight: 600 }}>
+              <span className="dt-main" style={body}>Total shown</span><span /><span />
+              <span data-label="Total" style={{ ...body, textAlign: 'right' }}>{money(sum(shown), cur)}</span>
+            </div>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Balances with "the group" that name no fund: inside one group each is another member's balance, so what the
+// group is owed and what it owes should agree. The app adds them up; a difference is shown, never explained away.
+function GroupBalances({ g }) {
+  const cur = g.currency;
+  const [label, bg] = g.status === 'agrees' ? ['Agrees', 'var(--snow-status-complete-bg)'] : g.status === 'differs' ? ['Differs', 'var(--snow-status-rejected-bg)'] : ['Different currencies', 'var(--snow-status-approved-bg)'];
+  return (
+    <Card>
+      <CardHead title="Balances with the group" info="Lines such as “Due from group entities” name no fund, but every fund here is in the same group, so each is a balance with another member. Lines naming another fund here are counted too. Added up across the group, what the funds are owed by the group should equal what they owe to it; the difference is worked out by the app. Balances with group entities outside this review (such as a parent above them) also show as a difference." />
+      {cur == null ? <div style={{ ...body, marginTop: 8 }}>The funds use different currencies, so the group totals are not added up. Each fund’s balances are in its own currency.</div> : (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 24px', alignItems: 'center', marginTop: 8 }}>
+        <span style={body}>Owed to the funds by the group: <strong>{money(g.owedTo, cur)}</strong></span>
+        <span style={body}>Owed by the funds to the group: <strong>{money(g.owedBy, cur)}</strong></span>
+        {g.difference != null && <span style={{ ...body, color: g.status === 'differs' ? 'var(--pa-red)' : undefined }}>Difference: <strong>{money(Math.abs(g.difference), cur)}</strong></span>}
+        <Pill bg={bg}>{label}</Pill>
+      </div>)}
+      {g.status === 'differs' && <div style={{ ...cap, ...muted, marginTop: 6 }}>A difference means a balance is recorded on one side only, recorded at different amounts, or owed to or by a group entity outside this review.</div>}
+      {g.notAnalysed?.length > 0 && (
+        <div role="status" style={{ ...cap, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '8px 12px', marginTop: 10 }}>
+          Not analysed, so missing from these totals: {g.notAnalysed.join(', ')}. Analyse {g.notAnalysed.length === 1 ? 'it' : 'them'} and run the review again.
+        </div>)}
+      <div className="dt" style={{ '--cols': 'minmax(200px,1.6fr) 170px 170px', '--min': '560px', marginTop: 10 }}>
+        <div className="dt-head">{['Fund', 'Owed to the fund', 'Owed by the fund'].map(c => <span key={c} style={{ ...cap, ...muted }}>{c}</span>)}</div>
+        {g.funds.map(f => (
+          <div key={f.engagementId} className="row dt-row">
+            <span className="dt-main" style={{ ...body, fontWeight: 600, overflowWrap: 'anywhere' }}>{f.fundName}</span>
+            <span data-label="Owed to the fund" style={body}>{f.owedTo ? money(f.owedTo, f.currency || cur) : '—'}</span>
+            <span data-label="Owed by the fund" style={body}>{f.owedBy ? money(f.owedBy, f.currency || cur) : '—'}</span>
+          </div>))}
+        {cur != null && <div className="dt-row" style={{ fontWeight: 600 }}>
+          <span className="dt-main" style={body}>Group total</span>
+          <span data-label="Owed to the funds" style={body}>{money(g.owedTo, cur)}</span>
+          <span data-label="Owed by the funds" style={body}>{money(g.owedBy, cur)}</span>
+        </div>}
+      </div>
+    </Card>
   );
 }
