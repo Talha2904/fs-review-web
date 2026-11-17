@@ -46,6 +46,8 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
   const funds = data?.group?.funds || group?.funds || [];
   const analysed = funds.filter(f => f.analysed).length;
   const result = data?.review?.result || null;
+  // only a note that the AI step failed is shown; the model's name and "AI matched…" lines are not
+  const aiNote = result?.aiNote && !result.aiNote.startsWith('AI (') ? result.aiNote : '';
   const fundOf = id => funds.find(f => f.engagementId === id);
   const nameOf = id => fundOf(id)?.fundName || 'another fund';
 
@@ -141,10 +143,10 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
             <div key={k} className="kpi" style={{ '--c': c }}><div className="kpi-k">{k}</div><div className={'kpi-v' + (k === 'Differ' && v ? ' is-alert' : '')}>{v}</div></div>))}
         </div>
 
-        {(result.summary || result.aiNote) && (
+        {(result.summary || aiNote) && (
           <Card>
             {result.summary && <div style={body}>{result.summary}</div>}
-            {result.aiNote && <div style={{ ...cap, ...muted, marginTop: result.summary ? 8 : 0 }}>{result.aiNote}</div>}
+            {aiNote && <div style={{ ...cap, ...muted, marginTop: result.summary ? 8 : 0 }}>{aiNote}</div>}
           </Card>)}
 
         <Card>
