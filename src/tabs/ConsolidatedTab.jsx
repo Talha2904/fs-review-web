@@ -72,6 +72,9 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
 
   const links = result?.links || [], unmatched = result?.unmatched || [], common = result?.groups || [];
   const differing = links.filter(l => l.status === 'differs').length;
+  const policies = result?.policies || [];
+  // the app's own key finding on policies, shown with or without the AI summary
+  const policyFinding = !policies.length ? '' : `Accounting policy: ${[...new Set(policies.map(p => p.fundName))].join(', ')} ${new Set(policies.map(p => p.fundName)).size === 1 ? 'states' : 'state'} ${policies.length === 1 ? 'a policy' : 'policies'} differently from the rest of the group.`;
 
   return (
     <div style={page}>
@@ -143,13 +146,14 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
             <div key={k} className="kpi" style={{ '--c': c }}><div className="kpi-k">{k}</div><div className={'kpi-v' + (k === 'Differ' && v ? ' is-alert' : '')}>{v}</div></div>))}
         </div>
 
-        {(result.summary || aiNote) && (
+        {(result.summary || policyFinding || aiNote) && (
           <Card>
-            {result.summary && <>
+            {(result.summary || policyFinding) && <>
               <div style={{ ...cap, ...muted, textTransform: 'uppercase', letterSpacing: '.04em' }}>Key finding</div>
-              <div style={{ ...body, marginTop: 4 }}>{result.summary}</div>
+              {result.summary && <div style={{ ...body, marginTop: 4 }}>{result.summary}</div>}
+              {policyFinding && <div style={{ ...body, marginTop: 4 }}>{policyFinding}</div>}
             </>}
-            {aiNote && <div style={{ ...cap, ...muted, marginTop: result.summary ? 8 : 0 }}>{aiNote}</div>}
+            {aiNote && <div style={{ ...cap, ...muted, marginTop: result.summary || policyFinding ? 8 : 0 }}>{aiNote}</div>}
           </Card>)}
 
         <Card>
@@ -172,6 +176,21 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
         </Card>
 
         {result.groupBalances && <GroupBalances g={result.groupBalances} />}
+
+        {policies.length > 0 && (
+          <Card>
+            <CardHead title="Accounting policies that differ" info="Funds in one group usually state the same accounting policies. Each row is a policy one fund states where the other funds say something else in the same place (or a fund saying it changed a policy). Found by the app comparing the notes word by word; check the wording in each fund’s statements." />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
+              {policies.map((p, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ ...body, fontWeight: 600 }}>{p.fundName}<span style={{ ...cap, ...muted, fontWeight: 400 }}> · {p.where}</span></span>
+                  <span style={body}>Says: “{p.says}”</span>
+                  {p.others
+                    ? <span style={{ ...cap, ...muted }}>{plural(p.others.funds.length, 'other fund')} {p.others.funds.length === 1 ? 'says' : 'say'}: “{p.others.text}” ({p.others.funds.join(', ')})</span>
+                    : <span style={{ ...cap, ...muted }}>No other fund says anything in the same place.</span>}
+                </div>))}
+            </div>
+          </Card>)}
 
         {unmatched.length > 0 && (
           <UnmatchedCard rows={unmatched} nameOf={nameOf} />)}
