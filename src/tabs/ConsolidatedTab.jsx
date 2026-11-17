@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Card, CardHead, InfoTip, Pill, STATUS_LABEL, cap, body, h2, muted, page } from '../components/ui';
+import { Button, Card, CardHead, InfoTip, Pill, STATUS_LABEL, cap, body, h2, h3, muted, page } from '../components/ui';
 import { fmt, fmtDate, sym, whenOf, plural } from '../lib/format';
 import { reviewStore } from '../lib/reviewStore';
 import { useLive } from '../lib/useLive';
@@ -174,10 +174,7 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
         {result.groupBalances && <GroupBalances g={result.groupBalances} />}
 
         {unmatched.length > 0 && (
-          <Card>
-            <CardHead title="Lines with no match" info="A balance or related-party line in one fund that may be owed to or by another entity in the group (it names one, or a related party such as the manager), with no line to pair it with. The other side may be missing, worded differently, or netted off; with AI on, Claude pairs lines named by role." />
-            <Unmatched rows={unmatched} nameOf={nameOf} />
-          </Card>)}
+          <UnmatchedCard rows={unmatched} nameOf={nameOf} />)}
 
         <Card>
           <CardHead title="Recurring matters" info="Review points that are the same matter in two or more funds: the same check, the same title, or (with AI) the same issue worded differently. Link them as one common review point to read their comments in one thread; each fund still responds to and clears its own point. Statuses are as they are now." />
@@ -225,8 +222,34 @@ function Side({ c, inline }) {
   );
 }
 
-// The lines with no match as a table: filter by fund and side, sort by amount, and the total of what is shown.
 const SIDE = { receivable: 'Owed to the fund', payable: 'Owed by the fund', flow: 'Income or charge' };
+
+// "Lines with no match" starts collapsed: the header is a button that shows the line count and opens the table.
+// The ⓘ sits beside the button, not inside it, so it keeps working on its own. The table stays mounted while
+// hidden, so its filters and sort survive collapsing.
+function UnmatchedCard({ rows, nameOf }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Card>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+          <button type="button" aria-expanded={open} aria-controls="unmatched-body" onClick={() => setOpen(o => !o)}
+            style={{ ...h3, display: 'inline-flex', alignItems: 'center', gap: 8, background: 'none', border: 0, padding: 0, color: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
+            <svg width="14" height="14" viewBox="0 0 12 12" aria-hidden="true" style={{ transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform .15s', flex: 'none' }}>
+              <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Lines with no match
+          </button>
+          <InfoTip label="About Lines with no match">A balance or related-party line in one fund that may be owed to or by another entity in the group (it names one, or a related party such as the manager), with no line to pair it with. The other side may be missing, worded differently, or netted off; with AI on, Claude pairs lines named by role.</InfoTip>
+        </div>
+        <span style={{ ...cap, ...muted }}>{plural(rows.length, 'line')}</span>
+      </div>
+      <div id="unmatched-body" hidden={!open}><Unmatched rows={rows} nameOf={nameOf} /></div>
+    </Card>
+  );
+}
+
+// The lines with no match as a table: filter by fund and side, sort by amount, and the total of what is shown.
 function Unmatched({ rows, nameOf }) {
   const [fund, setFund] = useState(''), [side, setSide] = useState(''), [sort, setSort] = useState('');
   const fundsIn = useMemo(() => [...new Map(rows.map(c => [c.engagementId, c.fundName])).entries()], [rows]);
