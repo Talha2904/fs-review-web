@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { slotDefs, steps } from '../data/sampleFund';
 import { Button, FileButton, Pill, InfoTip, cap, body, h2, h3, muted, page, RING, LOCKED_NOTE } from '../components/ui';
 import Modal from '../components/Modal';
@@ -104,16 +104,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
                   </div>
                   <div style={{ ...cap, ...muted, marginTop: 6 }}>Uploaded by {v.uploadedBy?.name || '—'} · {when(v.uploadedAt)}</div>
 
-                  {v.validation?.checks?.length > 0 && (
-                    <ul aria-label={`Checks for ${d.name}`} style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {v.validation.checks.map((c, i) => (
-                        <li key={i} className="doc-check" style={{ '--i': i }}>
-                          <span aria-hidden="true" className={'doc-check-ico is-' + c.result}>{ICON[c.result][0]}</span>
-                          <span><span className="sr-only">{c.result === 'ok' ? 'Passed: ' : c.result === 'warn' ? 'Check: ' : 'Problem: '}</span>{c.detail}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  {v.validation?.checks?.length > 0 && <CheckList key={v.id} id={v.id} name={d.name} checks={v.validation.checks} />}
                   {v.validation?.status === 'sample' && <div style={{ ...cap, ...muted, marginTop: 10 }}>Built-in sample document; not checked.</div>}
                   {v.validation?.status === 'checking' && <div role="status" style={{ ...cap, ...muted, marginTop: 10 }}>Reading the file and checking it…</div>}
 
@@ -214,6 +205,34 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
 
       {confirming && <ConfirmModal v={confirming} name={slotDefs.find(d => d.id === confirming.slot)?.name} onClose={() => setConfirming(null)} onConfirm={async reason => { await onConfirm(confirming, reason); setConfirming(null); }} />}
       {sendingBack && <ReasonModal title="Send back to the preparer" label="What needs to change?" button="Send Back" onClose={() => setSendingBack(false)} onSubmit={async r => { await onSendBack(r); setSendingBack(false); }} />}
+    </div>
+  );
+}
+
+// A document's checks: open the first time this version is shown in this browser, folded to a one-line summary after
+// that (problems still show in the summary's counts). The reader can open or fold it at any time.
+const seenKey = id => 'fsr.docChecksSeen.' + id;
+function CheckList({ id, name, checks }) {
+  const [open, setOpen] = useState(() => { try { return !localStorage.getItem(seenKey(id)); } catch { return true; } });
+  useEffect(() => { try { localStorage.setItem(seenKey(id), '1'); } catch { /* private window: always opens */ } }, [id]);
+  const n = r => checks.filter(c => c.result === r).length;
+  const counts = [['ok', n('ok'), 'passed'], ['warn', n('warn'), 'to check'], ['fail', n('fail'), 'failed']].filter(c => c[1] > 0);
+  return (
+    <div style={{ marginTop: 12 }}>
+      <button type="button" className="doc-checks-toggle" aria-expanded={open} onClick={() => setOpen(o => !o)}>
+        {counts.map(([r, k, l]) => <span key={r} className="doc-checks-count"><span aria-hidden="true" className={'doc-check-ico is-' + r}>{ICON[r][0]}</span>{k} {l}</span>)}
+        <span className="doc-checks-more">{open ? 'Hide checks' : 'Show checks'}<span aria-hidden="true" className="doc-checks-chev">›</span></span>
+      </button>
+      {open && (
+        <ul aria-label={`Checks for ${name}`} style={{ listStyle: 'none', margin: '10px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {checks.map((c, i) => (
+            <li key={i} className="doc-check" style={{ '--i': i }}>
+              <span aria-hidden="true" className={'doc-check-ico is-' + c.result}>{ICON[c.result][0]}</span>
+              <span><span className="sr-only">{c.result === 'ok' ? 'Passed: ' : c.result === 'warn' ? 'Check: ' : 'Problem: '}</span>{c.detail}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

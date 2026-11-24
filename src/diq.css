@@ -261,3 +261,12 @@ body {
 
 /* Loading and server-down screens sit outside .shell: same font as the app */
 .app-state { font-family: var(--dx-font); }
+
+/* Document checks: a one-line summary that opens the full list */
+.doc-checks-toggle { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 8px 12px; border: 0; border-radius: 14px; background: rgba(255,255,255,0.6); font: inherit; font-size: 12.5px; line-height: 18px; color: var(--dx-text); cursor: pointer; text-align: left; }
+.doc-checks-toggle:hover { background: rgba(255,255,255,0.9); }
+.doc-checks-count { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.doc-checks-more { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; color: var(--dx-blue); white-space: nowrap; }
+.doc-checks-chev { display: inline-block; font-size: 15px; line-height: 1; transition: transform var(--ease); }
+.doc-checks-toggle[aria-expanded="true"] .doc-checks-chev { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) { .doc-checks-chev { transition: none; } }
