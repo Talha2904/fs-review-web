@@ -78,7 +78,7 @@ export default function ScheduleTab({ engagementId, shared = { points: [], messa
                   {siblingsOf(p).length > 0 && <Pill bg="var(--snow-primary-purple)">Common · {siblingsOf(p).length + 1} funds</Pill>}
                   {p.dueDate && p.status !== 'cleared' && <span style={{ ...cap, color: isOverdue(p) ? 'var(--pa-red)' : 'var(--snow-black-40)', fontWeight: isOverdue(p) ? 600 : 400 }}>{isOverdue(p) ? 'Overdue · ' : 'Due '}{dayLabel(p.dueDate)}</span>}
                 </div>
-                <div style={{ ...body, marginTop: 6 }}>{p.title}</div>
+                <div className="point-title" title={p.title} style={{ ...body, marginTop: 6 }}>{p.title}</div>
                 <div style={{ ...cap, ...muted, marginTop: 4 }}>{p.assignedTo ? `Assigned to ${p.assignedTo.name}` : 'Not assigned'} · {last ? `${KIND[last.kind].toLowerCase()} ${when(last.at)}` : when(p.raisedAt)}</div>
               </button>
             );

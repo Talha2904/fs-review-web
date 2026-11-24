@@ -270,3 +270,13 @@ body {
 .doc-checks-chev { display: inline-block; font-size: 15px; line-height: 1; transition: transform var(--ease); }
 .doc-checks-toggle[aria-expanded="true"] .doc-checks-chev { transform: rotate(90deg); }
 @media (prefers-reduced-motion: reduce) { .doc-checks-chev { transition: none; } }
+
+/* Variance matters: one line each; the detail opens on click */
+.matter-head { width: 100%; display: grid; grid-template-columns: 12px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.matter-chev { font-size: 16px; line-height: 1; color: var(--dx-text); opacity: 0.6; transition: transform var(--ease); }
+.matter.is-open .matter-chev { transform: rotate(90deg); }
+.shell .matter:hover { transform: none; }
+/* Review points: the title on one line in the list; in full on the chosen point */
+.point-title { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+.point-row[aria-current="true"] .point-title { -webkit-line-clamp: unset; display: block; }
+@media (prefers-reduced-motion: reduce) { .matter-chev { transition: none; } }

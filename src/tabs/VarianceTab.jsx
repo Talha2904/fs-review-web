@@ -11,6 +11,7 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
   const [raiseError, setRaiseError] = useState({});
   // the point just raised for a line, shown until the refreshed review includes it
   const [justRaised, setJustRaised] = useState({});
+  const [openMatter, setOpenMatter] = useState(null); // the matter whose detail is open (one at a time)
   if (!enabled) return (
     <div style={page}>
       <Card>
@@ -85,14 +86,17 @@ export default function VarianceTab({ aiNotes = false, canEditPoints = true, ena
         <CardHead title="Matters for the Directors" aside={`${directors.length} matter${directors.length === 1 ? '' : 's'} for the Board`} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
           {directors.map(d => (
-            <div key={d.label} className={'matter is-' + (d.pri || 'Low').toLowerCase()}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'start' }}>
-                <div style={{ ...body, fontWeight: 600 }}>{d.label}</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}><span style={{ ...body, whiteSpace: 'nowrap' }}>{signedGbp(d.delta)} · {pctLabel(d.pct)}</span><PriPill pri={d.pri} /></div>
-              </div>
-              <div style={{ ...cap, marginTop: 6, maxWidth: 900 }}>{d.note}</div>
-              <div style={{ ...cap, marginTop: 6, maxWidth: 900 }}><span style={muted}>Suggested work — </span>{d.action}</div>
-              <button type="button" className="link" style={{ ...cap, marginTop: 8 }} onClick={() => showLine(d)}>Show the line ↓</button>
+            <div key={d.label} className={'matter is-' + (d.pri || 'Low').toLowerCase() + (openMatter === d.label ? ' is-open' : '')}>
+              <button type="button" className="matter-head" aria-expanded={openMatter === d.label} onClick={() => setOpenMatter(m => (m === d.label ? null : d.label))}>
+                <span className="matter-chev" aria-hidden="true">›</span>
+                <span style={{ ...body, fontWeight: 600, minWidth: 0 }}>{d.label}</span>
+                <span style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', justifyContent: 'flex-end' }}><span style={{ ...body, whiteSpace: 'nowrap' }}>{signedGbp(d.delta)} · {pctLabel(d.pct)}</span><PriPill pri={d.pri} /></span>
+              </button>
+              {openMatter === d.label && <div style={{ paddingLeft: 22 }}>
+                <div style={{ ...cap, marginTop: 8, maxWidth: 900 }}>{d.note}</div>
+                <div style={{ ...cap, marginTop: 6, maxWidth: 900 }}><span style={muted}>Suggested work — </span>{d.action}</div>
+                <button type="button" className="link" style={{ ...cap, marginTop: 8 }} onClick={() => showLine(d)}>Show the line ↓</button>
+              </div>}
             </div>
           ))}
         </div>

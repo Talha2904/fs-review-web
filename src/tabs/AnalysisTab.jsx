@@ -3,7 +3,10 @@ import { fmt, gbp } from '../lib/format';
 import { PointStatus } from './ScheduleTab';
 import TbMapModal from '../components/TbMapModal';
 import { checkTbMapping } from '../lib/tbMapping';
-import { Button, Card, CardHead, Pill, PriPill, Tile, cap, body, h3, muted, page, RING, REDBG } from '../components/ui';
+import { Button, Card, CardHead, InfoTip, Pill, PriPill, Tile, cap, body, h3, muted, page, RING, REDBG } from '../components/ui';
+
+// The first sentence of a paragraph (a full stop followed by a space and a capital), or the whole of it.
+const firstSentence = s => { const m = /^.+?[.!?](?=\s+[A-Z])/s.exec(s || ''); return m ? m[0] : s; };
 
 const CHECK_GRID = 'minmax(260px,1fr) 130px 130px 130px 120px';
 const CHIP = { Agrees: 'var(--snow-status-complete-bg)', Difference: REDBG, 'Not tested': 'var(--snow-ink-5)' };
@@ -26,7 +29,9 @@ export default function AnalysisTab(p) {
   const refKey = { is: 'IS-', sup: 'SUP-', ag: 'AG-', tb: 'TB ', py: 'Prior year', cy: 'Note' }[cur];
   const docPoints = openPoints.filter(x => (x.doc || 'cy') === cur || (x.refs || '').includes(refKey));
   const vals = tray.map(t => t.value);
-  const [chkF, setChkF] = React.useState('all'); // all | Difference | Agrees | Not tested
+  // differences first: the checks that agree are one click away
+  const [chkF, setChkF] = React.useState(() => checks.some(c => c.result === 'Difference') ? 'Difference' : 'all'); // all | Difference | Agrees | Not tested
+  const [fullSummary, setFullSummary] = React.useState(false);
   const tally = { Agrees: 0, Difference: 0, 'Not tested': 0 }; checks.forEach(c => { tally[c.result] = (tally[c.result] || 0) + 1; });
   const shownChecks = chkF === 'all' ? checks : checks.filter(c => c.result === chkF);
 
@@ -54,13 +59,17 @@ export default function AnalysisTab(p) {
       {result.review?.summary && (
         <Card>
           <CardHead title="Reviewer Summary" aside={<Pill bg={result.review.readyForApproval ? 'var(--snow-status-approved-bg)' : REDBG}>{result.review.readyForApproval ? 'Ready for approval' : 'Not ready for approval'}</Pill>} />
-          <div style={{ ...body, marginTop: 12 }}>{result.review.summary}</div>
+          {/* the gist first (first sentence and the top three blockers); the full text on request */}
+          <div style={{ ...body, marginTop: 12 }}>{fullSummary ? result.review.summary : firstSentence(result.review.summary)}</div>
           {result.review.blockers?.length > 0 && (
-            <div style={{ ...cap, marginTop: 12 }}><b>Should prevent approval:</b>
-              <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{result.review.blockers.map((b, i) => <li key={i}>{b}</li>)}</ul>
+            <div style={{ ...cap, marginTop: 12 }}><b>Should prevent approval ({result.review.blockers.length}):</b>
+              <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{(fullSummary ? result.review.blockers : result.review.blockers.slice(0, 3)).map((b, i) => <li key={i}>{b}</li>)}</ul>
             </div>
           )}
-          <div style={{ ...cap, ...muted, marginTop: 12 }}>Drafted by AI to support your judgement; not a conclusion that the statements are complete or correct.</div>
+          {(firstSentence(result.review.summary) !== result.review.summary || result.review.blockers?.length > 3) && (
+            <button type="button" className="link" style={{ ...cap, marginTop: 10 }} aria-expanded={fullSummary} onClick={() => setFullSummary(f => !f)}>{fullSummary ? 'Show less' : 'Read full summary'}</button>
+          )}
+          <div style={{ ...cap, ...muted, marginTop: 12 }}>Drafted by AI to support your judgement.<InfoTip label="About the AI summary">Drafted by AI to support your judgement; not a conclusion that the statements are complete or correct.</InfoTip></div>
         </Card>
       )}
 
