@@ -33,7 +33,8 @@ export default function AnalysisTab(p) {
   const [chkF, setChkF] = React.useState(() => checks.some(c => c.result === 'Difference') ? 'Difference' : 'all'); // all | Difference | Agrees | Not tested
   const [fullSummary, setFullSummary] = React.useState(false);
   const tally = { Agrees: 0, Difference: 0, 'Not tested': 0 }; checks.forEach(c => { tally[c.result] = (tally[c.result] || 0) + 1; });
-  const shownChecks = chkF === 'all' ? checks : checks.filter(c => c.result === chkF);
+  const shownF = chkF !== 'all' && !tally[chkF] ? 'all' : chkF; // a filter with nothing left (after a re-run) shows All
+  const shownChecks = shownF === 'all' ? checks : checks.filter(c => c.result === shownF);
 
   return (
     <div style={page}>
@@ -58,7 +59,7 @@ export default function AnalysisTab(p) {
 
       {result.review?.summary && (
         <Card>
-          <CardHead title="Reviewer Summary" aside={<Pill bg={result.review.readyForApproval ? 'var(--snow-status-approved-bg)' : REDBG}>{result.review.readyForApproval ? 'Ready for approval' : 'Not ready for approval'}</Pill>} />
+          <CardHead title="Reviewer Summary" aside={<span className={'verdict ' + (result.review.readyForApproval ? 'is-ok' : 'is-bad')}><i aria-hidden="true" />{result.review.readyForApproval ? 'Ready for approval' : `Not ready for approval${result.review.blockers?.length ? ` · ${result.review.blockers.length} blocker${result.review.blockers.length === 1 ? '' : 's'}` : ''}`}</span>} />
           {/* the gist first (first sentence and the top three blockers); the full text on request */}
           <div style={{ ...body, marginTop: 12 }}>{fullSummary ? result.review.summary : firstSentence(result.review.summary)}</div>
           {result.review.blockers?.length > 0 && (
@@ -67,7 +68,7 @@ export default function AnalysisTab(p) {
             </div>
           )}
           {(firstSentence(result.review.summary) !== result.review.summary || result.review.blockers?.length > 3) && (
-            <button type="button" className="link" style={{ ...cap, marginTop: 10 }} aria-expanded={fullSummary} onClick={() => setFullSummary(f => !f)}>{fullSummary ? 'Show less' : 'Read full summary'}</button>
+            <button type="button" className="more-btn" style={{ marginTop: 12 }} aria-expanded={fullSummary} onClick={() => setFullSummary(f => !f)}>{fullSummary ? 'Show less' : 'Read full summary'}<span aria-hidden="true" className="more-chev">›</span></button>
           )}
           <div style={{ ...cap, ...muted, marginTop: 12 }}>Drafted by AI to support your judgement.<InfoTip label="About the AI summary">Drafted by AI to support your judgement; not a conclusion that the statements are complete or correct.</InfoTip></div>
         </Card>
@@ -77,7 +78,7 @@ export default function AnalysisTab(p) {
         <CardHead title="Recalculations and Cross-references" aside={`${fails} of ${checks.length} differ · set in the engagement`} />
         <div className="chk-filter" role="group" aria-label="Show checks">
           {[['all', 'All', checks.length], ['Difference', 'Differences', tally.Difference], ['Agrees', 'Agrees', tally.Agrees], ['Not tested', 'Not tested', tally['Not tested']]].map(([v, l, n]) => (
-            <button key={v} type="button" className={'chk-chip is-' + v.replace(' ', '-').toLowerCase()} aria-pressed={chkF === v} onClick={() => setChkF(v)}>{l}<span>{n}</span></button>))}
+            <button key={v} type="button" className={'chk-chip is-' + v.replace(' ', '-').toLowerCase()} aria-pressed={shownF === v} onClick={() => setChkF(v)}>{l}<span>{n}</span></button>))}
         </div>
         <div className="dt" style={{ '--cols': CHECK_GRID, '--min': '820px' }}>
           <div className="dt-head">

@@ -677,8 +677,8 @@ function Workspace({ user, auth, onSignOut }) {
 
         {stale && canRun && !['engagement', 'users', 'consolidated'].includes(tab) && (
           <div style={{ padding: '12px var(--gutter) 0' }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', background: 'var(--snow-primary-blue)', borderRadius: 8, padding: '10px 14px' }}>
-              <span style={cap}>Settings changed since this analysis. Checks already reflect them; review points refresh when a document next changes.</span>
+            <div className="notice is-info">
+              <span style={cap}><b>Settings changed since this analysis.</b> Checks already reflect them; review points refresh when a document next changes.</span>
             </div>
           </div>
         )}

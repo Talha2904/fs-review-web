@@ -219,7 +219,7 @@ function CheckList({ id, name, checks }) {
   const counts = [['ok', n('ok'), 'passed'], ['warn', n('warn'), 'to check'], ['fail', n('fail'), 'failed']].filter(c => c[1] > 0);
   return (
     <div style={{ marginTop: 12 }}>
-      <button type="button" className="doc-checks-toggle" aria-expanded={open} onClick={() => setOpen(o => !o)}>
+      <button type="button" className={'doc-checks-toggle' + (n('fail') ? ' is-fail' : n('warn') ? ' is-warn' : '')} aria-expanded={open} onClick={() => setOpen(o => !o)}>
         {counts.map(([r, k, l]) => <span key={r} className="doc-checks-count"><span aria-hidden="true" className={'doc-check-ico is-' + r}>{ICON[r][0]}</span>{k} {l}</span>)}
         <span className="doc-checks-more">{open ? 'Hide checks' : 'Show checks'}<span aria-hidden="true" className="doc-checks-chev">›</span></span>
       </button>
