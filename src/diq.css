@@ -262,12 +262,16 @@ body {
 /* Loading and server-down screens sit outside .shell: same font as the app */
 .app-state { font-family: var(--dx-font); }
 
-/* Document checks: a one-line summary that opens the full list */
-.doc-checks-toggle { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 8px 12px; border: 0; border-radius: 14px; background: rgba(255,255,255,0.6); font: inherit; font-size: 12.5px; line-height: 18px; color: var(--dx-text); cursor: pointer; text-align: left; }
-.doc-checks-toggle:hover { background: rgba(255,255,255,0.9); }
-.doc-checks-count { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-.doc-checks-more { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; color: var(--dx-blue); white-space: nowrap; }
-.doc-checks-chev { display: inline-block; font-size: 15px; line-height: 1; transition: transform var(--ease); }
+/* Document checks: one quiet row of result chips and a Details link; the full list opens below */
+.doc-checks-toggle { width: 100%; display: flex; align-items: center; gap: 6px; padding: 12px 0 0; border: 0; border-top: 1px solid rgba(34,47,62,0.08); border-radius: 0; background: none; font: inherit; font-size: 12px; line-height: 18px; color: var(--dx-text); cursor: pointer; text-align: left; }
+.doc-checks-count { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px 2px 3px; border-radius: 200px; white-space: nowrap; font-weight: 500; }
+.doc-checks-count .doc-check-ico { width: 16px; height: 16px; font-size: 9px; }
+.doc-checks-count.is-ok { background: rgba(50,209,109,0.12); color: #178a46; }
+.doc-checks-count.is-warn { background: rgba(224,123,0,0.12); color: #a85a00; }
+.doc-checks-count.is-fail { background: rgba(236,79,60,0.12); color: #c4321f; }
+.doc-checks-more { margin-left: auto; display: inline-flex; align-items: center; gap: 3px; color: var(--dx-blue); font-weight: 500; white-space: nowrap; }
+.doc-checks-toggle:hover .doc-checks-more { text-decoration: underline; }
+.doc-checks-chev { display: inline-block; font-size: 14px; line-height: 1; transition: transform var(--ease); }
 .doc-checks-toggle[aria-expanded="true"] .doc-checks-chev { transform: rotate(90deg); }
 @media (prefers-reduced-motion: reduce) { .doc-checks-chev { transition: none; } }
 
@@ -301,11 +305,6 @@ body {
 .more-chev { display: inline-block; font-size: 15px; line-height: 1; transition: transform var(--ease); }
 .more-btn[aria-expanded="true"] .more-chev { transform: rotate(-90deg); }
 
-/* Folded document checks: the summary takes the colour of its worst result */
-.doc-checks-toggle.is-warn { background: rgba(224,123,0,0.1); box-shadow: inset 3px 0 0 var(--dx-warn); }
-.doc-checks-toggle.is-fail { background: rgba(236,79,60,0.1); box-shadow: inset 3px 0 0 var(--dx-bad); }
-.doc-checks-toggle.is-warn .doc-checks-count:not(:first-child), .doc-checks-toggle.is-fail .doc-checks-count:not(:first-child) { font-weight: 600; }
-.doc-checks-more { font-weight: 500; }
 
 /* Document cards that need a decision: a coloured ring as well as the top bar */
 .shell .doc-card.is-warn { box-shadow: var(--dx-shadow), inset 0 0 0 1.5px rgba(224,123,0,0.55); }

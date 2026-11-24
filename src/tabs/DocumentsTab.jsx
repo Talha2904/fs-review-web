@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { slotDefs, steps } from '../data/sampleFund';
 import { Button, FileButton, Pill, InfoTip, cap, body, h2, h3, muted, page, RING, LOCKED_NOTE } from '../components/ui';
 import Modal from '../components/Modal';
@@ -26,6 +26,9 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
   const [confirming, setConfirming] = useState(null); // version being confirmed
   const [sendingBack, setSendingBack] = useState(false);
   const [dropOn, setDropOn] = useState(''); // slot a file is being dragged over
+  // the versions already there when the screen opened; one that arrives later was just uploaded, so its checks open
+  const seenAtOpen = useRef(null);
+  if (seenAtOpen.current === null) seenAtOpen.current = new Set(Object.values(review.current || {}).filter(Boolean).map(x => x.id));
   const tryAttach = async (d, file) => {
     const why = await validateFile(d.id, file, d.name);
     setProblems(p => ({ ...p, [d.id]: why }));
@@ -84,12 +87,12 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
               className={`doc-card is-${toneOf(v)}${dropOn === d.id ? ' is-drop' : ''}`}>
               {dropOn === d.id && <div className="doc-drop" aria-hidden="true">Drop to attach as {d.name}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ ...cap, ...muted }}>{d.kind}</span>
+                <span style={{ ...cap, ...muted, display: 'inline-flex', alignItems: 'center' }}>{d.kind}<InfoTip label={`About ${d.name}`}>{d.desc} Accepts: {SLOT_RULES[d.id]?.label || 'any file'}.</InfoTip></span>
                 {st ? <Pill bg={st[1]}>{st[0]}</Pill> : <Pill bg={d.kind === 'Optional' ? 'var(--snow-ink-5)' : 'var(--snow-status-approved-bg)'}>{d.kind === 'Optional' ? 'Optional' : 'Needed'}</Pill>}
               </div>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 12 }}>
                 <span className={'doc-glyph is-' + (SLOT_RULES[d.id]?.type || 'any')} aria-hidden="true">{SLOT_RULES[d.id]?.type === 'xlsx' ? 'XLS' : SLOT_RULES[d.id]?.type === 'pdf' ? 'PDF' : 'DOC'}</span>
-                <div style={h3}>{d.name}<InfoTip label={`About ${d.name}`}>{d.desc} Accepts: {SLOT_RULES[d.id]?.label || 'any file'}.</InfoTip></div>
+                <div style={h3}>{d.name}</div>
               </div>
               {/* the description guides whoever attaches the file; once attached it stays behind the ⓘ */}
               {!v && <div style={{ ...body, ...muted, marginTop: 4 }}>{d.desc}</div>}
@@ -104,7 +107,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
                   </div>
                   <div style={{ ...cap, ...muted, marginTop: 6 }} title="Uploaded by">{v.uploadedBy?.name || '—'} · {when(v.uploadedAt)}</div>
 
-                  {v.validation?.checks?.length > 0 && <CheckList key={v.id} id={v.id} name={d.name} checks={v.validation.checks} />}
+                  {v.validation?.checks?.length > 0 && <CheckList key={v.id} name={d.name} checks={v.validation.checks} fresh={!seenAtOpen.current.has(v.id) && Date.now() - new Date(v.uploadedAt).getTime() < 10 * 60000} />}
                   {v.validation?.status === 'sample' && <div style={{ ...cap, ...muted, marginTop: 10 }}>Built-in sample document; not checked.</div>}
                   {v.validation?.status === 'checking' && <div role="status" style={{ ...cap, ...muted, marginTop: 10 }}>Reading the file and checking it…</div>}
 
@@ -209,19 +212,17 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
   );
 }
 
-// A document's checks: open the first time this version is shown in this browser, folded to a one-line summary after
-// that (problems still show in the summary's counts). The reader can open or fold it at any time.
-const seenKey = id => 'fsr.docChecksSeen.' + id;
-function CheckList({ id, name, checks }) {
-  const [open, setOpen] = useState(() => { try { return !localStorage.getItem(seenKey(id)); } catch { return true; } });
-  useEffect(() => { try { localStorage.setItem(seenKey(id), '1'); } catch { /* private window: always opens */ } }, [id]);
+// A document's checks fold to a one-line summary. They open by themselves only for a version that arrives while the
+// screen is open (just uploaded and checked); the reader can open or fold them at any time.
+function CheckList({ name, checks, fresh }) {
+  const [open, setOpen] = useState(fresh);
   const n = r => checks.filter(c => c.result === r).length;
   const counts = [['ok', n('ok'), 'passed'], ['warn', n('warn'), 'to check'], ['fail', n('fail'), 'failed']].filter(c => c[1] > 0);
   return (
     <div style={{ marginTop: 12 }}>
-      <button type="button" className={'doc-checks-toggle' + (n('fail') ? ' is-fail' : n('warn') ? ' is-warn' : '')} aria-expanded={open} onClick={() => setOpen(o => !o)}>
-        {counts.map(([r, k, l]) => <span key={r} className="doc-checks-count"><span aria-hidden="true" className={'doc-check-ico is-' + r}>{ICON[r][0]}</span>{k} {l}</span>)}
-        <span className="doc-checks-more">{open ? 'Hide checks' : 'Show checks'}<span aria-hidden="true" className="doc-checks-chev">›</span></span>
+      <button type="button" className="doc-checks-toggle" aria-expanded={open} onClick={() => setOpen(o => !o)}>
+        {counts.map(([r, k, l]) => <span key={r} className={'doc-checks-count is-' + r}><span aria-hidden="true" className={'doc-check-ico is-' + r}>{ICON[r][0]}</span>{k} {l}</span>)}
+        <span className="doc-checks-more">{open ? 'Hide' : 'Details'}<span aria-hidden="true" className="doc-checks-chev">›</span></span>
       </button>
       {open && (
         <ul aria-label={`Checks for ${name}`} style={{ listStyle: 'none', margin: '10px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
