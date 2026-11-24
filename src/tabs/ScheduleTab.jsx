@@ -210,7 +210,7 @@ function PointDetail({ p, thread: own, siblings = [], siblingThread = [], engage
             <textarea className="input" rows={3} aria-label="Message" style={{ height: 'auto', padding: '8px 10px', resize: 'vertical' }} value={text} onChange={e => setText(e.target.value)} />
           </label>
           {responding && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, padding: 12, borderRadius: 10, background: 'var(--snow-primary-light)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10, padding: 12, borderRadius: 16, background: 'var(--snow-primary-light)' }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', ...cap }}>
                 <span style={{ fontWeight: 600 }}>Revised document<InfoTip label="About revised documents">A revised document becomes the next version of that document and is checked like any upload.</InfoTip></span>
                 <Select className="input" aria-label="Document being revised" value={revSlot} onChange={e => { setRevSlot(e.target.value); setRevised(null); }} style={{ height: 32, width: 'auto', fontSize: 12 }}>

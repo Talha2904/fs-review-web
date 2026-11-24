@@ -8,7 +8,7 @@
 :root {
   --dx-ink: #222f3e; --dx-text: #262719; --dx-blue: #2d8dfe; --dx-ok: #32d16d; --dx-warn: #e07b00; --dx-bad: #ec4f3c;
   --dx-info: #57bfdf; --dx-violet: #6663fb; --dx-mute: #97aac6;
-  --dx-glass: rgba(255,255,255,0.5); --dx-glass-line: rgba(255,255,255,0.85);
+  --dx-glass: rgba(255,255,255,0.62); --dx-glass-line: rgba(255,255,255,0.85);
   --dx-shadow: 0px 10px 40px 0px rgba(34,47,62,0.08);
   --dx-shadow-lift: 0px 18px 44px 0px rgba(34,47,62,0.12);
   --dx-font: Poppins, 'Segoe UI', system-ui, sans-serif;
@@ -142,9 +142,10 @@ body {
 .shell .link { color: var(--dx-blue); }
 .shell .link:hover { color: var(--dx-ink); }
 
-/* ---- Surfaces: frosted glass cards ---- */
+/* ---- Surfaces: glass cards. No backdrop-filter on content surfaces: it makes each card a stacking context and
+   containing block, so a dialog opened inside one is drawn under later cards. ---- */
 .shell .card {
-  background: var(--dx-glass); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+  background: var(--dx-glass); 
   border-radius: 26px; box-shadow: var(--dx-shadow), inset 0 0 0 1px var(--dx-glass-line);
 }
 .shell .card:hover { box-shadow: var(--dx-shadow), inset 0 0 0 1px var(--dx-glass-line); }
@@ -162,7 +163,7 @@ body {
 .shell .tile, .shell .kpi {
   border-radius: 26px; border: 1px solid rgba(255,255,255,0.9);
   background: linear-gradient(155deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.42) 100%) !important;
-  -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+  
   box-shadow: 0px 1px 0px 0px rgba(255,255,255,0.9) inset, 0px 12px 36px 0px rgba(34,47,62,0.07);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -191,7 +192,7 @@ body {
 
 /* ---- Fund band: one frosted card, the title in the page-heading style ---- */
 .shell .fund-band {
-  background: var(--dx-glass); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+  background: var(--dx-glass); 
   border-radius: 28px; box-shadow: var(--dx-shadow), inset 0 0 0 1px var(--dx-glass-line); padding: 22px 26px;
 }
 .shell .fund-band::before, .shell .fund-band::after { display: none; }
@@ -205,7 +206,7 @@ body {
 .shell .fact-dot.is-on { background: var(--dx-ok); box-shadow: 0 0 0 3px rgba(50,209,109,0.22); }
 
 /* ---- Documents ---- */
-.shell .doc-card { border-radius: 26px; background: var(--dx-glass); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); box-shadow: var(--dx-shadow), inset 0 0 0 1px var(--dx-glass-line); }
+.shell .doc-card { border-radius: 26px; background: var(--dx-glass);  box-shadow: var(--dx-shadow), inset 0 0 0 1px var(--dx-glass-line); }
 .shell .doc-card.is-empty { background: rgba(255,255,255,0.35); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.9); }
 .shell .doc-card:hover { box-shadow: var(--dx-shadow-lift), inset 0 0 0 1px var(--dx-glass-line); }
 .shell .doc-card::before { left: 26px; right: 26px; height: 3px; border-radius: 0 0 3px 3px; }

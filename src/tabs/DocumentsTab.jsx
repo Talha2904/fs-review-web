@@ -63,7 +63,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
       </div>
 
       {umbrella && (
-        <div role="status" style={{ ...body, background: 'var(--snow-primary-blue)', borderRadius: 12, padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div role="status" style={{ ...body, background: 'var(--snow-primary-blue)', borderRadius: 18, padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <span><b>Umbrella accounts:</b> this fund is read from <b>“{umbrella.name}”</b>. Its trial balance and investment schedule are its own.<InfoTip label="About umbrella accounts">{umbrella.entity}’s draft, signed accounts and supporting information cover all its funds; this fund’s figures are read from its own column or section.</InfoTip></span>
           {umbrella.sources.map(s => (
             <span key={s.id} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', ...cap }}>

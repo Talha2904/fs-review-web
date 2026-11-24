@@ -63,7 +63,7 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
           <span style={{ ...cap, ...muted }}>Billing contact email (for invoices)</span>
           <input className="input" type="email" aria-label="Billing contact email" value={e.billingEmail || ''} onChange={set('billingEmail')} placeholder="accounts@client.com" />
         </label>
-        <fieldset style={{ border: 0, margin: 0, padding: '12px 14px', background: 'var(--snow-primary-light)', borderRadius: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12 }}>
+        <fieldset style={{ border: 0, margin: 0, padding: '12px 14px', background: 'var(--snow-primary-light)', borderRadius: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12 }}>
           <legend style={{ ...cap, fontWeight: 600, padding: 0, float: 'left', marginBottom: 6 }}>Review settings for this client</legend>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4, clear: 'both' }}>
             <span style={{ ...cap, ...muted }}>Accounting framework</span>
@@ -102,7 +102,7 @@ export default function EntityModal({ entity, entities, onSave, onClose, fundCou
             <span style={{ ...cap, ...muted }}>Umbrella: each fund is read from its own column or section.</span>
           </label>
         </fieldset>
-        <fieldset style={{ border: 0, margin: 0, padding: '12px 14px', background: 'var(--snow-primary-light)', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <fieldset style={{ border: 0, margin: 0, padding: '12px 14px', background: 'var(--snow-primary-light)', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <legend style={{ ...cap, fontWeight: 600, padding: 0, float: 'left', marginBottom: 6 }}>Does the client permit AI in the review? (required)</legend>
           <label style={{ ...cap, display: 'flex', gap: 8, alignItems: 'flex-start', cursor: 'pointer', clear: 'both' }}>
             <input type="radio" name="ai" checked={choice === 'yes'} onChange={() => { setChoice('yes'); setError(''); }} style={{ marginTop: 2 }} />

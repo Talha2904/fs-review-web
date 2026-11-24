@@ -307,13 +307,13 @@ function Recovery({ st, usage }) {
       <Button kind="secondary" onClick={exportR}>Export (.xlsx)</Button>
     </div>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(170px, 100%), 1fr))', gap: 12 }}>
-      {tiles.map(([k, v, x]) => <div key={k} style={{ background: '#fff', boxShadow: RING, borderRadius: 14, padding: 16 }}><div style={{ ...cap, ...muted }}>{k}</div><div style={{ ...h3, marginTop: 4 }}>{v}</div>{x && <div style={{ ...cap, ...muted, marginTop: 2 }}>{x}</div>}</div>)}
+      {tiles.map(([k, v, x]) => <div key={k} className="tile" style={{ padding: '18px 20px' }}><div style={{ ...cap, ...muted }}>{k}</div><div style={{ ...h3, fontSize: 24, fontWeight: 400, letterSpacing: '-0.5px', marginTop: 10 }}>{v}</div>{x && <div style={{ ...cap, ...muted, marginTop: 2 }}>{x}</div>}</div>)}
     </div>
     <Card>
       <CardHead title="Ageing of Outstanding" />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
         {ages.map(([k, v]) => <div key={k} style={{ display: 'grid', gridTemplateColumns: 'minmax(72px,120px) 1fr minmax(64px,120px)', gap: 10, alignItems: 'center', ...cap }}>
-          <span>{k}</span><span style={{ height: 12, borderRadius: 6, background: 'var(--snow-ink-5)' }}><span style={{ display: 'block', height: 12, borderRadius: 6, width: `${(v / maxAge) * 100}%`, background: k === 'Not yet due' ? '#4F86D3' : 'var(--pa-red)' }} /></span><span style={{ textAlign: 'right' }}>{money(v)}</span></div>)}
+          <span>{k}</span><span style={{ height: 12, borderRadius: 6, background: 'var(--snow-ink-5)' }}><span style={{ display: 'block', height: 12, borderRadius: 6, width: `${(v / maxAge) * 100}%`, background: k === 'Not yet due' ? '#2d8dfe' : 'var(--pa-red)' }} /></span><span style={{ textAlign: 'right' }}>{money(v)}</span></div>)}
       </div>
     </Card>
     <Card>
