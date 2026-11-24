@@ -1,0 +1,262 @@
+/* ===================================================================================================
+   DiligenceX look (CDD/diligenceiq-web: styles/index.css, styles/page.css, layout/shell.css, dashboard.css).
+   Loaded last, so it restyles the app without changing any screen's behaviour. Poppins on a soft grey
+   gradient, frosted-glass panels, pill controls, the floating sidebar and the large page heading.
+   =================================================================================================== */
+
+/* ---- Tokens: the older --snow-* names and the .shell names now carry the DiligenceX palette ---- */
+:root {
+  --dx-ink: #222f3e; --dx-text: #262719; --dx-blue: #2d8dfe; --dx-ok: #32d16d; --dx-warn: #e07b00; --dx-bad: #ec4f3c;
+  --dx-info: #57bfdf; --dx-violet: #6663fb; --dx-mute: #97aac6;
+  --dx-glass: rgba(255,255,255,0.5); --dx-glass-line: rgba(255,255,255,0.85);
+  --dx-shadow: 0px 10px 40px 0px rgba(34,47,62,0.08);
+  --dx-shadow-lift: 0px 18px 44px 0px rgba(34,47,62,0.12);
+  --dx-font: Poppins, 'Segoe UI', system-ui, sans-serif;
+
+  --snow-black-100: #222f3e; --snow-black-80: rgba(34,47,62,0.82); --snow-black-40: rgba(38,39,25,0.68); --snow-black-20: rgba(34,47,62,0.4);
+  --snow-ink-5: rgba(34,47,62,0.06); --snow-ink-2: rgba(34,47,62,0.03);
+  --snow-primary-light: rgba(255,255,255,0.6); --snow-primary-blue: #e3efff; --snow-primary-purple: #ecebff;
+  --snow-status-complete: #1f9d55; --snow-status-complete-bg: #dcf7e6; --snow-status-pending-bg: #e3f4fa;
+  --snow-status-approved: #e07b00; --snow-status-approved-bg: #fdf0dc; --snow-status-rejected-bg: #fde5e2;
+}
+.shell {
+  --ink: #222f3e; --canvas: rgba(255,255,255,0.55); --line: rgba(34,47,62,0.1); --line-strong: rgba(34,47,62,0.16);
+  --pa-blue: #2d8dfe; --pa-green: #32d16d; --pa-teal: #57bfdf; --pa-red: #ec4f3c;
+  --snow-black-100: #222f3e; --snow-black-80: rgba(34,47,62,0.82); --snow-black-40: rgba(38,39,25,0.68); --snow-black-20: rgba(34,47,62,0.4);
+  --snow-ink-5: rgba(34,47,62,0.06); --snow-ink-2: rgba(34,47,62,0.03);
+  --snow-primary-light: rgba(255,255,255,0.6); --snow-primary-blue: #e3efff; --snow-primary-purple: #ecebff;
+  --snow-status-complete: #1f9d55; --snow-status-complete-bg: #dcf7e6; --snow-status-pending-bg: #e3f4fa;
+  --snow-status-approved: #e07b00; --snow-status-approved-bg: #fdf0dc; --snow-status-rejected-bg: #fde5e2;
+  --shadow-1: var(--dx-shadow); --shadow-2: 0px 16px 40px 0px rgba(34,47,62,0.16);
+  --accent-soft: rgba(255,255,255,0.6);
+  font-family: var(--dx-font); color: var(--dx-text); background: transparent; letter-spacing: 0.15px;
+}
+
+/* ---- Page: Poppins on the soft grey gradient ---- */
+body {
+  font-family: var(--dx-font); color: var(--dx-text);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 38%),
+    radial-gradient(circle at 88% 82%, rgba(214,214,218,0.7) 0%, rgba(214,214,218,0) 46%),
+    linear-gradient(160deg, #f8f8f7 0%, #efefed 45%, #e4e4e2 100%) fixed;
+  -webkit-font-smoothing: antialiased;
+}
+.shell h1, .shell h2, .shell h3 { font-family: var(--dx-font); font-weight: 500; letter-spacing: -0.4px; color: #000; }
+.shell :focus-visible { outline: 2px solid var(--dx-blue) !important; outline-offset: 2px; }
+
+/* ---- Sidebar: the floating frosted panel ---- */
+.shell .sidebar { background: transparent; color: var(--dx-text); padding: 12px; gap: 0; box-shadow: none; }
+.shell .sidebar.is-open { box-shadow: none; }
+.side-panel {
+  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px;
+  background: rgba(255,255,255,0.88); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+  border: 1px solid rgba(255,255,255,0.8); border-radius: 30px; padding: 22px 14px 16px;
+  box-shadow: var(--dx-shadow);
+}
+@media (min-width: 1024px) {
+  .shell .sidebar, .shell .sidebar.is-open {
+    flex: 0 0 260px; width: 260px; height: 100vh; height: 100dvh; padding: 20px 8px 20px 20px; box-shadow: none;
+  }
+  .side-panel { background: rgba(255,255,255,0.45); }
+}
+.shell .side-brand { gap: 11px; padding: 0 6px; }
+.shell .side-brand img { width: 36px; height: 36px; border-radius: 10px; background: #fff; padding: 3px; box-sizing: border-box; }
+.shell .side-brand-name { font-size: 15px; font-weight: 600; letter-spacing: -0.1px; color: var(--dx-ink); }
+.shell .side-brand-sub { font-size: 11.5px; letter-spacing: 0.4px; color: var(--dx-text); opacity: 0.75; }
+.shell .sidebar-middle { gap: 14px; scrollbar-width: none; }
+.shell .side-nav { gap: 4px; }
+.shell .side-section { padding: 6px 14px 2px; font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #000; opacity: 0.45; }
+.shell .side-item {
+  height: auto; min-height: 42px; padding: 10px 14px; gap: 10px; border-radius: 18px; background: transparent;
+  color: var(--dx-text); font-size: 14px; font-weight: 400; letter-spacing: 0.2px; transition: background var(--ease), color var(--ease), opacity var(--ease);
+}
+.shell .side-item:hover:not(:disabled) { background: rgba(255,255,255,0.7); color: var(--dx-text); }
+.shell .side-item.is-on, .shell .side-item.is-on:hover:not(:disabled) { background: var(--dx-ink); color: #fff; }
+.shell .side-item:disabled { color: var(--dx-text); opacity: 0.38; }
+.shell .side-item:focus-visible { outline-offset: 0; }
+.shell .side-count { min-width: 10px; height: auto; padding: 2px 8px; border-radius: 200px; background: var(--dx-ink); color: #fff; font-size: 11.5px; line-height: 16px; font-weight: 500; }
+.shell .side-item.is-on .side-count { background: var(--dx-blue); color: #fff; font-weight: 500; }
+/* review steps: a coloured dot inside the pill (hollow while locked) */
+.shell .step-node, .shell .side-item.is-on .step-node { width: 8px; height: 8px; background: var(--c); box-shadow: none; transform: none; animation: none; }
+.shell .side-item:disabled .step-node { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(34,47,62,0.45); }
+.shell .side-item.is-on .step-node { box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 35%, transparent); }
+.shell .side-item.is-step:hover:not(:disabled) .step-node { transform: none; }
+/* fund details: the status card */
+.shell .side-meta { background: rgba(255,255,255,0.55); border-radius: 18px; padding: 14px; gap: 12px 10px; }
+.shell .side-meta-k { font-size: 11px; letter-spacing: 0.3px; color: var(--dx-text); opacity: 0.65; }
+.shell .side-meta-v { font-size: 12.5px; font-weight: 500; color: var(--dx-ink); }
+/* the user pill and its menu */
+.shell .side-user { position: relative; padding: 0; box-shadow: none; display: block; }
+.side-user-pill {
+  width: 100%; border: none; cursor: pointer; border-radius: 200px; background: var(--dx-ink); padding: 6px 16px 6px 6px;
+  display: flex; align-items: center; gap: 11px; text-align: left; font: inherit;
+}
+.side-user-pill:hover { opacity: 0.9; }
+.shell .side-avatar { width: 36px; height: 36px; margin: 0; border-radius: 200px; background: var(--dx-bad); color: #fff; font-size: 13px; font-weight: 500; box-shadow: none; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.shell .side-name { display: block; font-size: 13.5px; font-weight: 400; line-height: 18px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shell .side-role { font-size: 11.5px; color: #fff; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.side-menu {
+  position: absolute; left: 0; right: 0; bottom: 58px; z-index: 30; display: grid; gap: 6px; padding: 16px 18px;
+  background: rgba(255,255,255,0.92); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.9); border-radius: 22px; box-shadow: 0px 10px 40px 0px rgba(34,47,62,0.16);
+  animation: pop-in 160ms cubic-bezier(0.2,0.7,0.2,1);
+}
+.side-menu-email { font-size: 12.5px; letter-spacing: 0.3px; color: var(--dx-text); opacity: 0.8; overflow: hidden; text-overflow: ellipsis; padding-bottom: 6px; }
+.shell .side-menu-item { width: auto; height: auto; display: block; border: none; background: transparent; cursor: pointer; text-align: left; padding: 8px 0; font: inherit; font-size: 14px; color: var(--dx-text); border-radius: 0; }
+.shell .side-menu-item:hover { background: transparent; color: var(--dx-blue); }
+
+/* ---- Top bar: frosted on phones; on desktop a quiet kicker row (where you are) with the actions. The screen's own
+   heading (ui.jsx h2) is the large DiligenceX page title. ---- */
+.shell .topbar {
+  background: rgba(255,255,255,0.7); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  box-shadow: none; border-bottom: 1px solid rgba(255,255,255,0.8); transition: none;
+}
+.shell .nav-toggle { width: 40px; height: 40px; margin-left: 0; border-radius: 200px; border: 1px solid rgba(34,47,62,0.12); background: rgba(255,255,255,0.8); color: var(--dx-ink); }
+.shell .crumb-here { font-weight: 500; color: #000; }
+@media (min-width: 1024px) {
+  .shell .topbar {
+    position: static; min-height: 0; align-items: center; gap: 24px; padding: 30px var(--gutter) 0;
+    background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; border-bottom: 0;
+  }
+  .shell .crumb { gap: 8px; align-items: center; }
+  .shell .crumb-root, .shell .crumb-here { display: block; font-size: 12px; line-height: 18px; font-weight: 600; letter-spacing: 1.3px; text-transform: uppercase; color: #000; }
+  .shell .crumb-root, .shell .crumb-sep { opacity: 0.45; }
+  .shell .crumb-sep { display: block; color: #000; }
+  .shell .crumb-here { opacity: 0.75; }
+}
+.shell .shell-page { max-width: 1400px; width: 100%; }
+
+/* ---- Core controls: pill buttons, pill segmented filters, rounded fields ---- */
+.shell .btn { border-radius: 200px !important; font-family: inherit; font-weight: 400; letter-spacing: 0.3px; }
+.shell .btn-primary, .shell .btn-primary:hover:not(:disabled) { background: var(--dx-ink); color: #fff; box-shadow: none; transform: none; }
+.shell .btn-primary:hover:not(:disabled) { opacity: 0.9; }
+.shell .btn-primary::after { display: none; }
+.shell .btn-secondary { background: rgba(255,255,255,0.8); color: var(--dx-text); box-shadow: inset 0 0 0 1px rgba(34,47,62,0.2); }
+.shell .btn-secondary:hover:not(:disabled) { background: rgba(255,255,255,0.95); color: var(--dx-text); box-shadow: inset 0 0 0 1px rgba(34,47,62,0.32); }
+.shell .segmented { background: rgba(255,255,255,0.45) !important; border-radius: 200px !important; }
+.shell .seg { border-radius: 200px !important; color: var(--dx-text) !important; }
+.shell .seg[aria-pressed="true"] { background: var(--dx-ink) !important; color: #fff !important; box-shadow: none !important; }
+.shell .input { border-radius: 14px !important; background: #fff; box-shadow: inset 0 0 0 1px rgba(34,47,62,0.15); font-family: inherit; }
+.shell .input:focus, .shell .input:focus-visible { box-shadow: inset 0 0 0 1.5px var(--dx-blue), 0 0 0 4px rgba(45,141,254,0.14); }
+.shell .switch.on { background: var(--dx-ok); box-shadow: none; }
+.shell .link { color: var(--dx-blue); }
+.shell .link:hover { color: var(--dx-ink); }
+
+/* ---- Surfaces: frosted glass cards ---- */
+.shell .card {
+  background: var(--dx-glass); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+  border-radius: 26px; box-shadow: var(--dx-shadow), inset 0 0 0 1px var(--dx-glass-line);
+}
+.shell .card:hover { box-shadow: var(--dx-shadow), inset 0 0 0 1px var(--dx-glass-line); }
+.shell .modal { border-radius: 26px 26px 0 0; background: rgba(255,255,255,0.96); box-shadow: 0px 24px 64px 0px rgba(34,47,62,0.24); }
+@media (min-width: 640px) { .shell .modal { border-radius: 28px; } }
+.shell .modal-backdrop { background: rgba(34,47,62,0.35); }
+.shell .bell-panel { border-radius: 22px; background: rgba(255,255,255,0.94); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+.shell .bell-badge { background: var(--dx-bad); }
+
+/* ===================================================================================================
+   Phase 3: content surfaces (DiligenceX dashboard.css: stat cards, the queue table, tags)
+   =================================================================================================== */
+
+/* ---- Figure tiles and KPI cards: frosted stat cards that lift on hover ---- */
+.shell .tile, .shell .kpi {
+  border-radius: 26px; border: 1px solid rgba(255,255,255,0.9);
+  background: linear-gradient(155deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.42) 100%) !important;
+  -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+  box-shadow: 0px 1px 0px 0px rgba(255,255,255,0.9) inset, 0px 12px 36px 0px rgba(34,47,62,0.07);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.shell .tile:hover, .shell .kpi.is-link:hover {
+  transform: translateY(-2px); box-shadow: 0px 1px 0px 0px rgba(255,255,255,0.9) inset, 0px 18px 44px 0px rgba(34,47,62,0.12);
+}
+.shell .tile > div:first-child { font-size: 13px !important; font-weight: 400 !important; letter-spacing: 0.3px; }
+.shell .tile-value { font-size: 34px !important; line-height: 40px !important; font-weight: 400 !important; letter-spacing: -0.8px; color: var(--dx-ink); }
+.shell .kpi { padding: 20px 22px 18px; display: flex; flex-direction: column; justify-content: flex-start; }
+.shell .kpi::before { left: 22px; top: 26px; bottom: auto; width: 8px; height: 8px; border-radius: 200px; }
+.shell .kpi.is-link[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--c), 0px 12px 36px 0px rgba(34,47,62,0.07); }
+.shell .kpi-k { padding-left: 17px; font-size: 13px; letter-spacing: 0.3px; color: var(--dx-text); }
+.shell .kpi-v { margin-top: 14px; font-size: 34px; line-height: 40px; font-weight: 400; letter-spacing: -0.8px; color: var(--dx-ink); }
+.shell .kpi-v.is-alert { color: var(--dx-bad); }
+.shell .kpi-x { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(34,47,62,0.08); font-size: 12.5px; color: var(--dx-text); }
+
+/* ---- Tables: airy rows, a quiet uppercase header, no coloured stripes ---- */
+.shell .dt-head { background: transparent; border-radius: 0; box-shadow: inset 0 -1px 0 rgba(34,47,62,0.1); color: #000; font-size: 11.5px; font-weight: 600; letter-spacing: 0.9px; text-transform: uppercase; opacity: 0.6; }
+.shell .dt-row { box-shadow: inset 0 -1px 0 rgba(34,47,62,0.08); }
+@media (min-width: 768px) {
+  .shell .dt-row { padding-top: 16px; padding-bottom: 16px; }
+  .shell .dt-row:hover { background: rgba(255,255,255,0.6); box-shadow: inset 0 -1px 0 rgba(34,47,62,0.08); }
+}
+.shell .row:hover { background: rgba(255,255,255,0.55); }
+.shell .hov:hover { background: rgba(255,255,255,0.7) !important; }
+
+/* ---- Fund band: one frosted card, the title in the page-heading style ---- */
+.shell .fund-band {
+  background: var(--dx-glass); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
+  border-radius: 28px; box-shadow: var(--dx-shadow), inset 0 0 0 1px var(--dx-glass-line); padding: 22px 26px;
+}
+.shell .fund-band::before, .shell .fund-band::after { display: none; }
+.shell .fund-name { font-size: 30px; line-height: 36px; font-weight: 500; letter-spacing: -0.8px; color: #000; }
+.shell .fund-entity { font-size: 11.5px; letter-spacing: 1.1px; text-transform: uppercase; color: #000; opacity: 0.5; }
+.shell .fund-fact { box-shadow: inset 1px 0 0 rgba(34,47,62,0.1); }
+.shell .fund-fact dt { color: var(--dx-text); opacity: 0.65; }
+.shell .fund-fact dd { font-weight: 500; color: var(--dx-ink); }
+.shell .fact-meter i { border-radius: 200px; }
+.shell .fact-meter i.is-on { background: var(--dx-ink); }
+.shell .fact-dot.is-on { background: var(--dx-ok); box-shadow: 0 0 0 3px rgba(50,209,109,0.22); }
+
+/* ---- Documents ---- */
+.shell .doc-card { border-radius: 26px; background: var(--dx-glass); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); box-shadow: var(--dx-shadow), inset 0 0 0 1px var(--dx-glass-line); }
+.shell .doc-card.is-empty { background: rgba(255,255,255,0.35); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.9); }
+.shell .doc-card:hover { box-shadow: var(--dx-shadow-lift), inset 0 0 0 1px var(--dx-glass-line); }
+.shell .doc-card::before { left: 26px; right: 26px; height: 3px; border-radius: 0 0 3px 3px; }
+.shell .doc-file { border-radius: 16px; background: rgba(255,255,255,0.7); box-shadow: none; }
+.shell .doc-empty { border-radius: 18px; background: rgba(255,255,255,0.5); border-color: rgba(34,47,62,0.18); }
+.shell .doc-drop { border-radius: 26px; }
+.shell .doc-glyph.is-pdf { background: var(--dx-bad); }
+.shell .ready-meter i { border-radius: 200px; }
+/* the analyse panel stays dark: DiligenceX keeps navy for the one action that matters most */
+.shell .launch { border-radius: 28px; background: var(--dx-ink); box-shadow: 0px 18px 44px 0px rgba(34,47,62,0.22); }
+.shell .launch .btn-primary, .shell .launch .btn-primary:hover:not(:disabled) { background: #fff; color: var(--dx-ink); box-shadow: none; }
+.shell .launch-bar, .shell .launch-bar span { border-radius: 200px; }
+
+/* ---- Lists of points, matters, files and log rows: rounded glass rows ---- */
+.shell .point-row { border-radius: 20px; background: rgba(255,255,255,0.7); box-shadow: 0px 6px 20px 0px rgba(34,47,62,0.06), inset 0 0 0 1px rgba(255,255,255,0.9); }
+.shell .point-row.st-cleared { background: rgba(255,255,255,0.4); }
+.shell .point-row:hover { box-shadow: 0px 12px 30px 0px rgba(34,47,62,0.1), inset 0 0 0 1px rgba(255,255,255,0.9); }
+.shell .matter { border-radius: 20px; background: rgba(255,255,255,0.6); }
+.shell .matter.is-high { background: linear-gradient(90deg, rgba(236,79,60,0.08), rgba(255,255,255,0.6) 45%); }
+.shell .matter:hover { box-shadow: 0px 10px 26px 0px rgba(34,47,62,0.08); }
+.shell .an-file { border-radius: 16px; }
+.shell .an-file.is-on { background: rgba(255,255,255,0.85) !important; box-shadow: var(--dx-shadow), inset 3px 0 0 var(--dx-ink); }
+.shell .log-row.is-link { border-radius: 14px; }
+.shell .log-row.is-link:hover { background: rgba(255,255,255,0.6); }
+.shell .var-row:hover { background: rgba(255,255,255,0.55); }
+
+/* ---- Chips and tags: pills like the DiligenceX filter chips ---- */
+.shell .chk-chip { height: 36px; padding: 0 8px 0 14px; border-radius: 200px; background: rgba(255,255,255,0.6); box-shadow: none; color: var(--dx-text); }
+.shell .chk-chip:hover { box-shadow: inset 0 0 0 1px rgba(34,47,62,0.2); }
+.shell .chk-chip[aria-pressed="true"] { background: var(--dx-ink); color: #fff; box-shadow: none; }
+.shell .chk-chip span { border-radius: 200px; }
+.shell .flag-chip { border-radius: 200px; background: rgba(255,255,255,0.75); box-shadow: inset 0 0 0 1px rgba(34,47,62,0.14); }
+.shell .flag-chip:hover { color: var(--dx-blue); box-shadow: inset 0 0 0 1px var(--dx-blue); }
+
+/* ---- Dropdowns, tips, notifications ---- */
+.shell .cselect { border-radius: 14px !important; font-family: inherit; }
+.cselect-list { border-radius: 20px !important; padding: 6px; box-shadow: 0px 16px 40px 0px rgba(34,47,62,0.16), 0 0 0 1px rgba(34,47,62,0.08) !important; }
+.cselect-opt { border-radius: 14px; }
+.cselect-opt.is-active { background: rgba(34,47,62,0.06); }
+.infotip-pop { border-radius: 14px; }
+.shell .infotip-btn:hover, .shell .infotip-btn[aria-expanded="true"] { background: var(--dx-ink); }
+.shell .bell-item { border-radius: 14px; }
+.shell .bell-item:hover { background: rgba(34,47,62,0.05); }
+.share-fund { border-radius: 14px; }
+.shell .stage-row { border-radius: 14px; }
+.shell .stage-track, .shell .stage-fill { border-radius: 200px; }
+.shell .assist-note { box-shadow: inset 2px 0 0 var(--dx-warn); }
+
+/* ---- Sign-in: already the shared Project Accountants design; match the DiligenceX title and button size ---- */
+.signin .signin-title { font-size: 36px; line-height: 1; }
+.signin .signin-submit { min-height: 44px; padding: 11px 26px; font-size: 16px; font-weight: 500; }
+
+/* Loading and server-down screens sit outside .shell: same font as the app */
+.app-state { font-family: var(--dx-font); }

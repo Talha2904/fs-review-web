@@ -1,22 +1,22 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 export const RING = 'inset 0 0 0 1px rgba(0,0,0,0.1)';
-export const RED = '#C8374B', REDBG = 'var(--snow-status-rejected-bg)';
+export const RED = '#ec4f3c', REDBG = 'var(--snow-status-rejected-bg)';
 export const cap = { fontSize: 12, lineHeight: '18px' };
 export const body = { fontSize: 14, lineHeight: '20px' };
-export const h3 = { fontSize: 18, lineHeight: '28px', fontWeight: 600 };
-export const h2 = { fontSize: 24, lineHeight: '36px', fontWeight: 600 };
+export const h3 = { fontSize: 18, lineHeight: '28px', fontWeight: 500 };
+export const h2 = { fontSize: 'clamp(28px, 3.2vw, 44px)', lineHeight: 1.12, fontWeight: 500, letterSpacing: '-1.2px', color: '#000' };
 export const muted = { color: 'var(--snow-black-40)' };
 export const PRI_BG = { High: REDBG, Medium: 'var(--snow-status-approved-bg)', Low: 'var(--snow-ink-5)' };
 export const BAND_BG = { Investigate: 'var(--snow-status-rejected-bg)', Explain: 'var(--snow-status-pending-bg)', Expected: 'var(--snow-status-complete-bg)' };
 export const STATUS_LABEL = { open: 'Open', info: 'Info Requested', cleared: 'Cleared' };
 export const page = { padding: '20px var(--gutter) 40px', display: 'flex', flexDirection: 'column', gap: 20 };
-export const hairBottom = { boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.1)' };
+export const hairBottom = { boxShadow: 'inset 0 -1px 0 rgba(34,47,62,0.1)' };
 // Shown wherever a signed-off review blocks a change (one wording everywhere).
 export const LOCKED_NOTE = 'The review is signed off and locked. A Manager can unlock it on the Sign-off tab.';
 
 export const Pill = ({ bg = 'var(--snow-ink-5)', children, style }) => (
-  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...cap, background: bg, padding: '0 10px', height: 18, borderRadius: 18, whiteSpace: 'nowrap', ...style }}>{children}</span>
+  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...cap, background: bg, padding: '3px 11px', fontSize: 11.5, letterSpacing: 0.3, borderRadius: 200, whiteSpace: 'nowrap', ...style }}>{children}</span>
 );
 export const PriPill = ({ pri }) => <Pill bg={PRI_BG[pri]}>{pri}</Pill>;
 

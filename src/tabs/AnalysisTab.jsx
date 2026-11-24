@@ -242,7 +242,7 @@ function DocTable({ b, bi, cur, doc, tray, pick, openPoint, hasPoint, showFlags 
 
 // Checks at a glance: agrees, differs and not tested as one ring; each part filters the table.
 function CheckDonut({ tally, onPick }) {
-  const parts = [['Agrees', '#5E9E2F'], ['Difference', '#C8374B'], ['Not tested', '#C5CEDA']];
+  const parts = [['Agrees', '#5E9E2F'], ['Difference', '#ec4f3c'], ['Not tested', '#C5CEDA']];
   const total = parts.reduce((a, [k]) => a + (tally[k] || 0), 0) || 1, R = 34, C = 2 * Math.PI * R;
   let at = 0;
   return (

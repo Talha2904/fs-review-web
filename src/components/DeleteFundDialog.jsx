@@ -24,7 +24,7 @@ export default function DeleteFundDialog({ fund, onDelete, onClose }) {
     <Modal title={`Delete ${name}?`} onClose={busy ? () => {} : onClose} width={520}
       footer={<>
         <Button kind="secondary" disabled={busy} onClick={onClose}>Cancel</Button>
-        <Button disabled={!ok} onClick={submit} style={ok ? { background: '#C8374B', borderColor: '#C8374B' } : undefined}>{busy ? 'Deleting…' : 'Delete Fund'}</Button>
+        <Button disabled={!ok} onClick={submit} style={ok ? { background: '#ec4f3c', borderColor: '#ec4f3c' } : undefined}>{busy ? 'Deleting…' : 'Delete Fund'}</Button>
       </>}>
       <form onSubmit={e => { e.preventDefault(); submit(); }} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ ...body }}>

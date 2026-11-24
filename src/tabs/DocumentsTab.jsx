@@ -13,7 +13,7 @@ const STATUS = {
   mismatch: ['Mismatch', 'var(--snow-status-rejected-bg)'],
   sample: ['Sample', 'var(--snow-ink-5)']
 };
-const ICON = { ok: ['✓', '#2E6B12'], warn: ['!', '#8A5A00'], fail: ['✕', 'var(--pa-red)'] };
+const ICON = { ok: ['✓', '#178a46'], warn: ['!', '#b35f00'], fail: ['✕', 'var(--pa-red)'] };
 const WF = { preparing: ['Preparing', 'var(--snow-ink-5)'], ready: ['Ready for review', 'var(--snow-status-complete-bg)'], returned: ['Sent back to preparer', 'var(--snow-status-approved-bg)'] };
 // The card's state, for its colour: waiting, fine, needs a look, or wrong.
 const TONE = { checking: 'busy', recognised: 'ok', sample: 'ok', check: 'warn', mismatch: 'bad' };
@@ -194,7 +194,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
           {signed ? <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>{LOCKED_NOTE}</div>
             : !canRun && <div role="status" style={{ ...cap, marginTop: 8, background: '#fff', padding: '8px 12px', borderRadius: 8 }}>Your role ({role}) can’t run the analysis; ask someone whose role can.</div>}
           {/* dark text of its own: this sits in the dark run panel, whose white text it would otherwise take */}
-          {error && <div role="alert" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-rejected-bg)', color: '#14213D', padding: '8px 12px', borderRadius: 8 }}>The analysis stopped: {error}</div>}
+          {error && <div role="alert" style={{ ...cap, marginTop: 8, background: 'var(--snow-status-rejected-bg)', color: '#222f3e', padding: '8px 12px', borderRadius: 8 }}>The analysis stopped: {error}</div>}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 'min(260px, 100%)' }}>
           {running && (

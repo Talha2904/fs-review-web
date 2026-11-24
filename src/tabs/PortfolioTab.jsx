@@ -71,7 +71,7 @@ export default function PortfolioTab({ engagements, user, onOpen, onConsolidated
           const st = STAGE[k] ? k : null, alert = k === 'Overdue points' && v > 0;
           const inner = <><div className="kpi-k">{k}</div><div className={'kpi-v' + (alert ? ' is-alert' : '')}><CountUp value={v} /></div>{x && <div className="kpi-x">{x}</div>}</>;
           return st ? <button key={k} type="button" className="kpi is-link" aria-pressed={stageF === st} style={{ '--c': STAGE[st].ink }} onClick={() => setStageF(stageF === st ? '' : st)}>{inner}</button>
-            : <div key={k} className="kpi" style={{ '--c': alert ? 'var(--pa-red)' : { Funds: '#14213D', 'In progress': '#3FB8C9', 'Open points': '#E9B949' }[k] || '#AEB9C9' }}>{inner}</div>;
+            : <div key={k} className="kpi" style={{ '--c': alert ? 'var(--pa-red)' : { Funds: '#222f3e', 'In progress': '#3FB8C9', 'Open points': '#E9B949' }[k] || '#AEB9C9' }}>{inner}</div>;
         })}
       </div>
 

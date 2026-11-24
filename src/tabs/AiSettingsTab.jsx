@@ -50,7 +50,7 @@ export default function AiSettingsTab({ auth, me }) {
         <div style={{ ...cap, ...muted, marginTop: 6, maxWidth: 720 }}>Set on the server as <code>ANTHROPIC_API_KEY</code>; only its last four characters are shown.<InfoTip label="Where the key is set">The key is never entered or shown in the app. It is set in .env or in your hosting provider’s secret settings.</InfoTip></div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginTop: 14 }}>
           <Button kind="secondary" disabled={test?.state === 'running'} onClick={runTest}>{test?.state === 'running' ? 'Testing…' : 'Test Connection'}</Button>
-          {test && test.state !== 'running' && <span role={test.state === 'err' ? 'alert' : 'status'} style={{ ...cap, color: test.state === 'err' ? 'var(--pa-red)' : '#2E6B12' }}>{test.text}</span>}
+          {test && test.state !== 'running' && <span role={test.state === 'err' ? 'alert' : 'status'} style={{ ...cap, color: test.state === 'err' ? 'var(--pa-red)' : '#178a46' }}>{test.text}</span>}
         </div>
       </Card>
 

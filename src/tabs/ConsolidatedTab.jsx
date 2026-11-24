@@ -142,7 +142,7 @@ export default function ConsolidatedTab({ focus, canRun, canLink, onOpenPoint, o
       {result && (<>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: 12 }}>
           {[['Balances between funds', links.length, '#3FB8C9'], ['Differ', differing, differing ? 'var(--pa-red)' : '#AEB9C9'],
-            ['With no match', unmatched.length, unmatched.length ? '#E9B949' : '#AEB9C9'], ['Recurring matters', common.length, '#14213D']].map(([k, v, c]) => (
+            ['With no match', unmatched.length, unmatched.length ? '#E9B949' : '#AEB9C9'], ['Recurring matters', common.length, '#222f3e']].map(([k, v, c]) => (
             <div key={k} className="kpi" style={{ '--c': c }}><div className="kpi-k">{k}</div><div className={'kpi-v' + (k === 'Differ' && v ? ' is-alert' : '')}>{v}</div></div>))}
         </div>
 

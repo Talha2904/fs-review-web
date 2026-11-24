@@ -48,9 +48,9 @@ export default function TbMapModal({ docs, map, tol = 1, canEdit, onSave, onClos
                     <option value="">Not mapped</option>
                     {statements.map(st => <optgroup key={st} label={st}>{lines.filter(l => l.statement === st).map(l => <option key={l.key} value={l.key}>{l.label}</option>)}</optgroup>)}
                   </Select>
-                  {wrongSide && <span style={{ ...cap, color: '#8A5A00', display: 'block', marginTop: 2 }}>This account is a {a.bal > 0 ? 'debit' : 'credit'}; the line is usually a {line.side === 'dr' ? 'debit' : 'credit'}.</span>}
+                  {wrongSide && <span style={{ ...cap, color: '#b35f00', display: 'block', marginTop: 2 }}>This account is a {a.bal > 0 ? 'debit' : 'credit'}; the line is usually a {line.side === 'dr' ? 'debit' : 'credit'}.</span>}
                 </span>
-                <span data-label="Line result" style={{ ...cap, color: !r ? 'var(--snow-black-40)' : r.ok ? '#2E6B12' : 'var(--pa-red)' }}>{!r ? '—' : r.ok ? '✓ Agrees' : `✕ Differs by ${fmt(Math.abs(r.diff))}`}</span>
+                <span data-label="Line result" style={{ ...cap, color: !r ? 'var(--snow-black-40)' : r.ok ? '#178a46' : 'var(--pa-red)' }}>{!r ? '—' : r.ok ? '✓ Agrees' : `✕ Differs by ${fmt(Math.abs(r.diff))}`}</span>
               </div>);
           })}
         </div>
