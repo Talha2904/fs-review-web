@@ -38,7 +38,7 @@ export default function AiSettingsTab({ auth, me }) {
     <div style={page}>
       <div style={{ maxWidth: 760 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}><div style={h2}>AI Settings</div><Pill bg={status[1]}>{status[0]}</Pill></div>
-        <div style={{ ...body, ...muted, marginTop: 6 }}>AI (Claude) reads documents and drafts text. The app recalculates every figure, a person clears every point, and every AI call is recorded in the Activity Log.</div>
+        <div style={{ ...body, ...muted, marginTop: 6 }}>What AI does, and where.<InfoTip label="About AI in StatementX">AI (Claude) reads documents and drafts text. The app recalculates every figure, a person clears every point, and every AI call is recorded in the Activity Log.</InfoTip></div>
       </div>
       {msg.text && <div role={msg.kind === 'err' ? 'alert' : 'status'} style={{ ...cap, borderRadius: 8, padding: '10px 14px', background: msg.kind === 'err' ? 'var(--snow-status-rejected-bg)' : 'var(--snow-status-complete-bg)' }}>{msg.text}</div>}
 

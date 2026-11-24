@@ -71,7 +71,7 @@ export default function FinanceConsole({ user, auth, onSignOut }) {
 // ---- Ready to Invoice ----------------------------------------------------------------------
 function Ready({ queue, unlocked, st, deleted, onCreate }) {
   return (<>
-    <div><div style={h2}>Ready to Invoice</div><div style={{ ...body, ...muted, marginTop: 6, maxWidth: 760 }}>Funds appear here at the final sign-off (the Partner’s, where partner sign-off is required). Each invoice has the professional fee and the fund’s AI usage as separate lines.<InfoTip label="About later AI usage">AI usage after an invoice was issued appears again here for a supplementary invoice.</InfoTip></div></div>
+    <div><div style={h2}>Ready to Invoice</div><div style={{ ...body, ...muted, marginTop: 6, maxWidth: 760 }}>Funds ready to bill after final sign-off.<InfoTip label="About invoicing">Funds appear here at the final sign-off (the Partner’s, where partner sign-off is required). Each invoice has the professional fee and the fund’s AI usage as separate lines. AI usage after an invoice was issued appears again here for a supplementary invoice.</InfoTip></div></div>
     {unlocked.length > 0 && <div role="status" style={{ ...cap, background: 'var(--snow-status-approved-bg)', borderRadius: 8, padding: '10px 14px' }}>Unlocked after invoicing: {unlocked.map(e => e.fundName).join(', ')}. If it is signed off again, any new AI usage will appear here for a supplementary invoice.</div>}
     <Card>
       {!queue.length ? <div style={{ ...body, ...muted }}>Nothing is waiting to be invoiced.</div> : (
@@ -303,7 +303,7 @@ function Recovery({ st, usage }) {
   const maxAge = Math.max(1, ...ages.map(a => a[1]));
   return (<>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
-      <div><div style={h2}>Recovery</div><div style={{ ...body, ...muted, marginTop: 6 }}>Cash collected against invoices, what is still owed and for how long, and how much of the AI cost was recharged.</div></div>
+      <div><div style={h2}>Recovery</div><div style={{ ...body, ...muted, marginTop: 6 }}>Collected, owed and AI recharged.<InfoTip label="About recovery">Cash collected against invoices, what is still owed and for how long, and how much of the AI cost was recharged.</InfoTip></div></div>
       <Button kind="secondary" onClick={exportR}>Export (.xlsx)</Button>
     </div>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(170px, 100%), 1fr))', gap: 12 }}>
@@ -337,7 +337,7 @@ function Settings({ st, act, extra, auth, integ, reloadInteg }) {
   const save = () => act({ type: 'settings', settings: { ...s, defaultFee: toP(s._fee ?? fromP(s.defaultFee)), usdToGbp: s.usdToGbp === '' ? null : s.usdToGbp,
     rates: Object.fromEntries(Object.entries(s.rates || {}).map(([m, r]) => [m, { in: Number(r.in) || 0, out: Number(r.out) || 0 }]).filter(([, r]) => r.in || r.out)) } }, 'Billing settings saved.');
   return (<>
-    <div><div style={h2}>Billing Settings</div><div style={{ ...body, ...muted, marginTop: 6 }}>Invoice details, payment terms and the prices used to charge AI usage.</div></div>
+    <div><div style={h2}>Billing Settings</div><div style={{ ...body, ...muted, marginTop: 6 }}>Invoice details, terms and AI prices.</div></div>
     <Card><CardHead title="On the Invoice" />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12, marginTop: 12 }}>
         {F({ k: 'firmName', label: 'Firm name' })}{F({ k: 'firmAddress', label: 'Firm address' })}{F({ k: 'vatNumber', label: 'VAT number' })}

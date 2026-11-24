@@ -56,7 +56,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 660 }}>
           <div style={h2}>Documents</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>Attach each document, then mark them ready for review.<InfoTip label="How documents are checked">Each document is checked to be the right one for this fund and year end, without using AI.</InfoTip></div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>Attach, check, then mark ready.<InfoTip label="How documents are checked">Attach each document, then mark them ready for review. Each document is checked to be the right one for this fund and year end, without using AI.</InfoTip></div>
         </div>
         {editable ? <Button kind="secondary" onClick={attachAll}>Use All Sample Documents</Button>
           : <span style={{ ...cap, ...muted, maxWidth: 280 }}>{signed ? 'The review is signed off; documents are locked.' : !canAttach ? 'Your role cannot attach documents.' : 'The documents are locked while marked ready for review.'}</span>}
@@ -89,10 +89,10 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
               </div>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 12 }}>
                 <span className={'doc-glyph is-' + (SLOT_RULES[d.id]?.type || 'any')} aria-hidden="true">{SLOT_RULES[d.id]?.type === 'xlsx' ? 'XLS' : SLOT_RULES[d.id]?.type === 'pdf' ? 'PDF' : 'DOC'}</span>
-                <div style={h3}>{d.name}</div>
+                <div style={h3}>{d.name}<InfoTip label={`About ${d.name}`}>{d.desc} Accepts: {SLOT_RULES[d.id]?.label || 'any file'}.</InfoTip></div>
               </div>
-              <div style={{ ...body, ...muted, marginTop: 4 }}>{d.desc}</div>
-              <div style={{ ...cap, ...muted, marginTop: 6 }}>Accepts: <b style={{ color: 'var(--snow-black-80)' }}>{SLOT_RULES[d.id]?.label || 'any file'}</b></div>
+              {/* the description guides whoever attaches the file; once attached it stays behind the ⓘ */}
+              {!v && <div style={{ ...body, ...muted, marginTop: 4 }}>{d.desc}</div>}
               {infos[d.id] && <div role="status" style={{ ...cap, marginTop: 10, background: 'var(--snow-primary-blue)', borderRadius: 8, padding: '8px 10px' }}>{infos[d.id]}</div>}
               {problems[d.id] && <div role="alert" style={{ ...cap, marginTop: 10, background: 'var(--snow-status-rejected-bg)', borderRadius: 8, padding: '8px 10px' }}>{problems[d.id]}</div>}
 
@@ -102,7 +102,7 @@ export default function DocumentsTab({ aiForReading = false, aiWhyNot = '', onRe
                     <span style={{ ...cap, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><b>v{v.version}</b> · {v.fileName}{v.sameAs ? ` · same content as v${v.sameAs}` : ''}</span>
                     {editable && <button type="button" className="link" aria-label={`Remove ${d.name}`} onClick={() => detach(d.id)} style={{ ...body, ...muted, padding: '0 4px' }}>×</button>}
                   </div>
-                  <div style={{ ...cap, ...muted, marginTop: 6 }}>Uploaded by {v.uploadedBy?.name || '—'} · {when(v.uploadedAt)}</div>
+                  <div style={{ ...cap, ...muted, marginTop: 6 }} title="Uploaded by">{v.uploadedBy?.name || '—'} · {when(v.uploadedAt)}</div>
 
                   {v.validation?.checks?.length > 0 && <CheckList key={v.id} id={v.id} name={d.name} checks={v.validation.checks} />}
                   {v.validation?.status === 'sample' && <div style={{ ...cap, ...muted, marginTop: 10 }}>Built-in sample document; not checked.</div>}

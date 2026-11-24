@@ -54,7 +54,7 @@ export default function EngagementList({ rulesOf = e => e.rules || {}, people = 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 680 }}>
           <div style={h2}>Engagements</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>Click In Review on a fund to open its documents and analysis. {mode && where}</div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>Open a fund with In Review. {mode && where}</div>
         </div>
         {(canWrite || onManageFunds) && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>

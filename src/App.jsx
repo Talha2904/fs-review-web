@@ -50,12 +50,14 @@ import { slotDefs } from './data/sampleFund';
 import { withSetup, varianceOpts } from './lib/pipeline';
 import { runChecks, rankPoints, varianceModel } from './lib/review';
 import { fmt, fmtDate, pctLabel, sym, setCurrency, gbp, whenOf } from './lib/format';
-import { Pill, cap, body, muted, STATUS_LABEL } from './components/ui';
+import { Pill, InfoTip, cap, body, muted, STATUS_LABEL } from './components/ui';
 
 // Fund details, thresholds and the checks to run live in each engagement (src/data/checkLibrary.js).
 const CONFIG = { showFlags: true, showAgentPass: true };
 const REQUIRED = ['cy', 'py', 'tb', 'is'];
 const CRUMB = { portfolio: 'Portfolio', consolidated: 'Consolidated Review', users: 'Users', engagement: 'Engagement', docs: 'Documents', analysis: 'Analysis', var: 'Variance Analysis', sched: 'Review Points', vers: 'Version Comparison', disc: 'Disclosures', signoff: 'Sign-off', activity: 'Activity Log' };
+
+const ASSIST_NOTE = 'Review assistance only. It supports the reviewer’s judgement; it is not an opinion and does not establish that the financial statements are complete or correct.';
 
 function Workspace({ user, auth, onSignOut }) {
   const { log: logRaw } = useActivity();
@@ -655,9 +657,8 @@ function Workspace({ user, auth, onSignOut }) {
     <LibraryContext.Provider value={library}>
     <AppShell root={BRAND.name} crumb={CRUMB[tab]} accent={STEP_COLOR[tab]}
       sidebar={{ tabs, tab, onTab: t => { if (t === 'consolidated') setConsFocus(null); setTab(t); }, user, onSignOut, meta: ['portfolio', 'consolidated'].includes(tab) ? [] : active ? [
-        { k: 'Entity', v: activeEntity?.name || '—' }, { k: 'Fund', v: active.fund.name || '—' }, { k: 'Year End', v: fmtDate(active.fund.yearEnd) },
-        { k: 'Preparer', v: personName(active.fund, 'preparer', people) || '—' }, { k: 'Reviewer', v: personName(active.fund, 'reviewer', people) || '—' },
-        { k: 'Manager', v: personName(active.fund, 'manager', people) || '—' }, { k: 'Threshold', v: sym() + fmt(active.threshold) }
+        // only what places you; the fund band on each screen carries the entity, the people and the progress
+        { k: 'Fund', v: active.fund.name || '—' }, { k: 'Year End', v: fmtDate(active.fund.yearEnd) }
       ] : [] }}
       actions={<>
         {finalSigned && !['portfolio', 'consolidated'].includes(tab) && <Pill bg="var(--snow-status-complete-bg)">Signed off</Pill>}
@@ -669,7 +670,10 @@ function Workspace({ user, auth, onSignOut }) {
           locked={phase === 'running'} onChange={() => { setDraft(null); setTab('engagement'); }}
           onConsolidated={() => openConsolidated({ engagementId: active.id, label: active.fund.name || 'This fund' })} />}
 
-        <p className="assist-note">Review assistance only. It supports the reviewer's judgement; it is not an opinion and does not establish that the financial statements are complete or correct.</p>
+        {/* in full where conclusions are drawn (Analysis, Sign-off); a short line with the full text behind an ⓘ elsewhere */}
+        {['analysis', 'signoff'].includes(tab)
+          ? <p className="assist-note">{ASSIST_NOTE}</p>
+          : <p className="assist-note">Review assistance only; not an opinion.<InfoTip label="About review assistance">{ASSIST_NOTE}</InfoTip></p>}
 
         {stale && canRun && !['engagement', 'users', 'consolidated'].includes(tab) && (
           <div style={{ padding: '12px var(--gutter) 0' }}>

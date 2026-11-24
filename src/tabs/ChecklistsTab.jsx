@@ -48,7 +48,7 @@ export default function ChecklistsTab({ store }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 760 }}>
           <div style={h2}>Disclosure Checklists</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>The CHK-13 checklist, one per accounting framework; each client’s framework is set on its entity.<InfoTip label="About keywords">Keywords are used to suggest where each item may be disclosed in the draft.</InfoTip></div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>One checklist per accounting framework.<InfoTip label="About checklists">The CHK-13 checklist, one per accounting framework; each client’s framework is set on its entity. Keywords are used to suggest where each item may be disclosed in the draft.</InfoTip></div>
         </div>
         <Segmented value={fw} onChange={v => { if (!dirty || window.confirm('Discard unsaved changes?')) setFw(v); }} options={FRAMEWORKS.map(f => [f, f])} />
       </div>

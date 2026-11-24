@@ -43,7 +43,7 @@ export default function EngagementForm({ setup, onChange, locked, onReset, onSav
         <div style={{ maxWidth: 680 }}>
           <button type="button" onClick={onCancel} className="link" style={{ ...cap, ...muted, marginBottom: 6 }}>‹ Engagements</button>
           <div style={h2}>{isNew ? 'New Engagement' : setup.fund.name || 'Engagement'}</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>Set the fund details, review parameters and checks; saving adds it to the listing.</div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>Fund details, review parameters and checks.<InfoTip label="About this form">Saving adds the fund to the engagement listing.</InfoTip></div>
         </div>
         {canWrite && <Button kind="secondary" disabled={locked} onClick={onReset}>Reset Checks to Firm Defaults</Button>}
       </div>

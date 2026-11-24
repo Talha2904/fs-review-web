@@ -61,7 +61,7 @@ export default function SignoffTab({ reports = [], reportActions, review, summar
     <div style={page}>
       <div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}><div style={h2}>Sign-off</div>{st && <Pill bg={st[1]}>{st[0]}</Pill>}</div>
-        <div style={{ ...body, ...muted, marginTop: 6, maxWidth: 760 }}>{partnerRequired ? 'The Manager signs off first, which locks the engagement; the Partner then gives the final sign-off or returns it.' : <>Signing off locks the engagement.<InfoTip label="What the Manager reviews">The Manager’s final review: the cleared points, document overrides, the draft that was analysed and anything still showing in the analysis.</InfoTip></>}</div>
+        <div style={{ ...body, ...muted, marginTop: 6, maxWidth: 760 }}>{partnerRequired ? <>Manager, then Partner.<InfoTip label="How sign-off works">The Manager signs off first, which locks the engagement; the Partner then gives the final sign-off or returns it.</InfoTip></> : <>Signing off locks the engagement.<InfoTip label="What the Manager reviews">The Manager’s final review: the cleared points, document overrides, the draft that was analysed and anything still showing in the analysis.</InfoTip></>}</div>
       </div>
 
       <div role="status" className={'seal ' + (signed ? 'is-signed' : ready ? 'is-ready' : 'is-blocked')} style={body}>

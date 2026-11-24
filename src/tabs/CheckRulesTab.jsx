@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { DEFAULT_SETUP, ruleChanged, buildLibrary, defaultRulesFor, nextRuleId, runnable } from '../data/checkLibrary';
 import { RulesTable } from './EngagementForm';
 import RuleEditor from './RuleEditor';
-import { Button, Card, CardHead, cap, body, h2, muted, page } from '../components/ui';
+import { Button, Card, CardHead, InfoTip, cap, body, h2, muted, page } from '../components/ui';
 import { useActivity } from '../lib/activity';
 
 const EMPTY = { rules: {}, overrides: {}, custom: [] };
@@ -100,7 +100,7 @@ export default function CheckRulesTab({ store }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div style={{ maxWidth: 680 }}>
           <div style={h2}>Check Rules</div>
-          <div style={{ ...body, ...muted, marginTop: 6 }}>The firm’s check library and its defaults. Changes apply to every engagement that follows the firm template, unless the engagement or its client overrides the rule.</div>
+          <div style={{ ...body, ...muted, marginTop: 6 }}>The firm’s checks and their defaults.<InfoTip label="About check rules">Changes apply to every engagement that follows the firm template, unless the engagement or its client overrides the rule.</InfoTip></div>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <Button kind="secondary" disabled={busy || !!editing} onClick={reset}>Reset Defaults</Button>
